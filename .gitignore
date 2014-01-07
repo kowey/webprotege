@@ -1,3 +1,4 @@
+# java
 *.class
 
 # boilerplate generated classes #
@@ -17,6 +18,9 @@ TEST-*.txt
 # WebProtege specific files
 webprotege.properties
 mail.properties
+
+# testing WebProtege
+logs/
 
 # others
 .svn/
