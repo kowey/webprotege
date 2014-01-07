@@ -35,6 +35,7 @@ import edu.stanford.bmir.protege.web.client.ui.projectfeed.ProjectFeedPortlet;
 import edu.stanford.bmir.protege.web.client.ui.tab.AbstractTab;
 import edu.stanford.bmir.protege.web.client.ui.tab.UserDefinedTab;
 import edu.stanford.bmir.protege.web.client.usage.UsagePortlet;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.ConceptDiagramPortlet;
 
 import java.util.*;
 
@@ -191,6 +192,9 @@ public class UIFactory {
             }
             else if(portletJavaClassName.equals(UsagePortlet.class.getName())) {
                 return new UsagePortlet(project);
+            }
+            else if(portletJavaClassName.equals(ConceptDiagramPortlet.class.getName())) {
+                return new ConceptDiagramPortlet(project);
             }
         }
         catch (Exception e) {
