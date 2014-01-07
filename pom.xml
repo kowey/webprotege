@@ -294,8 +294,6 @@
         <configuration>
 	  <!-- It's necessary to let GWT Complile eat a lot of memory -->
           <extraJvmArgs>-Xmx1024M -Xss1024k</extraJvmArgs>
-	  <source>1.6</source>
-          <target>1.6</target>
           <runTarget>WebProtege.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
         </configuration>
