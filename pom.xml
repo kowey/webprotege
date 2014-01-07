@@ -45,15 +45,6 @@
       <version>${gwtVersion}</version>
       <scope>runtime</scope>
     </dependency>
-    <!-- Apparently, pulling in gwt-dev is a bad thing to do. 
-	 The compiler states: [WARNING] Don't declare gwt-dev as a project dependency. This may introduce complex dependency conflicts
-    -->
-    <dependency>
-     <groupId>com.google.gwt</groupId>
-      <artifactId>gwt-dev</artifactId>
-      <version>${gwtVersion}</version>
-      <scope>compile</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-user</artifactId>
