@@ -239,6 +239,12 @@
            I have no idea what version this package actually is.-->
       <version>1</version>
     </dependency>
+    <dependency>
+      <groupId>com.hydro4ge</groupId>
+      <artifactId>raphaelgwt</artifactId>
+      <version>r42</version>
+      <scope>provided</scope>
+    </dependency>
     <!-- End locally sourced stuff -->
 
     <dependency>

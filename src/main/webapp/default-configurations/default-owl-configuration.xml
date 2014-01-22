@@ -6,7 +6,7 @@
         <!-- ********************************** -->
 
         <tab>
-            <name> edu.stanford.bmir.protege.web.client.ui.tab.UserDefinedTab</name>
+            <name>edu.stanford.bmir.protege.web.client.ui.tab.UserDefinedTab</name>
             <label>ConceptDiagram</label>
             <columns>
 

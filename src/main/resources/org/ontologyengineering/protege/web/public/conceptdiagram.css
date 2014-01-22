@@ -1,0 +1,5 @@
+.koweybox {
+        border: 2px dashed red;
+        position: relative;
+        z-index:4000;
+}
