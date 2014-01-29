@@ -594,9 +594,6 @@ public class AccessPolicyManager {
                         }
                     }
 
-                    String invitationEmailBody = getInvitationEmailBody(invitation.isWriter(), projectId, getOwner(projectId), getInvitationURL(invitationBaseURL, invitation.getEmailId(), tempUser.getPropertyValue(InvitationConstants.USER_PROPERTY_TEMPORARY_ACCOUNT_RANDOM_NO)));
-                    App.get().getMailManager().sendMail(invitation.getEmailId(), EmailConstants.INVITATION_SUBJECT, invitationEmailBody);
-
                 }
                 catch (Exception e) {
                     LOGGER.severe(e);

@@ -263,33 +263,6 @@ public class WatchManagerImpl implements WatchManager, HasDispose {
     }
 
     private void fireWatch(final Watch<?> watch, final UserId userId, final OWLEntity entity) {
-
-        emailExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                final User user = MetaProjectManager.getManager().getMetaProject().getUser(userId.getUserName());
-                final String email = user.getEmail();
-                if (email == null) {
-                    return;
-                }
-
-                final String displayName = "watched project";
-                final String emailSubject = String.format("Changes made in %s by %s", displayName, user.getName());
-                String message = "\nChanges were made to " + entity.getEntityType().getName() + " " + project.getRenderingManager().getBrowserText(entity) + " " + entity.getIRI().toQuotedString();
-                message = message + (" on " + new Date() + "\n\n");
-                message = message + "You can view this " + entity.getEntityType().getName() + " at the link below:";
-                StringBuilder directLinkBuilder = new StringBuilder();
-                directLinkBuilder.append("http://");
-                directLinkBuilder.append(WebProtegeProperties.get().getApplicationHostName());
-                directLinkBuilder.append("#Edit:projectId=");
-                directLinkBuilder.append(project.getProjectId().getId());
-                directLinkBuilder.append(";tab=ClassesTab&id=");
-                directLinkBuilder.append(URLEncoder.encode(entity.getIRI().toString()));
-                message += "\n" + directLinkBuilder.toString();
-                App.get().getMailManager().sendMail(email, emailSubject, message);
-
-            }
-        });
     }
 
     @Override

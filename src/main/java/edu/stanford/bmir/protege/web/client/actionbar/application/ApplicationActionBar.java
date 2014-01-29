@@ -21,8 +21,6 @@ public interface ApplicationActionBar extends IsWidget {
 
     void setChangePasswordHandler(ChangePasswordHandler changePasswordHandler);
 
-    void setChangeEmailAddressHandler(ChangeEmailAddressHandler changeEmailAddressHandler);
-
     void setShowAboutBoxHandler(ShowAboutBoxHandler showAboutBoxHandler);
 
     void setShowUserGuideHandler(ShowUserGuideHandler showUserGuideHandler);

@@ -57,12 +57,6 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
         }
     };
 
-    private ChangeEmailAddressHandler changeEmailAddressHandler = new ChangeEmailAddressHandler() {
-        @Override
-        public void handleChangeEmailAddress() {
-        }
-    };
-
     private ShowAboutBoxHandler showAboutBoxHandler = new ShowAboutBoxHandler() {
         @Override
         public void handleShowAboutBox() {
@@ -158,12 +152,6 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
                 changePasswordHandler.handleChangePassword();
             }
         });
-        popupMenu.addItem("Change email address", new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                changeEmailAddressHandler.handleChangeEmailAddress();
-            }
-        });
         popupMenu.showRelativeTo(userNameItem);
     }
 
@@ -200,11 +188,6 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
     @Override
     public void setChangePasswordHandler(ChangePasswordHandler changePasswordHandler) {
         this.changePasswordHandler = checkNotNull(changePasswordHandler);
-    }
-
-    @Override
-    public void setChangeEmailAddressHandler(ChangeEmailAddressHandler changeEmailAddressHandler) {
-        this.changeEmailAddressHandler = checkNotNull(changeEmailAddressHandler);
     }
 
     @Override

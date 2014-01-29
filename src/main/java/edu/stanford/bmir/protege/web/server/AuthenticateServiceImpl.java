@@ -164,13 +164,7 @@ public class AuthenticateServiceImpl extends WebProtegeRemoteServiceServlet impl
     }
 
     public void sendPasswordReminder(String userName) {
-        String email = MetaProjectManager.getManager().getUserEmail(userName);
-        if (email == null) {
-            throw new IllegalArgumentException("User " + userName + " does not have an email configured.");
-        }
-        changePassword(userName, EmailConstants.RESET_PASSWORD);
-        App.get().getMailManager().sendMail(email, EmailConstants.FORGOT_PASSWORD_SUBJECT, EmailConstants.FORGOT_PASSWORD_EMAIL_BODY);
-
+            throw new IllegalArgumentException("Email disabled, so can't send password reminder to  " + userName);
     }
 
     public UserData registerUser(String userName, String password, String email) {

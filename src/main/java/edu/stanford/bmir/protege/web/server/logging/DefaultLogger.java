@@ -61,9 +61,6 @@ public class DefaultLogger implements WebProtegeLogger {
     }
 
     private void logSevereMessage(String message, boolean sendMail) {
-        if (sendMail) {
-            emailMessage(message);
-        }
         writeToLog(message, Level.SEVERE);
     }
 
@@ -161,18 +158,6 @@ public class DefaultLogger implements WebProtegeLogger {
         return formattedMessage;
     }
 
-
-    private void emailMessage(String message) {
-        try {
-            Optional<String> adminEmail = WebProtegeProperties.get().getAdministratorEmail();
-            if (adminEmail.isPresent()) {
-                App.get().getMailManager().sendMail(adminEmail.get(), SUBJECT, message);
-            }
-        }
-        catch (Throwable e) {
-            info("Problem sending mail %s", e.getMessage());
-        }
-    }
 
     private void writeToLog(String message, Level level) {
         if (logger.isLoggable(level)) {
