@@ -37,7 +37,6 @@ public class BannerPresenter {
         w.setSignOutRequestHandler(new SignOutRequestHandlerImpl());
         w.setSignUpForAccountHandler(new SignUpForAccountHandlerImpl());
         w.setChangePasswordHandler(new ChangePasswordHandlerImpl());
-        w.setChangeEmailAddressHandler(new ChangeEmailAddressHandlerImpl());
         w.setShowAboutBoxHandler(new ShowAboutBoxHandlerImpl());
         w.setShowUserGuideHandler(new ShowUserGuideHandlerImpl());
 

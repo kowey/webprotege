@@ -24,16 +24,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class UIConfigurationManager {
 
-    private static final String DEFAULT_OBO_CONFIGURATION_FILE_NAME = "default-obo-configuration.xml";
-
     private static final String DEFAULT_OWL_CONFIGURATION_FILE_NAME = "default-owl-configuration.xml";
 
     private static final String CONFIGURATION_FILE_NAME = "ui-configuration.xml";
 
 
     private static final File DEFAULT_OWL_CONFIGURATION_FILE = new File(WebProtegeFileStore.getInstance().getDefaultUIConfigurationDataDirectory(), DEFAULT_OWL_CONFIGURATION_FILE_NAME);
-
-    private static final File DEFAULT_OBO_CONFIGURATION_FILE = new File(WebProtegeFileStore.getInstance().getDefaultUIConfigurationDataDirectory(), DEFAULT_OBO_CONFIGURATION_FILE_NAME);
 
 
     private static final UIConfigurationManager instance = new UIConfigurationManager();
@@ -100,12 +96,8 @@ public class UIConfigurationManager {
         }
 
         OWLAPIProjectType projectType = OWLAPIProjectMetadataManager.getManager().getType(projectId);
-        if (projectType.equals(OWLAPIProjectType.getOBOProjectType())) {
-            return DEFAULT_OBO_CONFIGURATION_FILE;
-        }
-        else {
+
             return DEFAULT_OWL_CONFIGURATION_FILE;
-        }
 
     }
 

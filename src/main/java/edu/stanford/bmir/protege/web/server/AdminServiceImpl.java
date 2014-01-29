@@ -7,7 +7,6 @@ import edu.stanford.bmir.protege.web.client.ui.login.constants.AuthenticationCon
 import edu.stanford.bmir.protege.web.server.app.App;
 import edu.stanford.bmir.protege.web.server.app.WebProtegeProperties;
 import edu.stanford.bmir.protege.web.server.init.WebProtegeConfigurationException;
-import edu.stanford.bmir.protege.web.server.mail.MessagingExceptionHandler;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIMetaProjectStore;
 import edu.stanford.bmir.protege.web.shared.permissions.Permission;
 import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
@@ -107,12 +106,7 @@ public class AdminServiceImpl extends WebProtegeRemoteServiceServlet implements 
 //    }
 
     public void sendPasswordReminder(String userName) throws UnrecognizedUserNameException {
-        String email = MetaProjectManager.getManager().getUserEmail(userName);
-        if (email == null) {
-            throw new UnrecognizedUserNameException("User " + userName + " does not have an email configured.");
-        }
-        changePassword(userName, EmailConstants.RESET_PASSWORD);
-        App.get().getMailManager().sendMail(email, EmailConstants.FORGOT_PASSWORD_SUBJECT, EmailConstants.FORGOT_PASSWORD_EMAIL_BODY);
+        throw new UnrecognizedUserNameException("Email support disabled in this branch of Webprotege");
     }
 
     public LoginChallengeData getUserSaltAndChallenge(String userNameOrEmail) {

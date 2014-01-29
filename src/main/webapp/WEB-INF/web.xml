@@ -100,16 +100,6 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>OBOTextEditorService</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.OBOTextEditorServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet>
-		<servlet-name>RecaptchaService</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.RecaptchaServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet>
 		<servlet-name>RevisionManager</servlet-name>
 		<servlet-class>edu.stanford.bmir.protege.web.server.RevisionManagerServiceImpl</servlet-class>
 	</servlet>
@@ -141,11 +131,6 @@
 	<servlet-mapping>
 		<servlet-name>DownloadServlet</servlet-name>
 		<url-pattern>/download</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>RecaptchaService</servlet-name>
-		<url-pattern>/webprotege/recaptchaservice</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>
@@ -211,11 +196,6 @@
 	<servlet-mapping>
 		<servlet-name>UserProfileManagerService</servlet-name>
 		<url-pattern>/webprotege/userprofilemanager</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>OBOTextEditorService</servlet-name>
-		<url-pattern>/webprotege/obotexteditorservice</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>

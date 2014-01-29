@@ -1,6 +1,5 @@
 package edu.stanford.bmir.protege.web.server.owlapi.manager;
 
-import edu.stanford.bmir.protege.web.server.obo.WebProtegeOBOFormatParserFactory;
 import org.coode.owlapi.oboformat.OBOFormatParserFactory;
 import org.semanticweb.binaryowl.owlapi.BinaryOWLOntologyDocumentParserFactory;
 import org.semanticweb.binaryowl.owlapi.BinaryOWLOntologyDocumentStorer;
@@ -31,8 +30,6 @@ public class WebProtegeOWLManager {
         List<OWLParserFactory> parserFactoryList = new ArrayList<OWLParserFactory>(parserFactoryRegistry.getParserFactories());
         Collections.reverse(parserFactoryList);
         parserFactoryRegistry.clearParserFactories();
-        // Replace the OWL API 3.4.9 OBOFormatParserFactory.  There are some issues with it.
-        parserFactoryRegistry.registerParserFactory(new WebProtegeOBOFormatParserFactory());
         for(OWLParserFactory parserFactory : parserFactoryList) {
             if (!(parserFactory instanceof OBOFormatParserFactory)) {
                 // Replace the OBO one with the one above

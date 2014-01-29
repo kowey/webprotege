@@ -1,7 +1,5 @@
 package edu.stanford.bmir.protege.web.server.app;
 
-import edu.stanford.bmir.protege.web.server.mail.MailManager;
-
 /**
  * Author: Matthew Horridge<br>
  * Stanford University<br>
@@ -15,8 +13,6 @@ public class App {
 
     private static final App instance = new App();
 
-    private MailManager mailManager;
-
     private App() {
     }
 
@@ -24,14 +20,4 @@ public class App {
         return instance;
     }
 
-    public void setMailManager(MailManager mailManager) {
-        this.mailManager = mailManager;
-    }
-
-    public MailManager getMailManager() {
-        if(mailManager == null) {
-            throw new IllegalStateException("App has not be initialized properly.  No MailManager has been set.");
-        }
-        return mailManager;
-    }
 }

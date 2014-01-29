@@ -19,8 +19,6 @@ import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.*;
 import edu.stanford.bmir.protege.web.client.rpc.data.OpenIdData;
 import edu.stanford.bmir.protege.web.client.ui.openid.OpenIdUtil;
-import edu.stanford.bmir.protege.web.shared.mail.SetEmailAddressAction;
-import edu.stanford.bmir.protege.web.shared.mail.SetEmailAddressResult;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
 import java.util.Map;
@@ -317,11 +315,10 @@ public class EditProfileUtil {
             boolean isEmailValid = false;
             isEmailValid = isValidEmail(userEmailTextBox.getText().trim());
             if (userEmailTextBox.getText().trim().isEmpty() || isEmailValid) {
-                win.getEl().mask("Saving email ...");
+                win.getEl().mask("WARNING EMAIL DISABLED ...");
                 final EditProfileHandler callback = new EditProfileHandler(win);
                 final String userName = userNameTextBox.getText().trim();
                 final UserId userId = UserId.getUserId(userName);
-                DispatchServiceManager.get().execute(new SetEmailAddressAction(userId, userEmailTextBox.getText().trim()), new EmptySuccessWebProtegeCallback<SetEmailAddressResult>());
                 NotificationServiceManager.getInstance().setNotificationDelay(userId,
                             NotificationType.COMMENT, NotificationInterval.fromString(commentsNotification.getItemText(commentsNotification.getSelectedIndex())), callback);
                     NotificationServiceManager.getInstance().setNotificationDelay(userId,
