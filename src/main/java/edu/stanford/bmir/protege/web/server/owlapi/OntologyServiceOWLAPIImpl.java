@@ -9,7 +9,6 @@ import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetric;
 import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricValue;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
-import edu.stanford.bmir.protege.web.shared.watches.Watch;
 import edu.stanford.smi.protege.util.Log;
 import org.ncbo.stanford.bean.concept.ClassBean;
 import org.ncbo.stanford.util.BioPortalServerConstants;
@@ -429,10 +428,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
                 int directNotesCount = project.getNotesManager().getIndirectNotesCount(subclass);
 //                int indirectNotesCount = project.getNotesManager().getIndirectNotesCount(cls);
                 data.setLocalAnnotationsCount(directNotesCount);
-            Set<Watch<?>> directWatches = project.getWatchManager().getDirectWatches(subclass, getUserId());
-            if(!directWatches.isEmpty()) {
-                data.setWatches(directWatches);
-            }
                 data.setValueType(ValueType.Cls);
                 result.add(data);
 //            }

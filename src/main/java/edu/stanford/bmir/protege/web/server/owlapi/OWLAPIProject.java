@@ -19,8 +19,6 @@ import edu.stanford.bmir.protege.web.server.owlapi.change.OWLAPIChangeManager;
 import edu.stanford.bmir.protege.web.server.owlapi.manager.WebProtegeOWLManager;
 import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricsManager;
 import edu.stanford.bmir.protege.web.server.permissions.ProjectPermissionsManager;
-import edu.stanford.bmir.protege.web.server.watches.WatchManager;
-import edu.stanford.bmir.protege.web.server.watches.WatchManagerImpl;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import edu.stanford.bmir.protege.web.shared.HasDataFactory;
 import edu.stanford.bmir.protege.web.shared.HasDispose;
@@ -116,9 +114,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
 
     private OWLAPIProjectMetricsManager metricsManager;
 
-    // TODO Dependency injection
-    private final WatchManager watchManager;
-
 
     private final ReadWriteLock projectChangeLock = new ReentrantReadWriteLock();
 
@@ -182,7 +177,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
         manager.setDelegate(delegateManager);
 
         this.projectAccessManager = new ProjectAccessManager(getProjectId(), projectEventManager);
-        this.watchManager = new WatchManagerImpl(this);
 
         entityCrudKitHandlerCache = new ProjectEntityCrudKitHandlerCache(getProjectId());
         loadProject();
@@ -319,10 +313,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
 
     public ProjectAccessManager getProjectAccessManager() {
         return projectAccessManager;
-    }
-
-    public WatchManager getWatchManager() {
-        return watchManager;
     }
 
     public OWLAPIChangeManager getChangeManager() {
