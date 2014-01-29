@@ -26,36 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ApplicationBarImpl extends Composite implements ApplicationActionBar {
 
-    private SignInRequestHandler signInRequestHandler = new SignInRequestHandler() {
-        @Override
-        public void handleSignInRequest() {
-        }
-    };
 
-    private SignOutRequestHandler signOutRequestHandler = new SignOutRequestHandler() {
-        @Override
-        public void handleSignOutRequest() {
-        }
-    };
-
-//    private ShowAccountSettingsHandler showAccountSettingsHandler = new ShowAccountSettingsHandler() {
-//        @Override
-//        public void handleShowAccountSettings() {
-//        }
-//    };
-
-
-    private SignUpForAccountHandler signUpForAccountHandler = new SignUpForAccountHandler() {
-        @Override
-        public void handleSignUpForAccount() {
-        }
-    };
-
-    private ChangePasswordHandler changePasswordHandler = new ChangePasswordHandler() {
-        @Override
-        public void handleChangePassword() {
-        }
-    };
 
     private ShowAboutBoxHandler showAboutBoxHandler = new ShowAboutBoxHandler() {
         @Override
@@ -69,21 +40,11 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
         }
     };
 
-    public void setSignUpForAccountHandler(SignUpForAccountHandler signUpForAccountHandler) {
-        this.signUpForAccountHandler = signUpForAccountHandler;
-    }
-
     interface ApplicationBarImplUiBinder extends UiBinder<HTMLPanel, ApplicationBarImpl> {
 
     }
 
     private static ApplicationBarImplUiBinder ourUiBinder = GWT.create(ApplicationBarImplUiBinder.class);
-
-    @UiField
-    protected ButtonBase userNameItem;
-
-    @UiField
-    protected ButtonBase signUpForAccountItem;
 
     @UiField
     protected ButtonBase helpItem;
@@ -92,20 +53,6 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
         HTMLPanel rootElement = ourUiBinder.createAndBindUi(this);
         initWidget(rootElement);
         helpItem.setHTML("Help&nbsp;&nbsp;&#x25BE");
-    }
-
-    @UiHandler("signUpForAccountItem")
-    protected void handleSignUpForAccountItemClicked(ClickEvent clickEvent) {
-        signUpForAccountHandler.handleSignUpForAccount();
-    }
-
-    @UiHandler("userNameItem")
-    protected void handleSignInItemClicked(ClickEvent clickEvent) {
-        if (!Application.get().isGuestUser()) {
-            showSignedInPopup();
-        } else {
-            signInRequestHandler.handleSignInRequest();
-        }
     }
 
     @UiHandler("helpItem")
@@ -130,64 +77,6 @@ public class ApplicationBarImpl extends Composite implements ApplicationActionBa
             }
         });
         popupMenu.showRelativeTo(helpItem);
-    }
-
-    private void showSignedInPopup() {
-        PopupMenu popupMenu = new PopupMenu();
-        popupMenu.addItem("Sign out", new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                signOutRequestHandler.handleSignOutRequest();
-            }
-        });
-//        popupMenu.addItem("Account settings", new ClickHandler() {
-//            @Override
-//            public void onClick(ClickEvent event) {
-//                showAccountSettingsHandler.handleShowAccountSettings();
-//            }
-//        });
-        popupMenu.addItem("Change password", new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                changePasswordHandler.handleChangePassword();
-            }
-        });
-        popupMenu.showRelativeTo(userNameItem);
-    }
-
-    @Override
-    public void setSignedInUser(UserId userId) {
-        if (userId.isGuest()) {
-            userNameItem.setText("Sign in");
-            signUpForAccountItem.setVisible(true);
-        } else {
-            SafeHtmlBuilder builder = getSignedInUserNameAsSafeHtml(userId);
-            userNameItem.setHTML(builder.toSafeHtml());
-            signUpForAccountItem.setVisible(false);
-        }
-    }
-
-    private static SafeHtmlBuilder getSignedInUserNameAsSafeHtml(UserId userId) {
-        SafeHtmlBuilder builder = new SafeHtmlBuilder();
-        builder.appendEscaped(userId.getUserName());
-        // Append a small down arrow
-        builder.appendHtmlConstant("&nbsp;&nbsp;&#x25BE");
-        return builder;
-    }
-
-    @Override
-    public void setSignInRequestHandler(SignInRequestHandler signInRequestHandler) {
-        this.signInRequestHandler = checkNotNull(signInRequestHandler);
-    }
-
-    @Override
-    public void setSignOutRequestHandler(SignOutRequestHandler signOutRequestHandler) {
-        this.signOutRequestHandler = checkNotNull(signOutRequestHandler);
-    }
-
-    @Override
-    public void setChangePasswordHandler(ChangePasswordHandler changePasswordHandler) {
-        this.changePasswordHandler = checkNotNull(changePasswordHandler);
     }
 
     @Override
