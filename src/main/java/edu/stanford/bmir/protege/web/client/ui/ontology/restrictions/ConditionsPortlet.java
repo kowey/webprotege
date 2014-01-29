@@ -178,7 +178,7 @@ public class ConditionsPortlet extends AbstractOWLEntityPortlet{
     }
 
     protected void updateButtonStates() {
-        boolean hasWritePermission = hasWritePermission();
+        boolean hasWritePermission = true;
         for (int i = 0; i < conditionItems.size(); i++) {
             Widget widget1 = grid.getWidget(i, EDIT_COL_INDEX);
             if (widget1 != null) {

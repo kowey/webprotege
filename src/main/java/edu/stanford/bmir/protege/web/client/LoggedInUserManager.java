@@ -12,7 +12,6 @@ import edu.stanford.bmir.protege.web.client.events.UserLoggedOutEvent;
 import edu.stanford.bmir.protege.web.client.rpc.AdminServiceManager;
 import edu.stanford.bmir.protege.web.client.ui.login.constants.AuthenticationConstants;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
-import edu.stanford.bmir.protege.web.shared.permissions.GroupId;
 import edu.stanford.bmir.protege.web.shared.user.UserDetails;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
@@ -31,8 +30,6 @@ public class LoggedInUserManager {
     private UserId userId = UserId.getGuest();
 
     private UserDetails userDetails = UserDetails.getGuestUserDetails();
-
-    private Set<GroupId> groups = new HashSet<GroupId>();
 
     private Map<String, String> currentUserProperties = new HashMap<String, String>();
 
@@ -91,7 +88,7 @@ public class LoggedInUserManager {
             }
 
             public void onSuccess(Void result) {
-                replaceUserAndBroadcastChanges(UserDetails.getGuestUserDetails(), Collections.<GroupId>emptySet());
+                replaceUserAndBroadcastChanges(UserDetails.getGuestUserDetails());
             }
         });
     }
@@ -108,7 +105,7 @@ public class LoggedInUserManager {
 
             @Override
             public void onSuccess(GetCurrentUserInSessionResult result) {
-                replaceUserAndBroadcastChanges(result.getUserDetails(), result.getUserGroupIds());
+                replaceUserAndBroadcastChanges(result.getUserDetails());
                 if(callback.isPresent()) {
                     callback.get().onSuccess(result.getUserDetails());
                 }
@@ -123,10 +120,6 @@ public class LoggedInUserManager {
 
     public Optional<String> getLoggedInUserEmailAddress() {
         return userDetails.getEmailAddress();
-    }
-
-    public Set<GroupId> getLoggedInUserGroups() {
-        return new HashSet<GroupId>(groups);
     }
 
 
@@ -154,14 +147,12 @@ public class LoggedInUserManager {
 
 
 
-    private void replaceUserAndBroadcastChanges(UserDetails newUserDetails, Set<GroupId> newUserGroups) {
-        groups.clear();
+    private void replaceUserAndBroadcastChanges(UserDetails newUserDetails) {
         currentUserProperties.clear();
 
         UserId previousUserId = this.userId;
         this.userId = newUserDetails.getUserId();
         this.userDetails = newUserDetails;
-        this.groups.addAll(newUserGroups);
         if(userId.isGuest()) {
             EventBusManager.getManager().postEvent(new UserLoggedOutEvent(previousUserId));
         }

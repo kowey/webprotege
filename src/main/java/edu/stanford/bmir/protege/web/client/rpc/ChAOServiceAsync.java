@@ -30,13 +30,5 @@ public interface ChAOServiceAsync {
 
     void getChanges(String projectName, String entityName, AsyncCallback<Collection<ChangeData>> cb);
 
-    /*
-     * Watched entities
-     */
-
-	void getWatchedEntities(String projectName, String userName, int start, int limit, String sort, String dir, AsyncCallback<PaginationData<ChangeData>> cb);
-
-    void getWatchedEntities(String projectName, String userName, AsyncCallback<Collection<ChangeData>> cb);
-
 
 }

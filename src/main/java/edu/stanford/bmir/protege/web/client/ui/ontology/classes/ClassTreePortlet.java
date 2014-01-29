@@ -58,7 +58,6 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentAddedE
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentAddedHandler;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
-import edu.stanford.bmir.protege.web.shared.watches.*;
 import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -165,24 +164,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
             public void entityNotesChanged(EntityNotesChangedEvent event) {
                 if (isEventForThisProject(event)) {
                     onNotesChanged(event);
-                }
-            }
-        });
-
-        addProjectEventHandler(WatchAddedEvent.TYPE, new WatchAddedHandler() {
-            @Override
-            public void handleWatchAdded(WatchAddedEvent event) {
-                if (isEventForThisProject(event)) {
-                    onWatchAdded(event);
-                }
-            }
-        });
-
-        addProjectEventHandler(WatchRemovedEvent.TYPE, new WatchRemovedHandler() {
-            @Override
-            public void handleWatchRemoved(WatchRemovedEvent event) {
-                if (isEventForThisProject(event)) {
-                    onWatchRemoved(event);
                 }
             }
         });
@@ -401,40 +382,9 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         }
     }
 
-    private void onWatchAdded(WatchAddedEvent event) {
-        if(!event.getUserId().equals(getUserId())) {
-            return;
-        }
-        Watch<?> watch = event.getWatch();
-        if(watch instanceof EntityBasedWatch) {
-            TreeNode tn = findTreeNode(((EntityBasedWatch) watch).getEntity().getIRI().toString());
-            if(tn != null) {
-                SubclassEntityData data = (SubclassEntityData) tn.getUserObject();
-                data.addWatch(watch);
-                updateTreeNodeRendering(tn);
-            }
-        }
-    }
-
     private void updateTreeNodeRendering(TreeNode tn) {
         tn.setText(createNodeRenderText(tn));
         updateTreeNodeIcon(tn);
-    }
-
-    private void onWatchRemoved(WatchRemovedEvent event) {
-        if(!event.getUserId().equals(getUserId())) {
-            return;
-        }
-        Watch<?> watch = event.getWatch();
-        if(watch instanceof EntityBasedWatch) {
-            OWLEntity entity = ((EntityBasedWatch) watch).getEntity();
-            TreeNode tn = findTreeNode(entity.getIRI().toString());
-            if(tn != null) {
-                SubclassEntityData data = (SubclassEntityData) tn.getUserObject();
-                data.clearWatches();
-                updateTreeNodeRendering(tn);
-            }
-        }
     }
 
     private void showInternalID(EntityData entity) {
@@ -539,11 +489,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
             toolbar.addButton(deleteButton);
         }
 
-        watchButton = createWatchButton();
-        if (watchButton != null) {
-            toolbar.addElement(watchButton.getElement());
-        }
-
         final Component searchField = createSearchField();
         if (searchField != null) {
             toolbar.addSpacer();
@@ -562,7 +507,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                 onCreateCls(e.isShiftKey() ? CreateClassesMode.IMPORT_CSV : CreateClassesMode.CREATE_SUBCLASSES);
             }
         });
-        createButton.setDisabled(!hasWritePermission());
         return createButton;
     }
 
@@ -575,113 +519,10 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                 onDeleteCls();
             }
         });
-        deleteButton.setDisabled(!getProject().hasWritePermission(Application.get().getUserId()));
         deleteButton.setDisabled(!getDeleteEnabled());
         return deleteButton;
     }
 
-    protected CycleButton createWatchButton() {
-        watchButton = new CycleButton();
-        watchButton.setShowText(true);
-        watchButton.setCls("toolbar-button");
-
-        final CheckItem watchItem = new CheckItem();
-        watchItem.setText(getWatchClsLabel());
-        watchItem.setCls("toolbar-button");
-//        watchItem.setIcon("images/eye.png");
-        watchButton.addItem(watchItem);
-
-        watchBranchItem = new CheckItem();
-        watchBranchItem.setText(getWatchBranchClsLabel());
-        watchBranchItem.setCls("toolbar-button");
-//        watchBranchItem.setIcon("images/eye-down.png");
-        watchBranchItem.setChecked(true);
-        watchButton.addItem(watchBranchItem);
-
-        unwatchBranchItem = new CheckItem();
-        unwatchBranchItem.setText(getUnwatchClsLabel());
-        unwatchBranchItem.setCls("toolbar-button");
-        watchButton.addItem(unwatchBranchItem);
-
-        //the listener is needed to override behavior of cycle button
-        CheckItemListener checkItemListener = new CheckItemListenerAdapter() {
-            @Override
-            public boolean doBeforeCheckChange(CheckItem item, boolean checked) {
-                return false;
-            }
-        };
-
-        BaseItemListener baseItemListener = new BaseItemListenerAdapter() {
-            @Override
-            public void onClick(BaseItem item, EventObject e) {
-                CheckItem activeItem = (CheckItem) item;
-                watchButton.setActiveItem(activeItem);
-                if (activeItem != unwatchBranchItem) {
-                    lastSelectedWatchType = activeItem;
-                }
-
-                //this is optional, and can be removed if it is confusing to the user:
-                //if a user clicks in the watch menu on an item, we perform the operation right away to avoid one more click.
-                if (activeItem.equals(watchItem)) {
-                    onWatchCls();
-                }
-                else if (activeItem.equals(watchBranchItem)) {
-                    onWatchBranchCls();
-                }
-                else if (activeItem.equals(unwatchBranchItem)) {
-                    onUnwatchCls();
-                }
-            }
-        };
-
-        watchItem.addListener(baseItemListener);
-        watchBranchItem.addListener(baseItemListener);
-        unwatchBranchItem.addListener(baseItemListener);
-
-        watchItem.addListener(checkItemListener);
-        watchBranchItem.addListener(checkItemListener);
-        unwatchBranchItem.addListener(checkItemListener);
-
-        //listener for performing the specific watch action
-        watchButton.addListener(new ButtonListenerAdapter() {
-            @Override
-            public void onClick(Button button, EventObject e) {
-                CheckItem activeItem = watchButton.getActiveItem();
-                if (activeItem.equals(watchItem)) {
-                    onWatchCls();
-                }
-                else if (activeItem.equals(watchBranchItem)) {
-                    onWatchBranchCls();
-                }
-                else if (activeItem.equals(unwatchBranchItem)) {
-                    onUnwatchCls();
-                }
-            }
-        });
-
-        //listener for adjusting the watch button to the selection in tree
-        addSelectionListener(new SelectionListener() {
-            public void selectionChanged(SelectionEvent event) {
-                updateWatchedMenuState(event.getSelectable().getSelection());
-            }
-        });
-
-        return watchButton;
-    }
-
-    protected void updateWatchedMenuState(Collection<EntityData> entities) {
-        if (entities == null || entities.size() == 0) {
-            return;
-        }
-        EntityData entityData = entities.iterator().next();
-        Set<Watch<?>> watches = entityData.getWatches();
-        if (!watches.isEmpty()) {
-            watchButton.setActiveItem(unwatchBranchItem);
-        }
-        else {
-            watchButton.setActiveItem(lastSelectedWatchType == null ? watchBranchItem : lastSelectedWatchType);
-        }
-    }
 
     protected Component createSearchField() {
         final TextField searchField = new TextField("Search: ", "search");
@@ -717,7 +558,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         treePanel.addListener(new TreePanelListenerAdapter() {
             @Override
             public boolean doBeforeNodeDrop(final TreePanel treePanel, final TreeNode target, final DragData dragData, final String point, final DragDrop source, final TreeNode dropNode, final DropNodeCallback dropNodeCallback) {
-                if (hasWritePermission()) {
                     final boolean success = Window.confirm("Are you sure you want to move " + getNodeBrowserText(dropNode) + " from parent " + getNodeBrowserText(dropNode.getParentNode()) + " to parent " + getNodeBrowserText(target) + " ?");
                     if (success) {
                         moveClass((EntityData) dropNode.getUserObject(), (EntityData) dropNode.getParentNode().getUserObject(), (EntityData) target.getUserObject());
@@ -726,10 +566,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                     else {
                         return false;
                     }
-                }
-                else {
-                    return false;
-                }
             }
         });
     }
@@ -1011,67 +847,14 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         refreshFromServer(500);
     }
 
-    protected void onWatchCls() {
-        final OWLClass sel = getSelectedClass();
-        if(sel == null) {
-            return;
-        }
-        EntityFrameWatch entityWatch = new EntityFrameWatch(sel);
-        DispatchServiceManager.get().execute(new AddWatchAction(entityWatch, getProjectId(), getUserId()), new AsyncCallback<AddWatchResult>() {
-            @Override
-            public void onFailure(Throwable caught) {
-                GWT.log("Problem adding watch");
-            }
-
-            @Override
-            public void onSuccess(AddWatchResult result) {
-
-            }
-        });
-
-//        ChAOServiceManager.getInstance().addWatchedEntity(project.getDisplayName(), GlobalSettings.get().getUserName(), currentSelection.getName(), new AddWatchedCls(getSingleSelectedTreeNode()));
-    }
 
     protected void onWatchBranchCls() {
         final OWLClass sel = getSelectedClass();
         if(sel == null) {
             return;
         }
-        Watch<?> watch = new HierarchyBranchWatch(sel);
-        DispatchServiceManager.get().execute(new AddWatchAction(watch, getProjectId(), getUserId()), new AsyncCallback<AddWatchResult>() {
-            @Override
-            public void onFailure(Throwable caught) {
-            }
-
-            @Override
-            public void onSuccess(AddWatchResult result) {
-
-            }
-        });
 
 //        ChAOServiceManager.getInstance().addWatchedBranchEntity(project.getDisplayName(), GlobalSettings.get().getUserName(), currentSelection.getName(), new AddWatchedCls(getSingleSelectedTreeNode()));
-    }
-
-
-
-
-    protected void onUnwatchCls() {
-        for(TreeNode selTreeNode : getSelectedTreeNodes()) {
-            Object userObject = selTreeNode.getUserObject();
-            if(userObject instanceof EntityData) {
-                Set<Watch<?>> watches = ((EntityData) userObject).getWatches();
-                DispatchServiceManager.get().execute(new RemoveWatchesAction(watches, getProjectId(), getUserId()), new AsyncCallback<RemoveWatchesResult>() {
-                    @Override
-                    public void onFailure(Throwable caught) {
-                    }
-
-                    @Override
-                    public void onSuccess(RemoveWatchesResult result) {
-                    }
-                });
-            }
-        }
-
     }
 
     protected void renameClass(final String oldName, final String newName) {
@@ -1345,7 +1128,7 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
 
     protected String createNodeRenderText(TreeNode node) {
         EntityData entityData = (EntityData) node.getUserObject();
-        return createNodeText(entityData) + createNodeNoteCount(entityData, node) + createNodeWatchLabel(entityData);
+        return createNodeText(entityData) + createNodeNoteCount(entityData, node);
     }
 
     protected String createNodeText(EntityData entityData) {
@@ -1379,33 +1162,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         }
 
         return text;
-    }
-
-    protected String createNodeWatchLabel(EntityData cls) {
-        Set<Watch<?>> w = cls.getWatches();
-        if (w.isEmpty()) {
-            return "";
-        }
-//        switch (watchType) {
-        if(w.iterator().next() instanceof EntityFrameWatch) {
-            return "<img src=\"images/eye.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched\"></img>";
-//            return "<img src=\"images/tag_blue.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched\"></img>";
-        }
-        else {
-            return "<img src=\"images/eye-down.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched branch\"></img>";
-//            return "<img src=\"images/tag_blue_add.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched branch\"></img>";
-        }
-//            case ENTITY_WATCH:
-//
-////                return "<img src=\"images/tag_blue.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched\"></img>";
-//            case BRANCH_WATCH:
-//
-////                return "<img src=\"images/tag_blue_add.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched branch\"></img>";
-//            case BOTH:
-//                return "<img src=\"images/tag_blue.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched\"></img>" + "<img src=\"images/tag_blue_add.png\" " + ClassTreePortlet.WATCH_ICON_STYLE_STRING + " title=\"" + " Watched branch\"></img>";
-//            default:
-//                return "";
-//        }
     }
 
     private void showClassNotes(final Node node) {
@@ -1508,22 +1264,12 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
     }
 
     public void updateButtonStates() {
-        if (hasWritePermission()) {
             if (createButton != null) {
                 createButton.enable();
             }
             if (deleteButton != null && getDeleteEnabled()) {
                 deleteButton.enable();
             }
-        }
-        else {
-            if (createButton != null) {
-                createButton.disable();
-            }
-            if (deleteButton != null) {
-                deleteButton.disable();
-            }
-        }
 
         if (watchButton != null) {
             // This used to disable the button.  However, the buttons seem to be laid out only when the containing

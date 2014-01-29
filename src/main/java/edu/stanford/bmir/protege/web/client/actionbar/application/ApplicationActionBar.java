@@ -11,15 +11,6 @@ import edu.stanford.bmir.protege.web.shared.user.UserId;
  */
 public interface ApplicationActionBar extends IsWidget {
 
-    void setSignedInUser(UserId userId);
-
-    void setSignInRequestHandler(SignInRequestHandler signInRequestHandler);
-
-    void setSignOutRequestHandler(SignOutRequestHandler signOutRequestHandler);
-
-    void setSignUpForAccountHandler(SignUpForAccountHandler signUpForAccountHandler);
-
-    void setChangePasswordHandler(ChangePasswordHandler changePasswordHandler);
 
     void setShowAboutBoxHandler(ShowAboutBoxHandler showAboutBoxHandler);
 

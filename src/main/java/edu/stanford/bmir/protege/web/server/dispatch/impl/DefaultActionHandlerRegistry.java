@@ -20,8 +20,6 @@ import edu.stanford.bmir.protege.web.server.notes.AddReplyToNoteActionHandler;
 import edu.stanford.bmir.protege.web.server.notes.DeleteNoteActionHandler;
 import edu.stanford.bmir.protege.web.server.notes.SetNoteStatusActionHandler;
 import edu.stanford.bmir.protege.web.server.usage.GetUsageActionHandler;
-import edu.stanford.bmir.protege.web.server.watches.AddWatchActionHandler;
-import edu.stanford.bmir.protege.web.server.watches.RemoveWatchActionHandler;
 import edu.stanford.bmir.protege.web.shared.app.GetClientApplicationPropertiesAction;
 import edu.stanford.bmir.protege.web.shared.crud.GetEntityCrudKitSettingsAction;
 import edu.stanford.bmir.protege.web.shared.crud.GetEntityCrudKitsAction;
@@ -42,8 +40,6 @@ import edu.stanford.bmir.protege.web.shared.project.GetAvailableProjectsAction;
 import edu.stanford.bmir.protege.web.shared.project.MoveProjectsToTrashAction;
 import edu.stanford.bmir.protege.web.shared.project.RemoveProjectsFromTrashAction;
 import edu.stanford.bmir.protege.web.shared.usage.GetUsageAction;
-import edu.stanford.bmir.protege.web.shared.watches.AddWatchAction;
-import edu.stanford.bmir.protege.web.shared.watches.RemoveWatchesAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -103,11 +99,6 @@ public class DefaultActionHandlerRegistry implements ActionHandlerRegistry {
         register(new CreateNamedIndividualsActionHandler(), CreateNamedIndividualsAction.class);
 
         register(new LookupEntitiesActionHandler(), LookupEntitiesAction.class);
-
-        // Watches
-        register(new AddWatchActionHandler(), AddWatchAction.class);
-        register(new RemoveWatchActionHandler(), RemoveWatchesAction.class);
-
 
         // User stuff
         register(new GetCurrentUserInSessionActionHandler(), GetCurrentUserInSessionAction.class);

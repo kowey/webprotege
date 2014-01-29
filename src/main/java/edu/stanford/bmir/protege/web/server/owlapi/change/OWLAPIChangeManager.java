@@ -12,9 +12,6 @@ import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectDocumentStore;
 import edu.stanford.bmir.protege.web.server.owlapi.manager.WebProtegeOWLManager;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
-import edu.stanford.bmir.protege.web.shared.watches.EntityFrameWatch;
-import edu.stanford.bmir.protege.web.shared.watches.HierarchyBranchWatch;
-import edu.stanford.bmir.protege.web.shared.watches.Watch;
 import org.semanticweb.binaryowl.BinaryOWLChangeLogHandler;
 import org.semanticweb.binaryowl.BinaryOWLMetadata;
 import org.semanticweb.binaryowl.BinaryOWLOntologyChangeLog;
@@ -469,39 +466,6 @@ public class OWLAPIChangeManager {
         }
         int insertionIndex = -index - 1;
         return insertionIndex - 1;
-    }
-
-    public List<ChangeData> getChangeDataForWatches(Set<Watch<?>> watches) {
-        Set<OWLEntity> superEntities = new HashSet<OWLEntity>();
-        Set<OWLEntity> directWatches = new HashSet<OWLEntity>();
-        for (Watch<?> watch : watches) {
-            if (watch instanceof HierarchyBranchWatch) {
-                OWLEntity entity = ((HierarchyBranchWatch) watch).getEntity();
-                superEntities.add(entity);
-                directWatches.add(entity);
-            }
-            if (watch instanceof EntityFrameWatch) {
-                directWatches.add(((EntityFrameWatch) watch).getEntity());
-            }
-        }
-        if (superEntities.isEmpty() || directWatches.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<ChangeData> result = new ArrayList<ChangeData>();
-
-        List<Revision> revisionsCopy = getRevisionsCopy();
-        for (Revision revision : revisionsCopy) {
-            if (revision.getRevisionType() != RevisionType.BASELINE) {
-                if (isWatchedRevision(superEntities, directWatches, revision)) {
-                    for (OWLEntity entity : revision.getEntities(project)) {
-                        ChangeData changeData = createChangeDataFromRevision(entity, revision);
-                        result.add(changeData);
-                    }
-                }
-            }
-        }
-        return result;
     }
 
     private boolean isWatchedRevision(final Set<OWLEntity> superEntities, Set<OWLEntity> directWatches, Revision revision) {

@@ -32,8 +32,6 @@ import edu.stanford.bmir.protege.web.client.ui.util.AbstractValidatableTab;
 import edu.stanford.bmir.protege.web.client.ui.util.ValidatableTab;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
 import edu.stanford.bmir.protege.web.shared.event.HasEventHandlerManagement;
-import edu.stanford.bmir.protege.web.shared.event.PermissionsChangedEvent;
-import edu.stanford.bmir.protege.web.shared.event.PermissionsChangedHandler;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
@@ -107,13 +105,6 @@ public abstract class AbstractEntityPortlet extends Portlet implements EntityPor
             }
         });
 
-        addProjectEventHandler(PermissionsChangedEvent.TYPE, new PermissionsChangedHandler() {
-            @Override
-            public void handlePersmissionsChanged(PermissionsChangedEvent event) {
-                onPermissionsChanged();
-            }
-        });
-
         addApplicationEventHandler(PlaceChangeEvent.TYPE, new PlaceChangeEvent.Handler() {
             @Override
             public void onPlaceChange(PlaceChangeEvent event) {
@@ -129,10 +120,6 @@ public abstract class AbstractEntityPortlet extends Portlet implements EntityPor
 
     public UserId getUserId() {
         return Application.get().getUserId();
-    }
-
-    public boolean hasWritePermission() {
-        return getProject().hasWritePermission(Application.get().getUserId());
     }
 
     protected void doOnResize(int width, int height) {

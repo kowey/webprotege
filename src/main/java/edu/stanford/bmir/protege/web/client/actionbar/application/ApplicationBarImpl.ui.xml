@@ -19,13 +19,7 @@
 
     <g:HTMLPanel addStyleNames="{style.main}">
 
-        <g:Button ui:field="userNameItem" addStyleNames="button-style">Sign In</g:Button>
-
-
         <g:Button ui:field="helpItem" addStyleNames="button-style {style.help-item}">Help &downarrow;</g:Button>
-
-
-        <g:Button ui:field="signUpForAccountItem" addStyleNames="button-style-red">Sign up for account</g:Button>
 
     </g:HTMLPanel>
 </ui:UiBinder>

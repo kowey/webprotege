@@ -3,7 +3,6 @@ package edu.stanford.bmir.protege.web.client.rpc;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.stanford.bmir.protege.web.client.rpc.data.LoginChallengeData;
 import edu.stanford.bmir.protege.web.client.rpc.data.UserData;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.user.UnrecognizedUserNameException;
 import edu.stanford.bmir.protege.web.shared.user.UserEmailAlreadyExistsException;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -21,10 +20,6 @@ public interface AdminServiceAsync {
 //    void setUserEmail(String userName, String email, AsyncCallback<Void> callback);
 
     void sendPasswordReminder(String userName, AsyncCallback<Void> callback) throws UnrecognizedUserNameException;
-
-    void getAllowedOperations(String project, String user, AsyncCallback<PermissionsSet> cb);
-
-    void getAllowedServerOperations(String userName, AsyncCallback<PermissionsSet> callback);
 
     void getUserSaltAndChallenge(String userName, AsyncCallback<LoginChallengeData> callback);
 

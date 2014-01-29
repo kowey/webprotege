@@ -83,11 +83,7 @@ public class RetireClassPanel extends FormPanel implements Selectable {
         retireButton.addListener(new ButtonListenerAdapter() {
             @Override
             public void onClick(Button button, EventObject e) {
-                if (ProjectManager.get().getProject(projectId).get().hasWritePermission()) {
                     onRetire();
-                } else {
-                    MessageBox.alert("No permission", "You do not have enough privileges to retire classes.");
-                }
             }
         });
 

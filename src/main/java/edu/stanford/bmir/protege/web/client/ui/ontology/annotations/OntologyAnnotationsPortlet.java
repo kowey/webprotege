@@ -106,7 +106,7 @@ public class OntologyAnnotationsPortlet extends AbstractOWLEntityPortlet {
     }
 
     private void updateState() {
-        annotationsView.setEnabled(hasWritePermission());
+        annotationsView.setEnabled(true);
     }
 
     @Override

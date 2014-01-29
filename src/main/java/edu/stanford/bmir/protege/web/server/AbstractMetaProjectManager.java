@@ -1,7 +1,6 @@
 package edu.stanford.bmir.protege.web.server;
 
 import com.google.common.base.Optional;
-import edu.stanford.bmir.protege.web.client.ui.openid.constants.OpenIdConstants;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIMetaProjectStore;
 import edu.stanford.bmir.protege.web.shared.user.UnrecognizedUserNameException;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -105,24 +104,6 @@ public abstract class AbstractMetaProjectManager extends MetaProjectManager {
         return allowedOps;
     }
 
-    public Optional<UserId> getUserAssociatedWithOpenId(String userOpenId) {
-        if (userOpenId == null) {
-            return Optional.absent();
-        }
-        Set<User> users = MetaProjectManager.getManager().getMetaProject().getUsers();
-        for (User u : users) {
-            Collection<PropertyValue> propertyValues = u.getPropertyValues();
-            for (PropertyValue propertyValue : propertyValues) {
-                if (propertyValue.getPropertyName().startsWith(OpenIdConstants.OPENID_PROPERTY_PREFIX) && propertyValue.getPropertyName().endsWith(OpenIdConstants.OPENID_PROPERTY_URL_SUFFIX)) {
-                    if (propertyValue.getPropertyValue().trim().equalsIgnoreCase(userOpenId)) {
-                        return Optional.of(UserId.getUserId(u.getName()));
-                    }
-
-                }
-            }
-        }
-        return Optional.absent();
-    }
     
     public User getUser(String userNameOrEmail) {
         if (userNameOrEmail == null) {

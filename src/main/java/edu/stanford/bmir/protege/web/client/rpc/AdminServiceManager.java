@@ -4,7 +4,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.stanford.bmir.protege.web.client.rpc.data.LoginChallengeData;
 import edu.stanford.bmir.protege.web.client.rpc.data.UserData;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UnrecognizedUserNameException;
 import edu.stanford.bmir.protege.web.shared.user.UserEmailAlreadyExistsException;
@@ -38,14 +37,6 @@ public class AdminServiceManager {
 //    public void setUserEmail(UserId userId, String email, AsyncCallback<Void> callback) {
 //        proxy.setUserEmail(userId.getUserName(), email, callback);
 //    }
-
-    public void getAllowedOperations(ProjectId projectId, UserId userId, AsyncCallback<PermissionsSet> cb) {
-        proxy.getAllowedOperations(projectId.getId(), userId.getUserName(), cb);
-    }
-
-    public void getAllowedServerOperations(UserId userId, AsyncCallback<PermissionsSet> cb) {
-        proxy.getAllowedServerOperations(userId.getUserName(), cb);
-    }
 
     public void changePassword(UserId userId, String password, AsyncCallback<Void> cb) {
         proxy.changePassword(userId.getUserName(), password, cb);

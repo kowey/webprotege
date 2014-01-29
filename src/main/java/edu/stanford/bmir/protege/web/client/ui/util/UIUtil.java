@@ -339,15 +339,8 @@ public class UIUtil {
         if (!project.isPresent()) {
             return false;
         }
-        if (project.get().hasWritePermission()) {
             return true;
-        }
-        else {
-            if (showUserAlerts) {
-                MessageBox.alert("No permission", "You do not have write permission.");
-            }
-            return false;
-        }
+
 
 
     }

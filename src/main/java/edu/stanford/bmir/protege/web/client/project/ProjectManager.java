@@ -5,7 +5,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.LoadProjectAction;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.LoadProjectResult;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.project.ProjectDetails;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -53,7 +52,7 @@ public class ProjectManager {
 
             @Override
             public void onSuccess(LoadProjectResult result) {
-                Project project = registerProject(result.getUserId(), result.getRequestingUserProjectPermissionSet(), result.getProjectDetails());
+                Project project = registerProject(result.getUserId(), result.getProjectDetails());
                 projectLoadedCallback.onSuccess(project);
             }
         });
@@ -65,13 +64,13 @@ public class ProjectManager {
     }
 
 
-    private Project registerProject(final UserId userId, final PermissionsSet userPermissions, final ProjectDetails projectDetails) {
+    private Project registerProject(final UserId userId, final ProjectDetails projectDetails) {
         final ProjectId projectId = projectDetails.getProjectId();
         if(map.containsKey(projectId)) {
             throw new RuntimeException("Double registration of project: " + projectId);
         }
 
-        final Project project = new Project(projectDetails, userPermissions);
+        final Project project = new Project(projectDetails);
         map.put(projectId, project);
         return project;
     }

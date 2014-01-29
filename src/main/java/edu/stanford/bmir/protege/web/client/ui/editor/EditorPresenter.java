@@ -28,8 +28,6 @@ import edu.stanford.bmir.protege.web.shared.dispatch.GetObjectResult;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import edu.stanford.bmir.protege.web.shared.dispatch.UpdateObjectAction;
 import edu.stanford.bmir.protege.web.shared.event.HandlerRegistrationManager;
-import edu.stanford.bmir.protege.web.shared.event.PermissionsChangedEvent;
-import edu.stanford.bmir.protege.web.shared.event.PermissionsChangedHandler;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 import java.io.Serializable;
@@ -86,13 +84,6 @@ public class EditorPresenter implements HasDispose {
         handlerRegistrationManager.registerHandler(UserLoggedOutEvent.TYPE, new UserLoggedOutHandler() {
             @Override
             public void handleUserLoggedOut(UserLoggedOutEvent event) {
-                updatePermissionBasedItems();
-            }
-        });
-
-        handlerRegistrationManager.registerHandlerToProject(projectId, PermissionsChangedEvent.TYPE, new PermissionsChangedHandler() {
-            @Override
-            public void handlePersmissionsChanged(PermissionsChangedEvent event) {
                 updatePermissionBasedItems();
             }
         });
@@ -217,7 +208,7 @@ public class EditorPresenter implements HasDispose {
 
                     if(editorWidget instanceof HasEnabled) {
                         Optional<Project> project = ProjectManager.get().getProject(editorCtx.getProjectId());
-                            ((HasEnabled) editorWidget).setEnabled(project.isPresent() && project.get().hasWritePermission());
+                            ((HasEnabled) editorWidget).setEnabled(project.isPresent());
                     }
 
                     editorHolder.setWidget(editorWidget);
@@ -258,8 +249,7 @@ public class EditorPresenter implements HasDispose {
         if(!activeProject.isPresent()) {
             return false;
         }
-        Project project = activeProject.get();
-        return project.hasWritePermission();
+        return true;
     }
 
 

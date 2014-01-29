@@ -7,7 +7,6 @@ import edu.stanford.bmir.protege.web.client.ui.notes.DiscussionThreadPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.annotations.OntologyAnnotationsPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.changes.ChangeSummaryPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.changes.ChangesPortlet;
-import edu.stanford.bmir.protege.web.client.ui.ontology.changes.WatchedEntitiesPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.classes.*;
 import edu.stanford.bmir.protege.web.client.ui.ontology.hierarchy.ManageHierarchyPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.hierarchy.ManageHierarchyTab;
@@ -117,9 +116,6 @@ public class UIFactory {
             else if (portletJavaClassName.equals(ChangeSummaryPortlet.class.getName())) {
                 return new ChangeSummaryPortlet(project);
             }
-            else if (portletJavaClassName.equals(WatchedEntitiesPortlet.class.getName())) {
-                return new WatchedEntitiesPortlet(project);
-            }
             else if (portletJavaClassName.equals(ManageHierarchyPortlet.class.getName())) {
                 return new ManageHierarchyPortlet(project);
             }
@@ -131,9 +127,6 @@ public class UIFactory {
             }
             else if (portletJavaClassName.equals(ChangesPortlet.class.getName())) {
                 return new ChangesPortlet(project);
-            }
-            else if (portletJavaClassName.equals(WatchedEntitiesPortlet.class.getName())) {
-                return new WatchedEntitiesPortlet(project);
             }
             else if (portletJavaClassName.equals(PropertiesViewPortlet.class.getName())) {
                 return new PropertiesViewPortlet(project);
@@ -191,7 +184,7 @@ public class UIFactory {
          * NotesPortlet.class.getName(),
          */
         String[] portlets = {UsagePortlet.class.getName(), OntologyIdPortlet.class.getName(), OntologyAnnotationsPortlet.class.getName(), EditorPortlet.class.getName(), DiscussionThreadPortlet.class.getName(), ChangeSummaryPortlet.class.getName(), ProjectFeedPortlet.class.getName(), AnnotationsPortlet.class.getName(), AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(), MetricsPortlet.class.getName(), OntologiesPortlet.class.getName(), PropertiesTreePortlet.class.getName(), ConditionsPortlet.class.getName(),
-                SuperclassesPortlet.class.getName(), ChangesPortlet.class.getName(), WatchedEntitiesPortlet.class.getName(),
+                SuperclassesPortlet.class.getName(), ChangesPortlet.class.getName(),
                 RevisionsPortlet.class.getName()};
 
         List<String> portletsList = Arrays.asList(portlets);

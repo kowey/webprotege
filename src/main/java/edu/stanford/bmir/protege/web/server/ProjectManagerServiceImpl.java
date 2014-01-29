@@ -157,10 +157,7 @@ public class ProjectManagerServiceImpl extends WebProtegeRemoteServiceServlet im
         return new ProjectType(projectType.getProjectTypeName());
     }
 
-    public void setProjectType(ProjectId projectId, ProjectType projectType) throws NotProjectOwnerException, ProjectNotRegisteredException {
-        if(!isSignedInUserProjectOwner(projectId)) {
-            throw new NotProjectOwnerException(projectId);
-        }
+    public void setProjectType(ProjectId projectId, ProjectType projectType) throws ProjectNotRegisteredException {
         OWLAPIProjectMetadataManager mdm = OWLAPIProjectMetadataManager.getManager();
         mdm.setProjectType(projectId, new OWLAPIProjectType(projectType.getName()));
     }
@@ -171,11 +168,8 @@ public class ProjectManagerServiceImpl extends WebProtegeRemoteServiceServlet im
         return new ProjectConfigurationInfo(projectId, projectType, "en", description);
     }
 
-    public void setProjectConfiguration(ProjectConfigurationInfo configuration) throws ProjectNotRegisteredException, NotProjectOwnerException {
+    public void setProjectConfiguration(ProjectConfigurationInfo configuration) throws ProjectNotRegisteredException {
         ProjectId projectId = configuration.getProjectId();
-        if(!isSignedInUserProjectOwner(projectId)) {
-            throw new NotProjectOwnerException(projectId);
-        }
         OWLAPIProjectMetadataManager mdm = OWLAPIProjectMetadataManager.getManager();
         OWLAPIProjectType projectType = OWLAPIProjectType.getProjectType(configuration.getProjectType().getName());
         mdm.setProjectType(projectId, projectType);

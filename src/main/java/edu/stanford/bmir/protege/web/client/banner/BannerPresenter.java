@@ -32,11 +32,6 @@ public class BannerPresenter {
         projectActionBar.setShowFreshEntitySettingsHandler(new ShowFreshEntitySettingsHandlerImpl());
         projectActionBar.setShowProjectDetailsHandler(new ShowProjectDetailsHandlerImpl());
         final ApplicationActionBar w = bannerView.getApplicationActionBar();
-        w.setSignedInUser(Application.get().getUserId());
-        w.setSignInRequestHandler(new SignInRequestHandlerImpl());
-        w.setSignOutRequestHandler(new SignOutRequestHandlerImpl());
-        w.setSignUpForAccountHandler(new SignUpForAccountHandlerImpl());
-        w.setChangePasswordHandler(new ChangePasswordHandlerImpl());
         w.setShowAboutBoxHandler(new ShowAboutBoxHandlerImpl());
         w.setShowUserGuideHandler(new ShowUserGuideHandlerImpl());
 
@@ -50,14 +45,12 @@ public class BannerPresenter {
         EventBusManager.getManager().registerHandler(UserLoggedInEvent.TYPE, new UserLoggedInHandler() {
             @Override
             public void handleUserLoggedIn(UserLoggedInEvent event) {
-                w.setSignedInUser(event.getUserId());
                 projectActionBar.setProjectId(Application.get().getActiveProject());
             }
         });
         EventBusManager.getManager().registerHandler(UserLoggedOutEvent.TYPE, new UserLoggedOutHandler() {
             @Override
             public void handleUserLoggedOut(UserLoggedOutEvent event) {
-                w.setSignedInUser(UserId.getGuest());
                 projectActionBar.setProjectId(Application.get().getActiveProject());
             }
         });

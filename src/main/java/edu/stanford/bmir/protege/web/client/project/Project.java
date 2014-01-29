@@ -2,13 +2,10 @@ package edu.stanford.bmir.protege.web.client.project;
 
 import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.events.EventPollingManager;
-import edu.stanford.bmir.protege.web.client.permissions.ProjectPermissionManager;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.ProjectLayoutConfiguration;
 import edu.stanford.bmir.protege.web.client.ui.LayoutManager;
 import edu.stanford.bmir.protege.web.shared.HasDispose;
 import edu.stanford.bmir.protege.web.shared.HasProjectId;
-import edu.stanford.bmir.protege.web.shared.permissions.Permission;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.project.ProjectDetails;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -28,8 +25,6 @@ public class Project implements HasProjectId, HasDispose {
 
     private final ProjectDetails projectDetails;
 
-    private final ProjectPermissionManager permissionManager;
-
     private ProjectLayoutConfiguration projectLayoutConfiguration;
 
     private LayoutManager layoutManager;
@@ -40,13 +35,10 @@ public class Project implements HasProjectId, HasDispose {
     /**
      * Creates a project from the specified details.
      * @param projectDetails The details.  Not {@code null}.
-     * @param permissionsForCurrentUser The permissions for the current logged in user.  Not {@code null}.
      * @throws NullPointerException if any parameters are {@code null}.
      */
-    public Project(ProjectDetails projectDetails, PermissionsSet permissionsForCurrentUser) {
+    public Project(ProjectDetails projectDetails) {
         this.projectDetails = checkNotNull(projectDetails);
-        this.permissionManager = new ProjectPermissionManager(getProjectId());
-        this.permissionManager.setUserPermissions(Application.get().getUserId(), checkNotNull(permissionsForCurrentUser));
         this.layoutManager = new LayoutManager(this);
 
 
@@ -95,17 +87,9 @@ public class Project implements HasProjectId, HasDispose {
 //        return permissionManager;
 //    }
 
-    public boolean hasWritePermission(UserId userId) {
-        return permissionManager.hasPermission(userId, Permission.getWritePermission());
-    }
-
-    public boolean hasWritePermission() {
-        return hasWritePermission(Application.get().getUserId());
-    }
 
     public void dispose() {
         // TODO: we might notify the session that project has been closed
-        permissionManager.dispose();
         eventPollingManager.stop();
     }
 }

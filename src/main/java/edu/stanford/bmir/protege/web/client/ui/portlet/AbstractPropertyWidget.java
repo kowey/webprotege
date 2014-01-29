@@ -14,7 +14,6 @@ import edu.stanford.bmir.protege.web.client.rpc.data.PropertyEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.Triple;
 import edu.stanford.bmir.protege.web.client.ui.portlet.propertyForm.FormConstants;
 import edu.stanford.bmir.protege.web.client.ui.util.UIUtil;
-import edu.stanford.bmir.protege.web.shared.permissions.GroupId;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 import java.util.ArrayList;
@@ -133,33 +132,6 @@ public abstract class AbstractPropertyWidget implements PropertyWidget {
         return widgetConfiguration;
     }
 
-    public boolean userPartOfWriteAccessGroup() {
-        if (Application.get().isGuestUser()) {
-            return false;
-        }
-        //checked if this is cached
-        Optional<String> isPartOfUsers = Application.get().getCurrentUserProperty(getSessionWriteAccessProperty());
-        if (isPartOfUsers.isPresent()) {
-            return Boolean.valueOf(isPartOfUsers.get());
-        }
-
-        List<String> writeAccessGroups = UIUtil.getListConfigurationProperty(widgetConfiguration, FormConstants.WRITE_ACCESS_GROUPS);
-        if (writeAccessGroups == null) {
-            setPartOfWriteAccessGroup(true);
-            return true;
-        }
-        Collection<GroupId> userGroups = Application.get().getUserGroups();
-
-        for (String writeGroup : writeAccessGroups) {
-            if (userGroups.contains(GroupId.get(writeGroup))) {
-                setPartOfWriteAccessGroup(true);
-                return true;
-            }
-        }
-        setPartOfWriteAccessGroup(false);
-        return false;
-    }
-
     private void setPartOfWriteAccessGroup(Boolean isPartOfWriteAccessGroup) {
         Application.get().setCurrentUserProperty(getSessionWriteAccessProperty(), isPartOfWriteAccessGroup.toString());
     }
@@ -183,13 +155,7 @@ public abstract class AbstractPropertyWidget implements PropertyWidget {
             }
             return false;
         }
-         boolean hasWriteAccess = userPartOfWriteAccessGroup();
-         if (!hasWriteAccess) {
-             if (showUserAlerts) {
-                 MessageBox.alert("You do not have permission to change this property.");
-             }
-         }
-         return hasWriteAccess;
+        return true;
     }
 
     public boolean isReadOnly() {

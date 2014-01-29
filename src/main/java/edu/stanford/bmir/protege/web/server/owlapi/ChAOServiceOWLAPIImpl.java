@@ -9,7 +9,6 @@ import edu.stanford.bmir.protege.web.server.owlapi.change.OWLAPIChangeManager;
 import edu.stanford.bmir.protege.web.server.owlapi.change.RevisionType;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
-import edu.stanford.bmir.protege.web.shared.watches.Watch;
 import org.semanticweb.owlapi.model.OWLEntity;
 
 import java.util.*;
@@ -85,33 +84,5 @@ public class ChAOServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet implem
         return changeManager.getChangeDataForEntitiesInTimeStampInterval(entities, 0, Long.MAX_VALUE);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////
-    //////
-    //////  Watched Entities
-    //////
-    //////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /*
-     * Watched entities
-     */
-
-    public PaginationData<ChangeData> getWatchedEntities(String projectName, String userName, int start, int limit, String sort, String dir) {
-        OWLAPIProject project = getProject(projectName);
-        OWLAPIChangeManager changeManager = project.getChangeManager();
-        final UserId userId = UserId.getUserId(userName);
-        Set<Watch<?>> watches = project.getWatchManager().getWatches(userId);
-        List<ChangeData> data = changeManager.getChangeDataForWatches(watches);
-        return PaginationServerUtil.pagedRecords(data, start, limit, sort, dir);
-    }
-
-    public Collection<ChangeData> getWatchedEntities(String projectName, String userName) {
-        return Collections.emptyList();
-    }
 
 }

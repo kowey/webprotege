@@ -4,7 +4,6 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import edu.stanford.bmir.protege.web.shared.dispatch.Action;
 import edu.stanford.bmir.protege.web.shared.dispatch.DispatchServiceResultContainer;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedException;
 
 /**
  * Author: Matthew Horridge<br>
@@ -15,7 +14,7 @@ import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedExceptio
 @RemoteServiceRelativePath("dispatchservice")
 public interface DispatchService extends RemoteService  {
 
-    DispatchServiceResultContainer executeAction(Action action) throws ActionExecutionException, PermissionDeniedException;
+    DispatchServiceResultContainer executeAction(Action action) throws ActionExecutionException;
 
 
 }

@@ -1,7 +1,5 @@
 package edu.stanford.bmir.protege.web.client.rpc.data;
 
-import edu.stanford.bmir.protege.web.shared.watches.Watch;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -16,8 +14,6 @@ public class EntityData implements Serializable {
     private ValueType valueType;
 //    private WatchType watchType;
     private Map<String, String> properties;
-
-    private Set<Watch<?>> watches;
 
     /**
      * TODO: Should be for serialization purposes only.
@@ -133,42 +129,6 @@ public class EntityData implements Serializable {
 
     public void setChildrenAnnotationsCount(int childrenAnnotationsCount) {
         this.childrenAnnotationsCount = childrenAnnotationsCount;
-    }
-
-//    public WatchType getWatchType() {
-//        return watchType;
-//    }
-//
-//    public void setWatchType(WatchType watchType) {
-//        this.watchType = watchType;
-//    }
-
-
-    public Set<Watch<?>> getWatches() {
-        if(watches == null) {
-            return Collections.emptySet();
-        }
-        else {
-            return new HashSet<Watch<?>>(watches);
-        }
-    }
-
-    public void clearWatches() {
-        watches = null;
-    }
-
-    public void addWatch(Watch<?> watch) {
-        if(watches == null) {
-            setWatches(Collections.<Watch<?>>singleton(watch));
-        }
-        else {
-            watches.add(watch);
-        }
-    }
-
-
-    public void setWatches(Set<Watch<?>> watches) {
-        this.watches = new HashSet<Watch<?>>(watches);
     }
 
     public Map<String, String> getProperties() {
