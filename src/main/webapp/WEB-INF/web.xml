@@ -72,10 +72,6 @@
 		<servlet-class>edu.stanford.bmir.protege.web.server.SharingSettingsServiceImpl</servlet-class>
 	</servlet>
 
-	<servlet>
-		<servlet-name>bpProposals</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.bioportal.BioPortalProposalsImpl</servlet-class>
-	</servlet>
 
 	<servlet>
 		<servlet-name>OpenIdServiceImpl</servlet-name>
@@ -118,10 +114,6 @@
 		<servlet-class>edu.stanford.bmir.protege.web.server.RevisionManagerServiceImpl</servlet-class>
 	</servlet>
 
-	<servlet>
-		<servlet-name>BioPortalAPIService</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.BioPortalAPIServiceImpl</servlet-class>
-	</servlet>
 
 
 	<servlet>
@@ -187,11 +179,6 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>bpProposals</servlet-name>
-		<url-pattern>/webprotege/bpProposals</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
 		<servlet-name>OpenIdAuthenticationResServlet</servlet-name>
 		<url-pattern>/openidresponse</url-pattern>
 	</servlet-mapping>
@@ -236,10 +223,6 @@
 		<url-pattern>/webprotege/revisionmanager</url-pattern>
 	</servlet-mapping>
 
-	<servlet-mapping>
-		<servlet-name>BioPortalAPIService</servlet-name>
-		<url-pattern>/webprotege/bioportalapi</url-pattern>
-	</servlet-mapping>
 
 
 	<servlet-mapping>
