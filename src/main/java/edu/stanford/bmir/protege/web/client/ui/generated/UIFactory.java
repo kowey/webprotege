@@ -4,7 +4,6 @@ import com.google.gwt.core.client.GWT;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.ui.editor.EditorPortlet;
 import edu.stanford.bmir.protege.web.client.ui.notes.DiscussionThreadPortlet;
-import edu.stanford.bmir.protege.web.client.ui.obo.*;
 import edu.stanford.bmir.protege.web.client.ui.ontology.annotations.OntologyAnnotationsPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.changes.ChangeSummaryPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.changes.ChangesPortlet;
@@ -141,28 +140,6 @@ public class UIFactory {
             else if (portletJavaClassName.equals(ConditionsPortlet.class.getName())) {
                 return new ConditionsPortlet(project);
             }
-
-            else if (portletJavaClassName.equals(OBOTermRelationshipPortlet.class.getName())) {
-                return new OBOTermRelationshipPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermDefinitionPortlet.class.getName())) {
-                return new OBOTermDefinitionPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermIdEditorPortlet.class.getName())) {
-                return new OBOTermIdEditorPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermMetadataPortlet.class.getName())) {
-                return new OBOTermMetadataPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermSynonymsPortlet.class.getName())) {
-                return new OBOTermSynonymsPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermCrossProductPortlet.class.getName())) {
-                return new OBOTermCrossProductPortlet(project);
-            }
-            else if (portletJavaClassName.equals(OBOTermXRefsEditorPortlet.class.getName())) {
-                return new OBOTermXRefsEditorPortlet(project);
-            }
             else if (portletJavaClassName.equals(RevisionsPortlet.class.getName())) {
                 return new RevisionsPortlet(project);
             }
@@ -211,7 +188,7 @@ public class UIFactory {
          */
         String[] portlets = {UsagePortlet.class.getName(), OntologyIdPortlet.class.getName(), OntologyAnnotationsPortlet.class.getName(), EditorPortlet.class.getName(), DiscussionThreadPortlet.class.getName(), ChangeSummaryPortlet.class.getName(), ProjectFeedPortlet.class.getName(), AnnotationsPortlet.class.getName(), AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(), MetricsPortlet.class.getName(), OntologiesPortlet.class.getName(), PropertiesTreePortlet.class.getName(), ConditionsPortlet.class.getName(),
                 SuperclassesPortlet.class.getName(), ChangesPortlet.class.getName(), WatchedEntitiesPortlet.class.getName(),
-                OBOTermCrossProductPortlet.class.getName(), OBOTermRelationshipPortlet.class.getName(), OBOTermSynonymsPortlet.class.getName(), OBOTermMetadataPortlet.class.getName(), OBOTermIdEditorPortlet.class.getName(), OBOTermDefinitionPortlet.class.getName(), OBOTermXRefsEditorPortlet.class.getName(), RevisionsPortlet.class.getName()};
+                RevisionsPortlet.class.getName()};
 
         List<String> portletsList = Arrays.asList(portlets);
         Collections.sort(portletsList, new Comparator<String>() {
