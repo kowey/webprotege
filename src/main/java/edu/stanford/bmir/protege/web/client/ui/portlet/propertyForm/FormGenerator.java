@@ -165,12 +165,8 @@ public class FormGenerator implements HasDispose {
                         widget = createMultiTextField(map, prop);
                     } else if (component_type.equals(FormConstants.INSTANCETEXTFIELD)) {
                     	widget = createInstanceTextField(map, prop);
-                    }  else if (component_type.equals(FormConstants.INSTANCEREFERENCE)) {
-                    	widget = createInstanceReferenceField(map, prop);
                     } else if (component_type.equals(FormConstants.GRID)) {
                         widget = createGrid(map, prop);
-                    } else if (component_type.equals(FormConstants.EXTERNALREFERENCE)) {
-                        widget = createExternalReference(map, prop);
                     } else if (component_type.equals(FormConstants.CLASS_SELECTION_FIELD)) {
                         widget = createClassSelectionField(map, prop);
                     } else if (component_type.equals(FormConstants.PROPERTY_SELECTION_FIELD)) {
@@ -288,20 +284,9 @@ public class FormGenerator implements HasDispose {
     	return widget;
     }
 
-    private PropertyWidget createInstanceReferenceField(Map<String, Object> conf, String property) {
-    	ClassInstanceReferenceFieldWidget widget = new ClassInstanceReferenceFieldWidget(project);
-    	widget.setup(conf, new PropertyEntityData(property));
-    	return widget;
-    }
 
     protected PropertyWidget createGrid(Map<String, Object> conf, String prop) {
         InstanceGridWidget widget = new InstanceGridWidget(project);
-        widget.setup(conf, new PropertyEntityData(prop));
-        return widget;
-    }
-
-    protected PropertyWidget createExternalReference(Map<String, Object> conf, String prop) {
-        InstanceGridWidget widget = new ReferenceFieldWidget(project);
         widget.setup(conf, new PropertyEntityData(prop));
         return widget;
     }
