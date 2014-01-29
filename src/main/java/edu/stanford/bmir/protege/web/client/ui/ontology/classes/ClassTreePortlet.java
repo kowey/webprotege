@@ -39,7 +39,6 @@ import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration
 import edu.stanford.bmir.protege.web.client.ui.library.dlg.WebProtegeDialog;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.YesNoHandler;
-import edu.stanford.bmir.protege.web.client.ui.notes.editor.DiscussionThreadDialog;
 import edu.stanford.bmir.protege.web.client.ui.ontology.entity.CreateEntityDialogController;
 import edu.stanford.bmir.protege.web.client.ui.ontology.entity.CreateEntityInfo;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
@@ -323,9 +322,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                     final Element target = e.getTarget();
                     if (target != null) {
                         final String targetId = target.getId();
-                        if (targetId.endsWith(SUFFIX_ID_LOCAL_ANNOTATION_IMG) || targetId.endsWith(SUFFIX_ID_LOCAL_ANNOTATION_COUNT)) {
-                            showClassNotes(node);
-                        }
                     }
                 }
 
@@ -1162,13 +1158,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         }
 
         return text;
-    }
-
-    private void showClassNotes(final Node node) {
-        SubclassEntityData subClassData = (SubclassEntityData) node.getUserObject();
-        String name = subClassData.getName();
-        OWLClass cls = DataFactory.getOWLClass(name);
-        DiscussionThreadDialog.showDialog(getProjectId(), cls);
     }
 
     private boolean hasChild(final TreeNode parentNode, final String childId) {

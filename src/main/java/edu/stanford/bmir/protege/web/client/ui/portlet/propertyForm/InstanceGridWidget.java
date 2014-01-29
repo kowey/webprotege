@@ -37,14 +37,14 @@ import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityPropertyValues;
 import edu.stanford.bmir.protege.web.client.rpc.data.PropertyEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
-import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractPropertyWidgetWithNotes;
+import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractPropertyWidget;
 import edu.stanford.bmir.protege.web.client.ui.util.SelectionUtil;
 import edu.stanford.bmir.protege.web.client.ui.util.SelectionUtil.SelectionCallback;
 import edu.stanford.bmir.protege.web.client.ui.util.UIUtil;
 
 import java.util.*;
 
-public class InstanceGridWidget extends AbstractPropertyWidgetWithNotes {
+public class InstanceGridWidget extends AbstractPropertyWidget {
 
     protected static String INSTANCE_FIELD_NAME = "@instance@";
     protected static String DELETE_FIELD_NAME = "@delete@";
@@ -303,12 +303,6 @@ public class InstanceGridWidget extends AbstractPropertyWidgetWithNotes {
         onAddExistingValue();
     }
 
-    protected void onEditNotes(int index) {
-        Record record = store.getAt(index);
-        String value = record.getAsString(INSTANCE_FIELD_NAME);
-        super.onEditNotes(value);
-    }
-
     protected void onDelete(int index) {
         Record record = store.getAt(index);
         String value = record.getAsString(INSTANCE_FIELD_NAME);
@@ -470,8 +464,6 @@ public class InstanceGridWidget extends AbstractPropertyWidgetWithNotes {
                 int offsetCommentColumn = getOffsetCommentColumn();
                 if (offsetDeleteColumn != -1 && colindex == properties.size() + offsetDeleteColumn) {
                     onDeleteColumnClicked(rowIndex);
-                } else if (offsetCommentColumn != -1 && colindex == properties.size() + offsetCommentColumn) {
-                    onCommentColumnClicked(rowIndex);
                 } else {
                     if (clicksToEdit == 1) {
                         onValueColumnClicked(grid, rowIndex, colindex);
@@ -554,15 +546,6 @@ public class InstanceGridWidget extends AbstractPropertyWidgetWithNotes {
                         }
                     }
                 });
-            }
-        }
-    }
-
-    protected void onCommentColumnClicked(final int rowIndex) {
-        Record record = store.getAt(rowIndex);
-        if (record != null) {
-            if (UIUtil.confirmOperationAllowed(getProjectId())) {
-                onEditNotes(rowIndex);
             }
         }
     }
