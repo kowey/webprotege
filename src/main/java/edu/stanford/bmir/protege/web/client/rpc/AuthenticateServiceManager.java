@@ -39,16 +39,6 @@ public class AuthenticateServiceManager {
         proxy.changePassword(userId.getUserName(), password, cb);
     }
 
-    //create new user to associate open id with https
-    public void registerUserToAssociateOpenId(UserId userId, String userPassword, String emailId, AsyncCallback<UserData> cb) {
-        proxy.registerUserToAssociateOpenId(userId.getUserName(), userPassword, emailId, cb);
-    }
-
-    //sign in to assocaited open id with https
-    public void validateUserToAssociateOpenId(UserId userId, String password, AsyncCallback<UserData> cb) {
-        proxy.validateUserToAssociateOpenId(userId.getUserName(), password, cb);
-    }
-
     public void sendPasswordReminder(UserId userId, AsyncCallback<Void> cb) {
         proxy.sendPasswordReminder(userId.getUserName(), cb);
     }

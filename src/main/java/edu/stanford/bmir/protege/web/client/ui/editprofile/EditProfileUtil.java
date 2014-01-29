@@ -18,7 +18,6 @@ import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.*;
 import edu.stanford.bmir.protege.web.client.rpc.data.OpenIdData;
-import edu.stanford.bmir.protege.web.client.ui.openid.OpenIdUtil;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
 import java.util.Map;
@@ -188,7 +187,6 @@ public class EditProfileUtil {
             });
 
 //            final FlexTable editProfTable = editProfileTable;
-            OpenIdServiceManager.getInstance().getUsersOpenId(userId.getUserName(), new GetUsersOpenIdHandler(win, editProfileTable));
         } else {
             MessageBox.alert("Error at Getting User Name, Please try again");
         }
@@ -269,30 +267,6 @@ public class EditProfileUtil {
             GWT.log("Error at getting user email:", caught);
             win.close();
         }
-    }
-
-    class GetUsersOpenIdHandler extends AbstractAsyncHandler<OpenIdData> {
-        private Window win;
-        private FlexTable editProfTable;
-
-        public GetUsersOpenIdHandler(Window win, FlexTable editProfTable) {
-            this.win = win;
-            this.editProfTable = editProfTable;
-        }
-
-        @Override
-        public void handleFailure(Throwable caught) {
-            MessageBox.alert("Error in retrieving OpenId list");
-
-        }
-
-        @Override
-        public void handleSuccess(OpenIdData openIdData) {
-            OpenIdUtil opIdUtil = new OpenIdUtil();
-            opIdUtil.displayUsersOpenIdList(openIdData, editProfTable, win, false, win.getHeight());
-
-        }
-
     }
 
     class OkButtonListenerAdapter extends ButtonListenerAdapter {

@@ -184,7 +184,6 @@ public class AdminServiceImpl extends WebProtegeRemoteServiceServlet implements 
         HttpSession session = request.getSession();
         session.setAttribute(AuthenticationConstants.LOGIN_METHOD, null);
         SessionConstants.removeAttribute(SessionConstants.USER_ID, session);
-        SessionConstants.removeAttribute(SessionConstants.OPEN_ID_ACCOUNT, session);
     }
 
     public boolean changePasswordEncrypted(String userName, String encryptedPassword, String salt) {

@@ -19,11 +19,7 @@ public interface AuthenticateService extends RemoteService {
     UserData validateUser(String name, String password);
     
     void changePassword(String userName, String password);
-    
-    UserData registerUserToAssociateOpenId(String name, String password, String emailId);
-    
-    UserData validateUserToAssociateOpenId(String name, String password);
-    
+
     void sendPasswordReminder(String userName);
     
     UserData registerUser(String name, String password, String email);

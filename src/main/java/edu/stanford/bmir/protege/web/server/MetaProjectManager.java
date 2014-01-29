@@ -70,8 +70,6 @@ public abstract class MetaProjectManager {
 //    public abstract void reloadMetaProject();
 
     public abstract void dispose();
-    
-    public abstract Optional<UserId> getUserAssociatedWithOpenId(String userOpenId);
 
     public abstract boolean allowsCreateUser();
 
