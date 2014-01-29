@@ -32,8 +32,6 @@ public class BannerPresenter {
         projectActionBar.setShowFreshEntitySettingsHandler(new ShowFreshEntitySettingsHandlerImpl());
         projectActionBar.setShowProjectDetailsHandler(new ShowProjectDetailsHandlerImpl());
         final ApplicationActionBar w = bannerView.getApplicationActionBar();
-        w.setShowAboutBoxHandler(new ShowAboutBoxHandlerImpl());
-        w.setShowUserGuideHandler(new ShowUserGuideHandlerImpl());
 
 
         EventBusManager.getManager().registerHandler(ActiveProjectChangedEvent.TYPE, new ActiveProjectChangedHandler() {
