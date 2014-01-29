@@ -306,10 +306,6 @@ public class PropertiesTreePortlet extends AbstractOWLEntityPortlet {
             }
         });
 
-        if (!getProject().hasWritePermission(Application.get().getUserId())) {
-            createButton.setDisabled(true);
-        }
-
         deleteButton = new Button("Delete");
         // deleteButton.setIconCls("protege-class-delete-icon");
         deleteButton.setCls("toolbar-button");
@@ -319,10 +315,6 @@ public class PropertiesTreePortlet extends AbstractOWLEntityPortlet {
                 onDeleteProperty();
             }
         });
-
-        if (!getProject().hasWritePermission(Application.get().getUserId())) {
-            deleteButton.setDisabled(true);
-        }
 
         setTopToolbar(new Button[]{createButton, deleteButton});
     }
@@ -593,14 +585,8 @@ public class PropertiesTreePortlet extends AbstractOWLEntityPortlet {
     }
 
     public void updateButtonStates() {
-        if (getProject().hasWritePermission(Application.get().getUserId())) {
             createButton.enable();
             deleteButton.enable();
-        }
-        else {
-            createButton.disable();
-            deleteButton.disable();
-        }
     }
 
     public TreePanel getTreePanel() {

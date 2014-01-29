@@ -8,7 +8,6 @@ import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.shared.dispatch.Action;
 import edu.stanford.bmir.protege.web.shared.dispatch.DispatchServiceResultContainer;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedException;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +24,7 @@ public class DispatchServiceImpl extends WebProtegeRemoteServiceServlet implemen
     private DispatchServiceHandler executor = new DefaultDispatchServiceExecutor();
 
     @Override
-    public DispatchServiceResultContainer executeAction(Action action) throws ActionExecutionException, PermissionDeniedException {
+    public DispatchServiceResultContainer executeAction(Action action) throws ActionExecutionException {
         UserId userId = getUserInSession();
         HttpServletRequest request = getThreadLocalRequest();
         HttpSession session = request.getSession();

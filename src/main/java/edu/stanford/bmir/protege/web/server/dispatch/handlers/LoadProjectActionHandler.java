@@ -12,8 +12,6 @@ import edu.stanford.bmir.protege.web.server.logging.WebProtegeLogger;
 import edu.stanford.bmir.protege.web.server.logging.WebProtegeLoggerManager;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectManager;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectMetadataManager;
-import edu.stanford.bmir.protege.web.shared.permissions.Permission;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.project.ProjectDetails;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.smi.protege.server.metaproject.Operation;
@@ -54,10 +52,6 @@ public class LoadProjectActionHandler implements ActionHandler<LoadProjectAction
         ProjectDetails projectDetails = manager.getProjectDetails(projectId);
 
         Collection<Operation> ops = MetaProjectManager.getManager().getAllowedOperations(projectId.getId(), executionContext.getUserId().getUserName());
-        PermissionsSet.Builder builder = PermissionsSet.builder();
-        for (Operation op : ops) {
-            builder.addPermission(Permission.getPermission(op.getName()));
-        }
-        return new LoadProjectResult(executionContext.getUserId(), builder.build(), projectDetails);
+        return new LoadProjectResult(executionContext.getUserId(), projectDetails);
     }
 }

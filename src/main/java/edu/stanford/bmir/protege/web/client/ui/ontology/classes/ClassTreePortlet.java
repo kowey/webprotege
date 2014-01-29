@@ -507,7 +507,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                 onCreateCls(e.isShiftKey() ? CreateClassesMode.IMPORT_CSV : CreateClassesMode.CREATE_SUBCLASSES);
             }
         });
-        createButton.setDisabled(!hasWritePermission());
         return createButton;
     }
 
@@ -520,7 +519,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                 onDeleteCls();
             }
         });
-        deleteButton.setDisabled(!getProject().hasWritePermission(Application.get().getUserId()));
         deleteButton.setDisabled(!getDeleteEnabled());
         return deleteButton;
     }
@@ -560,7 +558,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         treePanel.addListener(new TreePanelListenerAdapter() {
             @Override
             public boolean doBeforeNodeDrop(final TreePanel treePanel, final TreeNode target, final DragData dragData, final String point, final DragDrop source, final TreeNode dropNode, final DropNodeCallback dropNodeCallback) {
-                if (hasWritePermission()) {
                     final boolean success = Window.confirm("Are you sure you want to move " + getNodeBrowserText(dropNode) + " from parent " + getNodeBrowserText(dropNode.getParentNode()) + " to parent " + getNodeBrowserText(target) + " ?");
                     if (success) {
                         moveClass((EntityData) dropNode.getUserObject(), (EntityData) dropNode.getParentNode().getUserObject(), (EntityData) target.getUserObject());
@@ -569,10 +566,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                     else {
                         return false;
                     }
-                }
-                else {
-                    return false;
-                }
             }
         });
     }
@@ -1271,22 +1264,12 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
     }
 
     public void updateButtonStates() {
-        if (hasWritePermission()) {
             if (createButton != null) {
                 createButton.enable();
             }
             if (deleteButton != null && getDeleteEnabled()) {
                 deleteButton.enable();
             }
-        }
-        else {
-            if (createButton != null) {
-                createButton.disable();
-            }
-            if (deleteButton != null) {
-                deleteButton.disable();
-            }
-        }
 
         if (watchButton != null) {
             // This used to disable the button.  However, the buttons seem to be laid out only when the containing

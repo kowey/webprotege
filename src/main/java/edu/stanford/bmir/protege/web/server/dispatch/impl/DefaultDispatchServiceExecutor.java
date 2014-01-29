@@ -6,7 +6,6 @@ import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWr
 import edu.stanford.bmir.protege.web.shared.dispatch.Action;
 import edu.stanford.bmir.protege.web.shared.dispatch.DispatchServiceResultContainer;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedException;
 
 /**
  * Author: Matthew Horridge<br>
@@ -23,14 +22,6 @@ public class DefaultDispatchServiceExecutor implements DispatchServiceHandler {
     @Override
     public <A extends Action<R>, R extends Result> DispatchServiceResultContainer execute(A action, RequestContext requestContext, ExecutionContext executionContext) throws ActionExecutionException {
         ActionHandler<A, R> actionHandler = handlerRegistry.getActionHandler(action);
-        RequestValidator<A> validator = actionHandler.getRequestValidator(action, requestContext);
-        if (validator instanceof UserHasProjectWritePermissionValidator) {
-            // Temp fix for permission problem
-            RequestValidationResult validationResult = validator.validateAction(action, requestContext);
-            if(!validationResult.isValid()) {
-                throw new PermissionDeniedException(validationResult.getInvalidMessage());
-            }
-        }
         R result = actionHandler.execute(action, executionContext);
         return new DispatchServiceResultContainer(result);
     }

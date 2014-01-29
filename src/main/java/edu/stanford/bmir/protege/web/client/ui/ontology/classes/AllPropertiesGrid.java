@@ -181,9 +181,7 @@ public class AllPropertiesGrid extends EditorGridPanel {
                 public boolean doBeforeEdit(GridPanel grid, Record record, String field, Object value, int rowIndex,
                         int colIndex) {
 
-                    if (!project.hasWritePermission(Application.get().getUserId())) {
-                        return false;
-                    } // this editor only handles the editing of strings and any values
+                    // this editor only handles the editing of strings and any values
                     return isStringOrAnyValueType((PropertyEntityData) (store.getAt(rowIndex).getAsObject(PROPERTY)));
                 }
 
@@ -274,15 +272,9 @@ public class AllPropertiesGrid extends EditorGridPanel {
                 onAddPropertyValue();
             }
         });
-        if (!project.hasWritePermission(Application.get().getUserId())) {
-            createButton.disable();
-        }
 
         deleteButton = new ToolbarButton("Delete property value");
         deleteButton.setCls("toolbar-button");
-        if (!project.hasWritePermission(Application.get().getUserId())) {
-            deleteButton.disable();
-        }
         deleteButton.addListener(new ButtonListenerAdapter() {
             @Override
             public void onClick(Button button, EventObject e) {
@@ -394,13 +386,8 @@ public class AllPropertiesGrid extends EditorGridPanel {
     private ToolbarButton deleteButton;
 
     public void updateButtonStates() {
-        if (project.hasWritePermission(Application.get().getUserId())) {
             createButton.enable();
             deleteButton.enable();
-        } else {
-            createButton.disable();
-            deleteButton.disable();
-        }
     }
 
 

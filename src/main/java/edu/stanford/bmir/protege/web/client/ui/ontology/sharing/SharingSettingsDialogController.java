@@ -12,7 +12,6 @@ import edu.stanford.bmir.protege.web.client.ui.library.dlg.WebProtegeDialogButto
 import edu.stanford.bmir.protege.web.client.ui.library.dlg.WebProtegeDialogCloser;
 import edu.stanford.bmir.protege.web.client.ui.library.dlg.WebProtegeOKCancelDialogController;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
-import edu.stanford.bmir.protege.web.shared.event.PermissionsChangedEvent;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 /**
@@ -45,7 +44,6 @@ public class SharingSettingsDialogController extends WebProtegeOKCancelDialogCon
             }
 
             public void onSuccess(Void result) {
-                EventBusManager.getManager().postEvent(new PermissionsChangedEvent(sharingSettings.getProjectId()));
             }
         });
     }

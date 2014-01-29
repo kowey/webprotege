@@ -18,7 +18,6 @@ import edu.stanford.bmir.protege.web.server.notes.OWLAPINotesManagerNotesAPIImpl
 import edu.stanford.bmir.protege.web.server.owlapi.change.OWLAPIChangeManager;
 import edu.stanford.bmir.protege.web.server.owlapi.manager.WebProtegeOWLManager;
 import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricsManager;
-import edu.stanford.bmir.protege.web.server.permissions.ProjectPermissionsManager;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import edu.stanford.bmir.protege.web.shared.HasDataFactory;
 import edu.stanford.bmir.protege.web.shared.HasDispose;
@@ -26,7 +25,6 @@ import edu.stanford.bmir.protege.web.shared.crud.EntityCrudKitSettings;
 import edu.stanford.bmir.protege.web.shared.crud.EntityShortForm;
 import edu.stanford.bmir.protege.web.shared.event.ProjectEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.*;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedException;
 import edu.stanford.bmir.protege.web.shared.project.ProjectDocumentNotFoundException;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -435,17 +433,11 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
      * @param changeDescriptionGenerator A generator that describes the changes that took place.
      * @return A {@link ChangeApplicationResult} that describes the changes which took place an any renaminings.
      * @throws NullPointerException      if any parameters are {@code null}.
-     * @throws PermissionDeniedException if the user identified by {@code userId} does not have permssion to write to
-     *                                   ontologies in this project.
      */
-    public <R> ChangeApplicationResult<R> applyChanges(final UserId userId, final ChangeListGenerator<R> changeListGenerator, final ChangeDescriptionGenerator<R> changeDescriptionGenerator) throws PermissionDeniedException {
+    public <R> ChangeApplicationResult<R> applyChanges(final UserId userId, final ChangeListGenerator<R> changeListGenerator, final ChangeDescriptionGenerator<R> changeDescriptionGenerator)  {
         checkNotNull(userId);
         checkNotNull(changeListGenerator);
         checkNotNull(changeDescriptionGenerator);
-
-        if (!getPermissionsManager().hasWriteAccess(userId)) {
-            throw new PermissionDeniedException("You do not have permission to write to ontologies in this project");
-        }
 
         final Set<OWLEntity> changeSignature = new HashSet<OWLEntity>();
         final List<OWLOntologyChange> appliedChanges;
@@ -733,35 +725,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // TODO:
-
-    private final ProjectPermissionsManager permissionsManager = new DummyPermissionsManager();
-
-    private ProjectPermissionsManager getPermissionsManager() {
-        return permissionsManager;
-    }
-
-
-
-    private static class DummyPermissionsManager implements ProjectPermissionsManager {
-
-        @Override
-        public boolean hasReadAccess(UserId userId) {
-            return true;
-        }
-
-        @Override
-        public boolean hasWriteAccess(UserId userId) {
-            return true;
-        }
-
-        @Override
-        public boolean hasCommentAccess(UserId userId) {
-            return true;
-        }
-    }
-
 
     @Override
     public void dispose() {

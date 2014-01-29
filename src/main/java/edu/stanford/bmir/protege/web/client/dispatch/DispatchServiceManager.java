@@ -23,7 +23,6 @@ import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
 import edu.stanford.bmir.protege.web.shared.event.HasEventList;
 import edu.stanford.bmir.protege.web.shared.event.SerializableEvent;
 import edu.stanford.bmir.protege.web.shared.events.EventList;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionDeniedException;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 import java.util.HashMap;
@@ -161,18 +160,8 @@ public class DispatchServiceManager {
             return Optional.absent();
         }
         else if(throwable instanceof UmbrellaException) {
-            for(Throwable cause : ((UmbrellaException) throwable).getCauses()) {
-                if(cause instanceof PermissionDeniedException) {
-                    displayAlert("You do not have permission to perform the requested operation.");
-                    return Optional.absent();
-                }
-            }
             displayAlert("An unexpected problem occurred and your actions could not be completed.  Please try again.");
             return Optional.absent();
-        }
-        else if(throwable instanceof PermissionDeniedException) {
-            displayAlert("You do not have permission to carry out the specified action");
-            return Optional.of(throwable);
         }
         else {
             return Optional.of(throwable);

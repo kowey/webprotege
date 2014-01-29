@@ -183,7 +183,6 @@ public class IndividualsListPortlet extends AbstractOWLEntityPortlet implements 
                 createHandler.handleCreate();
             }
         });
-        createButton.setDisabled(!getProject().hasWritePermission(Application.get().getUserId()));
         toolbar.addButton(createButton);
         deleteButton = new ToolbarButton("Delete");
         deleteButton.setCls("toolbar-button");
@@ -193,7 +192,6 @@ public class IndividualsListPortlet extends AbstractOWLEntityPortlet implements 
                 getDeleteHandler().handleDelete();
             }
         });
-        deleteButton.setDisabled(!getProject().hasWritePermission(Application.get().getUserId()));
         toolbar.addButton(deleteButton);
 
         Widget searchField = createSearchField();
@@ -245,13 +243,8 @@ public class IndividualsListPortlet extends AbstractOWLEntityPortlet implements 
     }
 
     public void updateButtonStates() {
-        if (getProject().hasWritePermission(Application.get().getUserId())) {
             createButton.enable();
             deleteButton.enable();
-        } else {
-            createButton.disable();
-            deleteButton.disable();
-        }
     }
 
     @Override

@@ -8,8 +8,6 @@ import edu.stanford.bmir.protege.web.server.app.App;
 import edu.stanford.bmir.protege.web.server.app.WebProtegeProperties;
 import edu.stanford.bmir.protege.web.server.init.WebProtegeConfigurationException;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIMetaProjectStore;
-import edu.stanford.bmir.protege.web.shared.permissions.Permission;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.user.UnrecognizedUserNameException;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 import edu.stanford.bmir.protege.web.shared.user.UserNameAlreadyExistsException;
@@ -82,24 +80,6 @@ public class AdminServiceImpl extends WebProtegeRemoteServiceServlet implements 
 //    public List<ProjectData> getProjects(String user) {
 //        return MetaProjectManager.getManager().getProjectsData(user);
 //    }
-
-    public PermissionsSet getAllowedOperations(String project, String user) {
-        Collection<Operation> ops = MetaProjectManager.getManager().getAllowedOperations(project, user);
-        return toPermissionSet(ops);
-    }
-
-    public PermissionsSet getAllowedServerOperations(String userName) {
-        Collection<Operation> ops = MetaProjectManager.getManager().getAllowedServerOperations(userName);
-        return toPermissionSet(ops);
-    }
-
-    private PermissionsSet toPermissionSet(Collection<Operation> ops) {
-        PermissionsSet.Builder builder = PermissionsSet.builder();
-        for (Operation op : ops) {
-            builder.addPermission(Permission.getPermission(op.getName()));
-        }
-        return builder.build();
-    }
 
 //    public void refreshMetaproject() {
 //        MetaProjectManager.getManager().reloadMetaProject();

@@ -19,7 +19,6 @@ import edu.stanford.bmir.protege.web.shared.app.GetClientApplicationPropertiesAc
 import edu.stanford.bmir.protege.web.shared.app.GetClientApplicationPropertiesResult;
 import edu.stanford.bmir.protege.web.shared.app.WebProtegePropertyName;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
-import edu.stanford.bmir.protege.web.shared.permissions.GroupId;
 import edu.stanford.bmir.protege.web.shared.project.ProjectDetails;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserDetails;
@@ -170,16 +169,6 @@ public class Application {
     public Optional<String> getLoggedInUserEmailAddress() {
         return userManager.getLoggedInUserEmailAddress();
     }
-
-    /**
-     * Gets the groups that the logged in user belongs to.
-     * @return A set of {@link GroupId} objects that identify the groups that the logged in user belongs to.  Not {@code null}.
-     * May be the empty set.
-     */
-    public Set<GroupId> getUserGroups() {
-        return userManager.getLoggedInUserGroups();
-    }
-
 
     /**
      * Logs out the current user if the user current user is not the guest user.

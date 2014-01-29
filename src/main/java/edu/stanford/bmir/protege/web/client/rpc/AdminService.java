@@ -4,7 +4,6 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import edu.stanford.bmir.protege.web.client.rpc.data.LoginChallengeData;
 import edu.stanford.bmir.protege.web.client.rpc.data.UserData;
-import edu.stanford.bmir.protege.web.shared.permissions.PermissionsSet;
 import edu.stanford.bmir.protege.web.shared.user.UnrecognizedUserNameException;
 import edu.stanford.bmir.protege.web.shared.user.UserEmailAlreadyExistsException;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
@@ -36,11 +35,6 @@ public interface AdminService extends RemoteService {
 //    void setUserEmail(String userName, String email);
 
     void sendPasswordReminder(String userName) throws UnrecognizedUserNameException;
-
-    PermissionsSet getAllowedOperations(String project, String user);
-
-    PermissionsSet getAllowedServerOperations(String userName);
-
 
     LoginChallengeData getUserSaltAndChallenge(String userName);
 

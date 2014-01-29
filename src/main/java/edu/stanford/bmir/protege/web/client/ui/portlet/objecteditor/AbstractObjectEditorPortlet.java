@@ -248,8 +248,7 @@ public abstract class AbstractObjectEditorPortlet<T extends Serializable> extend
     private void updateState() {
         if(editor instanceof HasEnabled) {
             Project project = getProject();
-            boolean canWrite = project.hasWritePermission();
-            ((HasEnabled) editor).setEnabled(canWrite);
+            ((HasEnabled) editor).setEnabled(true);
         }
     }
 }
