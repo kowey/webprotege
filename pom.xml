@@ -330,12 +330,6 @@
         </configuration>
       </plugin>-->
 
-      <!-- do javadoc as part of build, with default configuration -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-      </plugin>
 
       <!-- Copy static web files before executing gwt:run -->
       <plugin>
