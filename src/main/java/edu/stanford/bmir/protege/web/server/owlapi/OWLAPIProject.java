@@ -13,8 +13,6 @@ import edu.stanford.bmir.protege.web.server.events.EventManager;
 import edu.stanford.bmir.protege.web.server.events.HighLevelEventGenerator;
 import edu.stanford.bmir.protege.web.server.logging.WebProtegeLogger;
 import edu.stanford.bmir.protege.web.server.logging.WebProtegeLoggerManager;
-import edu.stanford.bmir.protege.web.server.notes.OWLAPINotesManager;
-import edu.stanford.bmir.protege.web.server.notes.OWLAPINotesManagerNotesAPIImpl;
 import edu.stanford.bmir.protege.web.server.owlapi.change.OWLAPIChangeManager;
 import edu.stanford.bmir.protege.web.server.owlapi.manager.WebProtegeOWLManager;
 import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricsManager;
@@ -103,8 +101,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
     private OWLAnnotationPropertyHierarchyProvider annotationPropertyHierarchyProvider;
 
     private OWLAPISearchManager searchManager;
-
-    private OWLAPINotesManager notesManager;
 
     private OWLAPIChangeManager changeManager;
 
@@ -248,9 +244,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
 
         changeManager = new OWLAPIChangeManager(this);
 
-        notesManager = new OWLAPINotesManagerNotesAPIImpl(this);
-
-
         // MH: All of this is highly dodgy and not at all thread safe.  It is therefore BROKEN!  Needs fixing.
 
         classHierarchyProvider = new AssertedClassHierarchyProvider(manager);
@@ -355,10 +348,6 @@ public class OWLAPIProject implements HasDispose, HasDataFactory {
 
     public RenderingManager getRenderingManager() {
         return renderingManager;
-    }
-
-    public OWLAPINotesManager getNotesManager() {
-        return notesManager;
     }
 
     public RevisionNumber getRevisionNumber() {

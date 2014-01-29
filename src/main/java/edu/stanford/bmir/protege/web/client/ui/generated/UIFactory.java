@@ -17,7 +17,6 @@ import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.AnnotationsPort
 import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.ImportsTreePortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.MetadataTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.MetricsPortlet;
-import edu.stanford.bmir.protege.web.client.ui.ontology.notes.NotesTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.properties.PropertiesTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.properties.PropertiesTreePortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.restrictions.ConditionsPortlet;
@@ -65,9 +64,6 @@ public class UIFactory {
         }
         else if (tabJavaClassName.equals(MetadataTab.class.getName())) {
             return new MetadataTab(project);
-        }
-        else if (tabJavaClassName.equals(NotesTab.class.getName())) {
-            return new NotesTab(project);
         }
         else if (tabJavaClassName.equals(OtherTerminologiesTab.class.getName())) {
             return new OtherTerminologiesTab(project);
@@ -164,7 +160,7 @@ public class UIFactory {
          * OtherTerminologiesTab.class.getName(),
          *
          */
-        String[] tabs = {ClassesTab.class.getName(), PropertiesTab.class.getName(), IndividualsTab.class.getName(), MetadataTab.class.getName(), NotesTab.class.getName()};
+        String[] tabs = {ClassesTab.class.getName(), PropertiesTab.class.getName(), IndividualsTab.class.getName(), MetadataTab.class.getName()};
         return Arrays.asList(tabs);
     }
 

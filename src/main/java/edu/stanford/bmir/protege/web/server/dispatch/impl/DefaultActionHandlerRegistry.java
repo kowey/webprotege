@@ -15,10 +15,6 @@ import edu.stanford.bmir.protege.web.server.entities.LookupEntitiesActionHandler
 import edu.stanford.bmir.protege.web.server.events.GetProjectEventsActionHandler;
 import edu.stanford.bmir.protege.web.server.individuals.CreateNamedIndividualsActionHandler;
 import edu.stanford.bmir.protege.web.server.individuals.GetIndividualsActionHandler;
-import edu.stanford.bmir.protege.web.server.notes.AddNoteToEntityActionHandler;
-import edu.stanford.bmir.protege.web.server.notes.AddReplyToNoteActionHandler;
-import edu.stanford.bmir.protege.web.server.notes.DeleteNoteActionHandler;
-import edu.stanford.bmir.protege.web.server.notes.SetNoteStatusActionHandler;
 import edu.stanford.bmir.protege.web.server.usage.GetUsageActionHandler;
 import edu.stanford.bmir.protege.web.shared.app.GetClientApplicationPropertiesAction;
 import edu.stanford.bmir.protege.web.shared.crud.GetEntityCrudKitSettingsAction;
@@ -32,10 +28,6 @@ import edu.stanford.bmir.protege.web.shared.entity.LookupEntitiesAction;
 import edu.stanford.bmir.protege.web.shared.event.GetProjectEventsAction;
 import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.individualslist.GetIndividualsAction;
-import edu.stanford.bmir.protege.web.shared.notes.AddNoteToEntityAction;
-import edu.stanford.bmir.protege.web.shared.notes.AddReplyToNoteAction;
-import edu.stanford.bmir.protege.web.shared.notes.DeleteNoteAction;
-import edu.stanford.bmir.protege.web.shared.notes.SetNoteStatusAction;
 import edu.stanford.bmir.protege.web.shared.project.GetAvailableProjectsAction;
 import edu.stanford.bmir.protege.web.shared.project.MoveProjectsToTrashAction;
 import edu.stanford.bmir.protege.web.shared.project.RemoveProjectsFromTrashAction;
@@ -102,14 +94,6 @@ public class DefaultActionHandlerRegistry implements ActionHandlerRegistry {
 
         // User stuff
         register(new GetCurrentUserInSessionActionHandler(), GetCurrentUserInSessionAction.class);
-
-        // Notes
-        register(new GetDiscussionThreadActionHandler(), GetDiscussionThreadAction.class);
-        register(new AddNoteToEntityActionHandler(), AddNoteToEntityAction.class);
-        register(new AddReplyToNoteActionHandler(), AddReplyToNoteAction.class);
-        register(new SetNoteStatusActionHandler(), SetNoteStatusAction.class);
-        register(new DeleteNoteActionHandler(), DeleteNoteAction.class);
-
 
         register(new MoveProjectsToTrashActionHandler(), MoveProjectsToTrashAction.class);
         register(new RemoveProjectsFromTrashActionHandler(), RemoveProjectsFromTrashAction.class);
