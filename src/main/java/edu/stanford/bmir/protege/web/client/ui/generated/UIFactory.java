@@ -10,7 +10,6 @@ import edu.stanford.bmir.protege.web.client.ui.ontology.home.OntologiesPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.id.OntologyIdPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.individuals.IndividualsListPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.individuals.IndividualsTab;
-import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.AnnotationsPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.ImportsTreePortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.MetadataTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.properties.PropertiesTab;
@@ -81,9 +80,6 @@ public class UIFactory {
             if (portletJavaClassName.equals(AllPropertiesPortlet.class.getName())) {
                 return new AllPropertiesPortlet(project);
             }
-            else if (portletJavaClassName.equals(AnnotationsPortlet.class.getName())) {
-                return new AnnotationsPortlet(project);
-            }
             else if (portletJavaClassName.equals(ClassTreePortlet.class.getName())) {
                 return new ClassTreePortlet(project);
             }
@@ -153,7 +149,8 @@ public class UIFactory {
          */
         String[] portlets = {UsagePortlet.class.getName(), OntologyIdPortlet.class.getName(),
                 EditorPortlet.class.getName(),
-                ProjectFeedPortlet.class.getName(), AnnotationsPortlet.class.getName(), AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(),
+                ProjectFeedPortlet.class.getName(),
+                AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(),
                 OntologiesPortlet.class.getName(), PropertiesTreePortlet.class.getName(), ConditionsPortlet.class.getName(),
                 SuperclassesPortlet.class.getName()};
 

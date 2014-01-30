@@ -2,7 +2,6 @@ package edu.stanford.bmir.protege.web.client.dispatch;
 
 import edu.stanford.bmir.protege.web.shared.HasSubject;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
-import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 /**
  * Author: Matthew Horridge<br>
@@ -13,18 +12,6 @@ import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 public abstract class AbstractHasSubjectAction<S, R extends Result> extends AbstractHasProjectAction<R> implements HasSubject<S> {
 
     private S subject;
-
-    /**
-     * For serialization purposes only
-     */
-    protected AbstractHasSubjectAction() {
-        super();
-    }
-
-    protected AbstractHasSubjectAction(ProjectId projectId, S subject) {
-        super(projectId);
-        this.subject = subject;
-    }
 
     /**
      * Gets the subject of this object.
