@@ -158,14 +158,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
             }
         });
 
-        addProjectEventHandler(EntityNotesChangedEvent.TYPE, new EntityNotesChangedHandler() {
-            @Override
-            public void entityNotesChanged(EntityNotesChangedEvent event) {
-                if (isEventForThisProject(event)) {
-                    onNotesChanged(event);
-                }
-            }
-        });
 
         addProjectEventHandler(EntityDeprecatedChangedEvent.TYPE, new EntityDeprecatedChangedHandler() {
             @Override
@@ -364,19 +356,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
 
     }
 
-    private void onNotesChanged(EntityNotesChangedEvent event) {
-        String name = event.getEntity().getIRI().toString();
-        TreeNode node = findTreeNode(name);
-        if(node != null) {
-            final Object userObject = node.getUserObject();
-            if (userObject instanceof EntityData) {
-                EntityData subclassEntityData = (EntityData) userObject;
-                subclassEntityData.setLocalAnnotationsCount(event.getTotalNotesCount());
-                String nodeText = createNodeRenderText(node);
-                node.setText(nodeText);
-            }
-        }
-    }
 
     private void updateTreeNodeRendering(TreeNode tn) {
         tn.setText(createNodeRenderText(tn));
