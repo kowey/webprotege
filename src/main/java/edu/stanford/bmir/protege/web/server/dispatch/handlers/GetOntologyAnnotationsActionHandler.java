@@ -7,7 +7,7 @@ import edu.stanford.bmir.protege.web.server.dispatch.AbstractHasProjectActionHan
 import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectReadPermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.shared.BrowserTextMap;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -30,7 +30,7 @@ public class GetOntologyAnnotationsActionHandler extends AbstractHasProjectActio
 
     @Override
     protected RequestValidator getAdditionalRequestValidator(GetOntologyAnnotationsAction action, RequestContext requestContext) {
-        return new UserHasProjectReadPermissionValidator();
+        return new NullValidator();
     }
 
     @Override

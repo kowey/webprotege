@@ -8,7 +8,7 @@ import edu.stanford.bmir.protege.web.server.dispatch.AbstractProjectChangeHandle
 import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWritePermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.filesubmission.FileUploadConstants;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.shared.csv.CSVGrid;
@@ -65,6 +65,6 @@ public class ImportCSVFileActionHandler extends AbstractProjectChangeHandler<Int
 
     @Override
     protected RequestValidator<ImportCSVFileAction> getAdditionalRequestValidator(ImportCSVFileAction action, RequestContext requestContext) {
-        return new UserHasProjectWritePermissionValidator<ImportCSVFileAction>();
+        return new NullValidator();
     }
 }

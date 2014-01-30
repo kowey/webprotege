@@ -6,7 +6,7 @@ import edu.stanford.bmir.protege.web.server.dispatch.ActionHandler;
 import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectReadPermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.frame.NamedIndividualFrameTranslator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectManager;
@@ -35,7 +35,7 @@ public class GetNamedIndividualFrameActionHandler implements ActionHandler<GetNa
 
     @Override
     public RequestValidator<GetNamedIndividualFrameAction> getRequestValidator(GetNamedIndividualFrameAction action, RequestContext requestContext) {
-        return UserHasProjectReadPermissionValidator.get();
+        return NullValidator.get();
     }
 
     @Override

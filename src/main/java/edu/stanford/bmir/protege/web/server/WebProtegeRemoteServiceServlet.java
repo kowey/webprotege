@@ -5,7 +5,6 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.gwt.user.server.rpc.SerializationPolicy;
 import com.google.gwt.user.server.rpc.SerializationPolicyLoader;
 import edu.stanford.bmir.protege.web.client.rpc.data.NotSignedInException;
-import edu.stanford.bmir.protege.web.client.ui.constants.OntologyShareAccessConstants;
 import edu.stanford.bmir.protege.web.server.logging.WebProtegeLogger;
 import edu.stanford.bmir.protege.web.server.logging.WebProtegeLoggerManager;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
@@ -47,7 +46,7 @@ public abstract class WebProtegeRemoteServiceServlet extends RemoteServiceServle
     /**
      * Gets the userId for the client associated with the current thread local request.
      *
-     * @return The UserId.  Not null (if no user is logged in then the value specified by {@link edu.stanford.bmir.protege.web.shared.user.UserId#getNull()}
+     * @return The UserId.  Not null
      *         will be returned.
      */
     public UserId getUserInSession() {
@@ -120,12 +119,7 @@ public abstract class WebProtegeRemoteServiceServlet extends RemoteServiceServle
         if (user == null) {
             return false;
         }
-        for (Group group : user.getGroups()) {
-            if (OntologyShareAccessConstants.ADMIN_GROUP.equals(group.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

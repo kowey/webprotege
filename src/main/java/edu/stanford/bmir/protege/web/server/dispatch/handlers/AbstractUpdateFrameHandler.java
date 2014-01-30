@@ -8,7 +8,7 @@ import edu.stanford.bmir.protege.web.server.change.OntologyChangeList;
 import edu.stanford.bmir.protege.web.server.crud.EntityCrudContext;
 import edu.stanford.bmir.protege.web.server.crud.EntityCrudKitHandler;
 import edu.stanford.bmir.protege.web.server.dispatch.*;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWritePermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.frame.FrameChangeGenerator;
 import edu.stanford.bmir.protege.web.server.frame.FrameTranslator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
@@ -44,7 +44,7 @@ public abstract class AbstractUpdateFrameHandler<A extends UpdateFrameAction<F, 
      */
     @Override
     protected RequestValidator<A> getAdditionalRequestValidator(A action, RequestContext requestContext) {
-        return UserHasProjectWritePermissionValidator.get();
+        return NullValidator.get();
     }
 
     /**

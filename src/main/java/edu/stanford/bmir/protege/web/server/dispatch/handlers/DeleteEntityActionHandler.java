@@ -11,7 +11,7 @@ import edu.stanford.bmir.protege.web.server.dispatch.AbstractProjectChangeHandle
 import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWritePermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.shared.event.ProjectEvent;
 import edu.stanford.bmir.protege.web.shared.events.EventList;
@@ -26,8 +26,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
  */
 public class DeleteEntityActionHandler extends AbstractProjectChangeHandler<OWLEntity, DeleteEntityAction, DeleteEntityResult> {
 
-    private static final UserHasProjectWritePermissionValidator<DeleteEntityAction> VALIDATOR = new UserHasProjectWritePermissionValidator<DeleteEntityAction>();
-
+    private static final NullValidator VALIDATOR = new NullValidator();
 
     @Override
     public Class<DeleteEntityAction> getActionClass() {
