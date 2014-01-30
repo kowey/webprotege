@@ -19,7 +19,6 @@ import edu.stanford.bmir.protege.web.client.ui.ontology.metadata.MetadataTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.properties.PropertiesTab;
 import edu.stanford.bmir.protege.web.client.ui.ontology.properties.PropertiesTreePortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.restrictions.ConditionsPortlet;
-import edu.stanford.bmir.protege.web.client.ui.ontology.revisions.RevisionsPortlet;
 import edu.stanford.bmir.protege.web.client.ui.ontology.search.OtherTerminologiesTab;
 import edu.stanford.bmir.protege.web.client.ui.portlet.EntityPortlet;
 import edu.stanford.bmir.protege.web.client.ui.portlet.html.HtmlMessagePortlet;
@@ -124,9 +123,6 @@ public class UIFactory {
             else if (portletJavaClassName.equals(ConditionsPortlet.class.getName())) {
                 return new ConditionsPortlet(project);
             }
-            else if (portletJavaClassName.equals(RevisionsPortlet.class.getName())) {
-                return new RevisionsPortlet(project);
-            }
             else if (portletJavaClassName.equals(OntologyIdPortlet.class.getName())) {
                 return new OntologyIdPortlet(project);
             }
@@ -170,8 +166,7 @@ public class UIFactory {
         String[] portlets = {UsagePortlet.class.getName(), OntologyIdPortlet.class.getName(), OntologyAnnotationsPortlet.class.getName(), EditorPortlet.class.getName(),
                 ChangeSummaryPortlet.class.getName(), ProjectFeedPortlet.class.getName(), AnnotationsPortlet.class.getName(), AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(),
                 OntologiesPortlet.class.getName(), PropertiesTreePortlet.class.getName(), ConditionsPortlet.class.getName(),
-                SuperclassesPortlet.class.getName(), ChangesPortlet.class.getName(),
-                RevisionsPortlet.class.getName()};
+                SuperclassesPortlet.class.getName(), ChangesPortlet.class.getName()};
 
         List<String> portletsList = Arrays.asList(portlets);
         Collections.sort(portletsList, new Comparator<String>() {

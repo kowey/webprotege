@@ -73,10 +73,6 @@
 		<servlet-class>edu.stanford.bmir.protege.web.server.ProjectManagerServiceImpl</servlet-class>
 	</servlet>
 
-	<servlet>
-		<servlet-name>RevisionManager</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.RevisionManagerServiceImpl</servlet-class>
-	</servlet>
 
 
 
@@ -152,10 +148,6 @@
 		<url-pattern>/webprotege/userprofilemanager</url-pattern>
 	</servlet-mapping>
 
-	<servlet-mapping>
-		<servlet-name>RevisionManager</servlet-name>
-		<url-pattern>/webprotege/revisionmanager</url-pattern>
-	</servlet-mapping>
 
 
 
