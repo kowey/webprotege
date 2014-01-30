@@ -15,9 +15,7 @@ import com.gwtext.client.widgets.event.ButtonListenerAdapter;
 import com.gwtext.client.widgets.layout.AnchorLayoutData;
 import com.gwtext.client.widgets.layout.FitLayout;
 import edu.stanford.bmir.protege.web.client.Application;
-import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.*;
-import edu.stanford.bmir.protege.web.client.rpc.data.OpenIdData;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 
 import java.util.Map;
