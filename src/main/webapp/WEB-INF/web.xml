@@ -43,11 +43,6 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>NotificationServiceImpl</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.NotificationServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet>
 		<servlet-name>OntologyServiceImpl</servlet-name>
 		<servlet-class>edu.stanford.bmir.protege.web.server.owlapi.OntologyServiceOWLAPIImpl</servlet-class>
 	</servlet>
@@ -96,11 +91,6 @@
 	<servlet-mapping>
 		<servlet-name>DownloadServlet</servlet-name>
 		<url-pattern>/download</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>NotificationServiceImpl</servlet-name>
-		<url-pattern>/webprotege/notification</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>
