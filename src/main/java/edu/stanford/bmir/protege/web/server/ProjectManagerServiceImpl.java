@@ -132,7 +132,6 @@ public class ProjectManagerServiceImpl extends WebProtegeRemoteServiceServlet im
     public List<ProjectType> getAvailableProjectTypes() {
         List<ProjectType> projectTypes = new ArrayList<ProjectType>();
         projectTypes.add(new ProjectType(OWLAPIProjectType.getDefaultProjectType().getProjectTypeName()));
-        projectTypes.add(new ProjectType(OWLAPIProjectType.getOBOProjectType().getProjectTypeName()));
         return projectTypes;
     }
 
