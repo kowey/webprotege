@@ -29,7 +29,6 @@ import com.gwtext.client.widgets.tree.event.MultiSelectionModelListener;
 import com.gwtext.client.widgets.tree.event.TreeNodeListenerAdapter;
 import com.gwtext.client.widgets.tree.event.TreePanelListenerAdapter;
 import edu.stanford.bmir.protege.web.client.Application;
-import edu.stanford.bmir.protege.web.client.csv.CSVImportDialogController;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.project.Project;
@@ -51,7 +50,6 @@ import edu.stanford.bmir.protege.web.client.ui.util.GlobalSelectionManager;
 import edu.stanford.bmir.protege.web.client.ui.util.UIUtil;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import edu.stanford.bmir.protege.web.shared.ObjectPath;
-import edu.stanford.bmir.protege.web.shared.csv.CSVImportDescriptor;
 import edu.stanford.bmir.protege.web.shared.event.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentAddedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentAddedHandler;
@@ -479,7 +477,7 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
         createButton.addListener(new ButtonListenerAdapter() {
             @Override
             public void onClick(final Button button, final EventObject e) {
-                onCreateCls(e.isShiftKey() ? CreateClassesMode.IMPORT_CSV : CreateClassesMode.CREATE_SUBCLASSES);
+                onCreateCls(CreateClassesMode.CREATE_SUBCLASSES);
             }
         });
         return createButton;
@@ -676,17 +674,13 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
 
     private enum CreateClassesMode {
 
-        CREATE_SUBCLASSES,
-        IMPORT_CSV
+        CREATE_SUBCLASSES
     }
 
     protected void onCreateCls(CreateClassesMode mode) {
 
         if (mode == CreateClassesMode.CREATE_SUBCLASSES) {
             createSubClasses();
-        }
-        else {
-            createSubClassesByImportingCSVDocument();
         }
 
 
@@ -708,25 +702,6 @@ public class ClassTreePortlet extends AbstractOWLEntityPortlet {
                 }
             }
         }));
-    }
-
-    private void createSubClassesByImportingCSVDocument() {
-        UploadFileDialogController controller = new UploadFileDialogController("Upload CSV", new UploadFileResultHandler() {
-            @Override
-            public void handleFileUploaded(final DocumentId fileDocumentId) {
-                WebProtegeDialog<CSVImportDescriptor> csvImportDialog = new WebProtegeDialog<CSVImportDescriptor>(new CSVImportDialogController(getProjectId(), fileDocumentId, getSelectedClass()));
-                csvImportDialog.setVisible(true);
-
-            }
-
-            @Override
-            public void handleFileUploadFailed(String errorMessage) {
-                UIUtil.hideLoadProgessBar();
-                MessageBox.showAlert("Error uploading CSV file", errorMessage);
-            }
-        });
-
-        WebProtegeDialog.showDialog(controller);
     }
 
     private AsyncCallback<CreateClassesResult> getCreateClassesActionAsyncHandler() {

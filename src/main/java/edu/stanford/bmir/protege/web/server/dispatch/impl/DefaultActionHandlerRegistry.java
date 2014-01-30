@@ -5,8 +5,6 @@ import edu.stanford.bmir.protege.web.server.app.GetClientApplicationPropertiesAc
 import edu.stanford.bmir.protege.web.server.crud.GetEntityCrudKitSettingsActionHandler;
 import edu.stanford.bmir.protege.web.server.crud.GetEntityCrudKitsActionHandler;
 import edu.stanford.bmir.protege.web.server.crud.SetEntityCrudKitSettingsActionHandler;
-import edu.stanford.bmir.protege.web.server.csv.GetCSVGridActionHandler;
-import edu.stanford.bmir.protege.web.server.csv.ImportCSVFileActionHandler;
 import edu.stanford.bmir.protege.web.server.dispatch.ActionHandler;
 import edu.stanford.bmir.protege.web.server.dispatch.ActionHandlerNotFoundException;
 import edu.stanford.bmir.protege.web.server.dispatch.ActionHandlerRegistry;
@@ -20,8 +18,6 @@ import edu.stanford.bmir.protege.web.shared.app.GetClientApplicationPropertiesAc
 import edu.stanford.bmir.protege.web.shared.crud.GetEntityCrudKitSettingsAction;
 import edu.stanford.bmir.protege.web.shared.crud.GetEntityCrudKitsAction;
 import edu.stanford.bmir.protege.web.shared.crud.SetEntityCrudKitSettingsAction;
-import edu.stanford.bmir.protege.web.shared.csv.GetCSVGridAction;
-import edu.stanford.bmir.protege.web.shared.csv.ImportCSVFileAction;
 import edu.stanford.bmir.protege.web.shared.dispatch.Action;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import edu.stanford.bmir.protege.web.shared.entity.LookupEntitiesAction;
@@ -97,10 +93,6 @@ public class DefaultActionHandlerRegistry implements ActionHandlerRegistry {
 
         register(new MoveProjectsToTrashActionHandler(), MoveProjectsToTrashAction.class);
         register(new RemoveProjectsFromTrashActionHandler(), RemoveProjectsFromTrashAction.class);
-
-        // CSV
-        register(new GetCSVGridActionHandler(), GetCSVGridAction.class);
-        register(new ImportCSVFileActionHandler(), ImportCSVFileAction.class);
 
         // Usage
         register(new GetUsageActionHandler(), GetUsageAction.class);
