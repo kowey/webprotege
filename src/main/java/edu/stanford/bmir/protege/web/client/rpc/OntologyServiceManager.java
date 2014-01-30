@@ -32,10 +32,6 @@ public class OntologyServiceManager {
         proxy.getImportedOntologies(projectId.getId(), cb);
     }
 
-    public void getMetrics(ProjectId projectId, AsyncCallback<List<MetricData>> cb) {
-        proxy.getMetrics(projectId.getId(), cb);
-    }
-
     /*
      * Entity methods
      */

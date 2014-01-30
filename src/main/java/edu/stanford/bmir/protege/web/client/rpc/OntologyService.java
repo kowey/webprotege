@@ -34,8 +34,6 @@ public interface OntologyService extends RemoteService {
 
     public ImportsData getImportedOntologies(String projectName);
 
-    public List<MetricData> getMetrics(String projectName);
-
     /*
      * Entity methods
      */

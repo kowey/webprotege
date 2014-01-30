@@ -5,8 +5,6 @@ import edu.stanford.bmir.protege.web.client.rpc.data.*;
 import edu.stanford.bmir.protege.web.server.PaginationServerUtil;
 import edu.stanford.bmir.protege.web.server.URLUtil;
 import edu.stanford.bmir.protege.web.server.WebProtegeRemoteServiceServlet;
-import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetric;
-import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricValue;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 import edu.stanford.smi.protege.util.Log;
@@ -218,15 +216,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
         return importsData;
     }
 
-    public List<MetricData> getMetrics(String projectName) {
-        List<MetricData> result = new ArrayList<MetricData>();
-        OWLAPIProject project = getProject(projectName);
-        for(OWLAPIProjectMetric metric : project.getMetricsManager().getMetrics()) {
-            OWLAPIProjectMetricValue metricValue = metric.getMetricValue();
-            result.add(new MetricData(metricValue.getMetricName(), metricValue.getBrowserText()));
-        }
-        return result;
-    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

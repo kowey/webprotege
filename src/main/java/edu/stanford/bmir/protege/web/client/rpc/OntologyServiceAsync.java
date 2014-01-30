@@ -28,8 +28,6 @@ public interface OntologyServiceAsync {
      */
     void getImportedOntologies(String projectName, AsyncCallback<ImportsData> cb);
 
-    void getMetrics(String projectName, AsyncCallback<List<MetricData>> cb);
-
     /*
      * Entity methods
      */
