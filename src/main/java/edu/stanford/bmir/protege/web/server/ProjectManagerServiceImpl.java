@@ -98,7 +98,6 @@ public class ProjectManagerServiceImpl extends WebProtegeRemoteServiceServlet im
         ProjectId projectId = project.getProjectId();
         if (!isRegisteredProject(projectId)) {
             getMetaProjectManager().registerProject(projectId, newProjectSettings);
-            applyDefaultSharingSettings(projectId);
             LOGGER.info("Created new project: %s", newProjectSettings.toString());
         }
         return getMetaProjectManager().getProjectDetails(projectId);
@@ -119,20 +118,6 @@ public class ProjectManagerServiceImpl extends WebProtegeRemoteServiceServlet im
         return isSignedInUserProjectOwner(projectId) || isSignedInUserAdmin();
     }
 
-
-    /**
-     * Applies the default sharing setting to a project.  The default sharing settings are that the project is private,
-     * but the signed in user is an editor.
-     * @param projectId The project id that identifies the project to apply sharing settings to.
-     */
-    private void applyDefaultSharingSettings(ProjectId projectId) {
-        List<UserSharingSetting> userSharingSettings = new ArrayList<UserSharingSetting>();
-        UserId userInSession = getUserInSession();
-        if (!userInSession.isGuest()) {
-            userSharingSettings.add(new UserSharingSetting(userInSession, SharingSetting.EDIT));
-        }
-        SharingSettingsManager.getManager().updateSharingSettings(getThreadLocalRequest(), new ProjectSharingSettings(projectId, SharingSetting.NONE, userSharingSettings));
-    }
 
 
     public long getLastAccessTime(ProjectId projectId) {

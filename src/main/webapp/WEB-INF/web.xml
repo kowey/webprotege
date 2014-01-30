@@ -63,16 +63,6 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>AccessPolicyServiceImpl</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.AccessPolicyServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet>
-		<servlet-name>SharingSettingsService</servlet-name>
-		<servlet-class>edu.stanford.bmir.protege.web.server.SharingSettingsServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet>
 		<servlet-name>AuthenticateServiceImpl</servlet-name>
 		<servlet-class>edu.stanford.bmir.protege.web.server.AuthenticateServiceImpl</servlet-class>
 	</servlet>
@@ -148,11 +138,6 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>AccessPolicyServiceImpl</servlet-name>
-		<url-pattern>/accesspolicy</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
 		<servlet-name>ProjectUploadServlet</servlet-name>
 		<url-pattern>/webprotege/submitfile</url-pattern>
 	</servlet-mapping>
@@ -177,11 +162,6 @@
 	<servlet-mapping>
 		<servlet-name>RenderingService</servlet-name>
 		<url-pattern>/webprotege/renderingservice</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>SharingSettingsService</servlet-name>
-		<url-pattern>/webprotege/sharingsettings</url-pattern>
 	</servlet-mapping>
 
 

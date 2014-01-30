@@ -3,7 +3,6 @@ package edu.stanford.bmir.protege.web.client.banner;
 import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.actionbar.application.*;
 import edu.stanford.bmir.protege.web.client.actionbar.project.ProjectActionBar;
-import edu.stanford.bmir.protege.web.client.actionbar.project.ShareSettingsHandlerImpl;
 import edu.stanford.bmir.protege.web.client.actionbar.project.ShowFreshEntitySettingsHandlerImpl;
 import edu.stanford.bmir.protege.web.client.actionbar.project.ShowProjectDetailsHandlerImpl;
 import edu.stanford.bmir.protege.web.client.events.UserLoggedInEvent;
@@ -13,7 +12,6 @@ import edu.stanford.bmir.protege.web.client.events.UserLoggedOutHandler;
 import edu.stanford.bmir.protege.web.client.project.ActiveProjectChangedEvent;
 import edu.stanford.bmir.protege.web.client.project.ActiveProjectChangedHandler;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
-import edu.stanford.bmir.protege.web.shared.user.UserId;
 
 /**
  * Author: Matthew Horridge<br>
@@ -28,7 +26,6 @@ public class BannerPresenter {
     public BannerPresenter() {
         final ProjectActionBar projectActionBar = bannerView.getProjectActionBar();
         projectActionBar.setProjectId(Application.get().getActiveProject());
-        projectActionBar.setShowShareSettingsHandler(new ShareSettingsHandlerImpl());
         projectActionBar.setShowFreshEntitySettingsHandler(new ShowFreshEntitySettingsHandlerImpl());
         projectActionBar.setShowProjectDetailsHandler(new ShowProjectDetailsHandlerImpl());
         final ApplicationActionBar w = bannerView.getApplicationActionBar();

@@ -24,11 +24,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ProjectBarImpl extends Composite implements ProjectActionBar {
 
-    private ShowShareSettingsHandler showShareSettingsHandler = new ShowShareSettingsHandler() {
-        @Override
-        public void handleShowShareSettings() {
-        }
-    };
 
     private ShowFreshEntitySettingsHandler showFreshEntitySettingsHandler = new ShowFreshEntitySettingsHandler() {
         @Override
@@ -55,17 +50,9 @@ public class ProjectBarImpl extends Composite implements ProjectActionBar {
     }
 
     @UiField
-    protected ButtonBase shareProjectItem;
-
-    @UiField
     protected ButtonBase projectSettingsItem;
 
 
-
-    @UiHandler("shareProjectItem")
-    protected void handleShareProjectItemClicked(ClickEvent clickEvent) {
-        showShareSettingsHandler.handleShowShareSettings();
-    }
 
     @UiHandler("projectSettingsItem")
     protected void handleProjectSettingsItemClicked(ClickEvent clickEvent) {
@@ -105,8 +92,4 @@ public class ProjectBarImpl extends Composite implements ProjectActionBar {
     public void setShowNotificationSettingsHandler(ShowNotificationSettingsHandler showNotificationSettingsHandler) {
     }
 
-    @Override
-    public void setShowShareSettingsHandler(ShowShareSettingsHandler showShareSettingsHandler) {
-        this.showShareSettingsHandler = checkNotNull(showShareSettingsHandler);
-    }
 }

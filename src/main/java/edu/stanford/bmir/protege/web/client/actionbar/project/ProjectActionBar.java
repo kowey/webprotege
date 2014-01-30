@@ -23,5 +23,4 @@ public interface ProjectActionBar extends IsWidget {
 
     void setShowNotificationSettingsHandler(ShowNotificationSettingsHandler showNotificationSettingsHandler);
 
-    void setShowShareSettingsHandler(ShowShareSettingsHandler showShareSettingsHandler);
 }
