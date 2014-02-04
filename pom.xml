@@ -17,6 +17,12 @@
     <!-- GWT needs at least java 1.5 -->
     <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- We need to refer to the Lombok jar later on, particularly in the GWT compiler -->
+    <lombokVersion>1.12.2</lombokVersion>
+    <!-- Is there a better way to do this? I would just use the maven-dependency-plugin
+         and grab ${org.projectlombok:lombok:jar}, but it doesn't seem to be accessible
+         where it counts from the gwt:run goal (unless I do mvn validate gwt:run) -->
+    <lombokJar>${settings.localRepository}/org/projectlombok/lombok/${lombokVersion}/lombok-${lombokVersion}.jar</lombokJar>
   </properties>
 
   <repositories>
@@ -239,13 +245,19 @@
            I have no idea what version this package actually is.-->
       <version>1</version>
     </dependency>
+    <!-- End locally sourced stuff -->
     <dependency>
       <groupId>com.hydro4ge</groupId>
       <artifactId>raphaelgwt</artifactId>
       <version>r42</version>
       <scope>provided</scope>
     </dependency>
-    <!-- End locally sourced stuff -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombokVersion}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>javax.validation</groupId>
@@ -299,7 +311,7 @@
           gwt-maven-plugin documentation at codehaus.org -->
         <configuration>
 	  <!-- It's necessary to let GWT Complile eat a lot of memory -->
-          <extraJvmArgs>-Xmx1024M -Xss1024k</extraJvmArgs>
+          <extraJvmArgs>-Xmx1024M -Xss1024k -javaagent:${lombokJar}=ECJ</extraJvmArgs>
           <runTarget>WebProtege.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
         </configuration>

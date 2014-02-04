@@ -96,8 +96,8 @@ public abstract class DraggableShape extends Raphael
    * @param cy
    */
   public void addToPanel(AbsolutePanel p, int cx, int cy) {
-    int top_x = this.relativeShapeLeft(cx, cy) + parentRelativeLeft(p);
-    int top_y = this.relativeShapeTop(cx, cy)  + parentRelativeTop(p);
+    int top_x = this.relativeShapeLeft(cx, cy);// + parentRelativeLeft(p);
+    int top_y = this.relativeShapeTop(cx, cy);//  + parentRelativeTop(p);
     p.add(this, top_x, top_y);
   }
 
