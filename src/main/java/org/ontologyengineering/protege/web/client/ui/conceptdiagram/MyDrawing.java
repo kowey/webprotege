@@ -91,6 +91,8 @@ public class MyDrawing extends Raphael {
             s.getElement().setClassName("koweybox");
         }
 
+
+
     }
 
 
