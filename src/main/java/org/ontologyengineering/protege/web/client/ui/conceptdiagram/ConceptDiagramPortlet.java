@@ -31,6 +31,7 @@ import org.ontologyengineering.protege.web.client.ConceptDiagram;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 
 import java.util.ArrayList;
 
@@ -123,10 +124,22 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
                             @NonNull final String newName) {
-        GWT.log("[CM] Don't yet know how to rename " + newName, null);
         if (oldName.equals(newName) || newName == null || newName.length() == 0) {
             return;
         }
+        GWT.log("[CM] Rename " + iri + " from " + oldName + " to " + newName, null);
+        // TODO: surely there is a cleaner way to express this?
+        OWLAnnotationProperty keyRdfsLabel =
+                DataFactory.get().getRDFSLabel();
+        new PropertyValueUtil().replacePropertyValue(getProjectId(),
+                iri.toString(), // TODO: why isn't this just iri?
+                keyRdfsLabel.getIRI().toString(),
+                ValueType.Literal,
+                oldName,
+                newName,
+                getUserId(),
+                "Relabel " + iri + " from " + oldName + " to " + newName,
+                new RenameClassHandler());
     }
 
     /*
@@ -171,6 +184,36 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         }
     }
+
+    class RenameClassHandler extends AbstractAsyncHandler<Void> {
+        @Override
+        public void handleFailure(final Throwable caught) {
+            GWT.log("[CM] Error at deleting class", caught);
+            MessageBox.showErrorMessage("Class not deleted", caught);
+        }
+
+        @Override
+        public void handleSuccess(final Void result) {
+            GWT.log("[CM] Renamed ", null);
+
+        }
+    }
+
+    /*class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
+
+        @Override
+        public void handleFailure(Throwable caught) {
+            GWT.log("Error at retrieving props in domain for " + _currentEntity, caught);
+        }
+
+        @Override
+        public void handleSuccess(List<Triple> triples) {
+            for (Triple triple : triples) {
+                GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
+            }
+        }
+
+    }*/
 
     public static native void gwtjsPlumbConnect(JavaScriptObject pairs) /*-{
             $wnd.gwtjsconnect(pairs);
