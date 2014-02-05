@@ -20,17 +20,25 @@ import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
+import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedEvent;
+import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager {
+
+    private boolean registeredEventHandlers = false;
+    private Map<IRI, Concept> namedCurves = new HashMap();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
@@ -40,12 +48,33 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public void initialize() {
         setTitle("ConceptDiagram");
         koweySetup();
+        registerEventHandlers();
         reload();
     }
 
     @Override
     public void setPortletConfiguration(PortletConfiguration portletConfiguration) {
         super.setPortletConfiguration(portletConfiguration);
+    }
+
+    private void registerEventHandlers() {
+        if(registeredEventHandlers) {
+            return;
+        }
+        GWT.log("Registering event handlers for ConceptDiagramPortlet " + this);
+        registeredEventHandlers = true;
+        ///////////////////////////////////////////////////////////////////////////
+        //
+        // Registration of event handlers that we are interested in
+        //
+        ///////////////////////////////////////////////////////////////////////////
+
+        addProjectEventHandler(BrowserTextChangedEvent.TYPE, new BrowserTextChangedHandler() {
+            @Override
+            public void browserTextChanged(BrowserTextChangedEvent event) {
+                onEntityBrowserTextChanged(event);
+            }
+        });
     }
 
     @RequiredArgsConstructor
@@ -98,6 +127,18 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         return null;
     }
 
+    /**
+     * Called to update the browser text in the tree
+     * @param event The event that describes the browser text change that happened.
+     */
+    protected void onEntityBrowserTextChanged(BrowserTextChangedEvent event) {
+        IRI toDelete = event.getEntity().getIRI();
+        String newName = event.getNewBrowserText();
+        GWT.log("[CM rename] want to rename " + toDelete + " to " + newName);
+        // TODO: how to either ignore when it's coming from us, or route things
+        // so that it's actually a good thing to handle it here
+    }
+
     public void createClass(@NonNull final Concept concept,
                             @NonNull final String name) {
         DispatchServiceManager.get().execute(
@@ -114,6 +155,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         refreshFromServer(500);
     }
+
+
 
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
@@ -134,6 +177,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 getUserId(),
                 "Relabel " + iri + " from " + oldName + " to " + newName,
                 new RenameClassHandler());
+    }
+
+    public void onDeleteClass(@NonNull final IRI iri) {
+        namedCurves.remove(iri);
+    }
+
+    public void onCreateClass(@NonNull final IRI iri,
+                              @NonNull final Concept concept) {
+        namedCurves.put(iri, concept);
     }
 
     /*
@@ -158,9 +210,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final CreateClassResult result) {
-            OWLClass owlClass = result.getObject();
-            GWT.log("[CM] created object: " + owlClass.getIRI());
-            concept.setIri(Optional.of(owlClass.getIRI()));
+            IRI iri = result.getObject().getIRI();
+            GWT.log("[CM] created object: " + iri);
+            concept.setIri(Optional.of(iri));
+            portlet.onCreateClass(iri, concept);
         }
     }
 
@@ -174,8 +227,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final DeleteEntityResult result) {
-            GWT.log("[CM] Delete successfully class ", null);
-
+            GWT.log("[CM] Delete successfully class ", null);;
         }
     }
 

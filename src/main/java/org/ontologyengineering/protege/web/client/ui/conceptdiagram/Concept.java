@@ -45,14 +45,13 @@ class Concept extends AbsolutePanel implements Cloneable,
     @RequiredArgsConstructor
     class DeleteHandler implements ClickHandler {
         @NonNull private final Concept concept;
-        @NonNull private final ConceptManager conceptManager;
 
         @Override
         public void onClick(ClickEvent event) {
-            if (concept.getIri().isPresent()) {
-                conceptManager.deleteClass(concept.getIri().get());
+            if (iri.isPresent()) {
+                conceptManager.deleteClass(iri.get());
             }
-            concept.removeFromParent();
+            concept.delete();
         }
     }
 
@@ -91,7 +90,7 @@ class Concept extends AbsolutePanel implements Cloneable,
         wButtons.getElement().setClassName("concept-button");
 
         final Button wDelete = new Button("X");
-        wDelete.addClickHandler(new DeleteHandler(this, this.conceptManager));
+        wDelete.addClickHandler(new DeleteHandler(this));
         wButtons.add(wDelete);
         this.add(wButtons, this.width + 5, this.height - 10);
         this.add(wCurve, 1, 1);
@@ -173,6 +172,16 @@ class Concept extends AbsolutePanel implements Cloneable,
     public void setLabel(@NonNull Optional<String> label) {
         justSetLabel(label);
         wLabel.setText(this.label.or(""));
+    }
+
+    /**
+     * Remove and unregister this concept
+     */
+    public void delete() {
+        if (iri.isPresent()) {
+            conceptManager.deleteClass(iri.get());
+        }
+        removeFromParent();
     }
 
     public void switchToConceptMode() {
