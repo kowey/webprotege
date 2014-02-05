@@ -20,17 +20,25 @@ import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
+import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedEvent;
+import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager {
+
+    private boolean registeredEventHandlers = false;
+    private Map<IRI, Concept> namedCurves = new HashMap();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
@@ -40,12 +48,33 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public void initialize() {
         setTitle("ConceptDiagram");
         koweySetup();
+        registerEventHandlers();
         reload();
     }
 
     @Override
     public void setPortletConfiguration(PortletConfiguration portletConfiguration) {
         super.setPortletConfiguration(portletConfiguration);
+    }
+
+    private void registerEventHandlers() {
+        if(registeredEventHandlers) {
+            return;
+        }
+        GWT.log("Registering event handlers for ConceptDiagramPortlet " + this);
+        registeredEventHandlers = true;
+        ///////////////////////////////////////////////////////////////////////////
+        //
+        // Registration of event handlers that we are interested in
+        //
+        ///////////////////////////////////////////////////////////////////////////
+
+        addProjectEventHandler(BrowserTextChangedEvent.TYPE, new BrowserTextChangedHandler() {
+            @Override
+            public void browserTextChanged(BrowserTextChangedEvent event) {
+                onEntityBrowserTextChanged(event);
+            }
+        });
     }
 
     @RequiredArgsConstructor
@@ -98,6 +127,24 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         return null;
     }
 
+    /**
+     * Called to update the concept label
+     * @param event The event that describes the browser text change that happened.
+     */
+    protected void onEntityBrowserTextChanged(BrowserTextChangedEvent event) {
+
+        IRI toRename = event.getEntity().getIRI();
+        Optional<String> newName = Optional.of(event.getNewBrowserText());
+        GWT.log("[CM rename] caught rename event " + toRename + " to " + newName + " | " + event.getSource());
+        Concept curve = namedCurves.get(toRename);
+        if (curve != null) {
+            if (!curve.getLabel().equals(newName)) {
+                curve.setLabel(newName);
+            }
+        }
+
+    }
+
     public void createClass(@NonNull final Concept concept,
                             @NonNull final String name) {
         DispatchServiceManager.get().execute(
@@ -115,13 +162,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         refreshFromServer(500);
     }
 
+
+
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
                             @NonNull final String newName) {
         if (oldName.equals(newName) || newName == null || newName.length() == 0) {
             return;
         }
-        GWT.log("[CM] Rename " + iri + " from " + oldName + " to " + newName, null);
+        GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
         // TODO: surely there is a cleaner way to express this?
         OWLAnnotationProperty keyRdfsLabel =
                 DataFactory.get().getRDFSLabel();
@@ -134,6 +183,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 getUserId(),
                 "Relabel " + iri + " from " + oldName + " to " + newName,
                 new RenameClassHandler());
+    }
+
+    public void onDeleteClass(@NonNull final IRI iri) {
+        namedCurves.remove(iri);
+    }
+
+    public void onCreateClass(@NonNull final IRI iri,
+                              @NonNull final Concept concept) {
+        namedCurves.put(iri, concept);
     }
 
     /*
@@ -158,9 +216,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final CreateClassResult result) {
-            OWLClass owlClass = result.getObject();
-            GWT.log("[CM] created object: " + owlClass.getIRI());
-            concept.setIri(Optional.of(owlClass.getIRI()));
+            IRI iri = result.getObject().getIRI();
+            GWT.log("[CM] created object: " + iri);
+            concept.setIri(Optional.of(iri));
+            portlet.onCreateClass(iri, concept);
         }
     }
 
@@ -174,22 +233,20 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final DeleteEntityResult result) {
-            GWT.log("[CM] Delete successfully class ", null);
-
+            GWT.log("[CM] Delete successfully class ", null);;
         }
     }
 
     class RenameClassHandler extends AbstractAsyncHandler<Void> {
         @Override
         public void handleFailure(final Throwable caught) {
-            GWT.log("[CM] Error at deleting class", caught);
+            GWT.log("[CM] Error renaming class", caught);
             MessageBox.showErrorMessage("Class not deleted", caught);
         }
 
         @Override
         public void handleSuccess(final Void result) {
-            GWT.log("[CM] Renamed ", null);
-
+            GWT.log("[CM] My rename invocation succeeded ", null);
         }
     }
 

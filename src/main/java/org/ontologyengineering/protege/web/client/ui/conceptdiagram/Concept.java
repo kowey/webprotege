@@ -31,11 +31,13 @@ class Concept extends AbsolutePanel implements Cloneable,
 
         @Override
         public void onKeyUp(KeyUpEvent event) {
+            // we respond to key up events up updating a provisional label
+            // only on Enter key or mouse-out do we actually commit the label
             final String text = textbox.getText().trim();
             final Optional<String> label = (text.isEmpty() || text.equals(""))
                     ? Optional.<String>absent()
                     : Optional.of(text);
-            concept.justSetLabel(label);
+            concept.setTempLabel(label);
             if (event.getNativeKeyCode() ==  KeyCodes.KEY_ENTER) {
                 concept.onMouseOut(null);
             }
@@ -45,22 +47,21 @@ class Concept extends AbsolutePanel implements Cloneable,
     @RequiredArgsConstructor
     class DeleteHandler implements ClickHandler {
         @NonNull private final Concept concept;
-        @NonNull private final ConceptManager conceptManager;
 
         @Override
         public void onClick(ClickEvent event) {
-            if (concept.getIri().isPresent()) {
-                conceptManager.deleteClass(concept.getIri().get());
+            if (iri.isPresent()) {
+                conceptManager.deleteClass(iri.get());
             }
-            concept.removeFromParent();
+            concept.delete();
         }
     }
 
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
 
+    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
     @NonNull Optional<String> label = Optional.absent();
-    @Setter(AccessLevel.NONE) @NonNull Optional<String> prevLabel = Optional.absent();
     @Setter(AccessLevel.PACKAGE) @NonNull Optional<IRI> iri = Optional.absent();
 
     private boolean isMoving = false;
@@ -91,7 +92,7 @@ class Concept extends AbsolutePanel implements Cloneable,
         wButtons.getElement().setClassName("concept-button");
 
         final Button wDelete = new Button("X");
-        wDelete.addClickHandler(new DeleteHandler(this, this.conceptManager));
+        wDelete.addClickHandler(new DeleteHandler(this));
         wButtons.add(wDelete);
         this.add(wButtons, this.width + 5, this.height - 10);
         this.add(wCurve, 1, 1);
@@ -126,8 +127,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     public void onMouseOut(MouseOutEvent event) {
         this.getElement().setClassName("concept");
         wLabel.setReadOnly(true);
-        handleLabelChanges(this.prevLabel, this.label);
-        this.prevLabel = this.label;
+        handleLabelChanges(this.label, this.tempLabel);
+        this.label = this.tempLabel;
     }
 
     protected void handleLabelChanges(@NonNull final Optional<String> before,
@@ -166,13 +167,21 @@ class Concept extends AbsolutePanel implements Cloneable,
         }
     }
 
-    private void justSetLabel(@NonNull Optional<String> label) {
+    public void setLabel(@NonNull Optional<String> label) {
+        GWT.log("[CONCEPT] setLabel" + label + "(was " + this.label + "," + this.tempLabel + ")");
+        setTempLabel(label);
         this.label = label;
+        wLabel.setText(label.or(""));
     }
 
-    public void setLabel(@NonNull Optional<String> label) {
-        justSetLabel(label);
-        wLabel.setText(this.label.or(""));
+    /**
+     * Remove and unregister this concept
+     */
+    public void delete() {
+        if (iri.isPresent()) {
+            conceptManager.deleteClass(iri.get());
+        }
+        removeFromParent();
     }
 
     public void switchToConceptMode() {

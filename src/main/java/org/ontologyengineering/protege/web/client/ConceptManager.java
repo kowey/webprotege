@@ -10,6 +10,8 @@ public interface ConceptManager {
 
     public void deleteClass(@NonNull final IRI iri);
 
+    public void onDeleteClass(@NonNull final IRI iri);
+
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
                             @NonNull final String newName);
