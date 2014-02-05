@@ -10,16 +10,9 @@ import java.io.Serializable;
  * Bio-Medical Informatics Research Group<br>
  * Date: 28/11/2012
  */
-public class ClassEntry extends ClassFrameEntry implements Serializable {
+public class ClassEntry implements Serializable {
 
     private OWLClass cls;
-
-    private ClassEntry() {
-    }
-
-    public ClassEntry(OWLClass cls) {
-        this.cls = cls;
-    }
 
     public OWLClass getOWLClass() {
         return cls;

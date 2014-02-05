@@ -561,14 +561,8 @@ public class OWLAPIProjectDocumentStore {
 
     private OWLAPIProjectAttributes createProjectAttributes(NewProjectSettings newProjectSettings, OWLOntology ontology) {
         OWLAPIProjectAttributes projectAttributes;
-        if (OWLAPIProjectType.getOBOProjectType().getProjectTypeName().equals(newProjectSettings.getProjectType().getName())) {
-            OWLAPIProjectConfiguration configuration = new OWLAPIProjectConfiguration(new OBOEntityEditorKitFactory(), OWLAPIProjectType.getOBOProjectType());
-            projectAttributes = configuration.getProjectAttributes();
-        }
-        else {
             OWLAPIProjectConfiguration configuration = new OWLAPIProjectConfiguration(new DefaultEntityEditorKitFactory(), OWLAPIProjectType.getDefaultProjectType());
             projectAttributes = configuration.getProjectAttributes();
-        }
         return projectAttributes;
     }
 

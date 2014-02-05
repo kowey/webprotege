@@ -5,8 +5,6 @@ import edu.stanford.bmir.protege.web.client.rpc.data.*;
 import edu.stanford.bmir.protege.web.server.PaginationServerUtil;
 import edu.stanford.bmir.protege.web.server.URLUtil;
 import edu.stanford.bmir.protege.web.server.WebProtegeRemoteServiceServlet;
-import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetric;
-import edu.stanford.bmir.protege.web.server.owlapi.metrics.OWLAPIProjectMetricValue;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.user.UserId;
 import edu.stanford.smi.protege.util.Log;
@@ -218,15 +216,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
         return importsData;
     }
 
-    public List<MetricData> getMetrics(String projectName) {
-        List<MetricData> result = new ArrayList<MetricData>();
-        OWLAPIProject project = getProject(projectName);
-        for(OWLAPIProjectMetric metric : project.getMetricsManager().getMetrics()) {
-            OWLAPIProjectMetricValue metricValue = metric.getMetricValue();
-            result.add(new MetricData(metricValue.getMetricName(), metricValue.getBrowserText()));
-        }
-        return result;
-    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -425,9 +414,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
                 String name = subclass.getIRI().toString();
                 SubclassEntityData data = new SubclassEntityData(name, browserText, new HashSet<EntityData>(0), subClassSubClassesCount);
                 data.setDeprecated(deprecated);
-                int directNotesCount = project.getNotesManager().getIndirectNotesCount(subclass);
-//                int indirectNotesCount = project.getNotesManager().getIndirectNotesCount(cls);
-                data.setLocalAnnotationsCount(directNotesCount);
                 data.setValueType(ValueType.Cls);
                 result.add(data);
 //            }
@@ -668,8 +654,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
                 Set<OWLObjectProperty> subProperties = hierarchyProvider.getChildren(entity.asOWLObjectProperty());
                 for (OWLObjectProperty subProperty : subProperties) {
                     final EntityData entityData = rm.getEntityData(subProperty);
-                    int notesCount = project.getNotesManager().getDirectNotesCount(subProperty);
-                    entityData.setLocalAnnotationsCount(notesCount);
                     result.add(entityData);
                 }
             }
@@ -678,8 +662,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
                 Set<OWLDataProperty> subProperties = hierarchyProvider.getChildren(entity.asOWLDataProperty());
                 for (OWLDataProperty subProperty : subProperties) {
                     final EntityData entityData = rm.getEntityData(subProperty);
-                    int notesCount = project.getNotesManager().getDirectNotesCount(subProperty);
-                    entityData.setLocalAnnotationsCount(notesCount);
                     result.add(entityData);
                 }
             }
@@ -688,8 +670,6 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
                 Set<OWLAnnotationProperty> subProperties = hierarchyProvider.getChildren(entity.asOWLAnnotationProperty());
                 for (OWLAnnotationProperty subProperty : subProperties) {
                     final EntityData entityData = rm.getEntityData(subProperty);
-                    int notesCount = project.getNotesManager().getDirectNotesCount(subProperty);
-                    entityData.setLocalAnnotationsCount(notesCount);
                     result.add(entityData);
                 }
             }
@@ -837,131 +817,11 @@ public class OntologyServiceOWLAPIImpl extends WebProtegeRemoteServiceServlet im
 
 
 
-    public EntityData createExternalReference(String projectName, String entityName, BioPortalReferenceData bpRefData, String user, String operationDescription) {
-        OWLAPIProject project = getProject(projectName);
-        RenderingManager rm = project.getRenderingManager();
-        applyChanges(new AddExternalReferenceChangeFactory(project, entityName, bpRefData, UserId.getUserId(user), operationDescription));
-        return rm.getEntityData(bpRefData.getConceptId(), EntityType.CLASS);
-    }
-
-    public EntityData replaceExternalReference(String projectName, String entityName, BioPortalReferenceData bpRefData, EntityData oldValueEntityData, String user, String operationDescription) {
-        return null;
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    // TODO: Copied from the old ontology service - needs tidying up!!!
 
-    public String getBioPortalSearchContent(String projectName, String entityName, BioPortalSearchData bpSearchData) {
-            return URLUtil.getURLContent(getBioPortalSearchUrl(entityName, bpSearchData));
-    }
-
-    public String getBioPortalSearchContentDetails(String projectName, BioPortalSearchData bpSearchData,
-                                                   BioPortalReferenceData bpRefData) {
-        BioportalConcept bpc = new BioportalConcept();
-        String encodedConceptId = bpRefData.getConceptId();
-        try {
-            encodedConceptId = URLEncoder.encode(bpRefData.getConceptId(), "UTF-8");
-        } catch (UnsupportedEncodingException e1) {
-            Log.getLogger().log(Level.WARNING, "Error at encoding BP search url", e1);
-        }
-        String urlString = bpSearchData.getBpRestBaseUrl() + BioPortalServerConstants.CONCEPTS_REST + "/"
-                + bpRefData.getOntologyVersionId() + "/?conceptid=" + encodedConceptId;
-        urlString = BioPortalUtil.addRestCallSuffixToUrl(urlString, bpSearchData.getBpRestCallSuffix());
-        URL url = null;
-        try {
-            url = new URL(urlString);
-        } catch (MalformedURLException e) {
-            Log.getLogger().log(Level.WARNING, "Invalid BP search URL: " + urlString, e);
-        }
-        if (url == null) {
-            return "";
-        }
-
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("<html><body>");
-        buffer.append("<table width=\"100%\" class=\"servicesT\" style=\"border-collapse:collapse;border-width:0px;padding:5px\"><tr>");
-
-        buffer.append("<td class=\"servHd\" style=\"background-color:#8E798D;color:#FFFFFF;\">Property</td>");
-        buffer.append("<td class=\"servHd\" style=\"background-color:#8E798D;color:#FFFFFF;\">Value</td>");
-
-        String oddColor = "#F4F2F3";
-        String evenColor = "#E6E6E5";
-
-        ClassBean cb = bpc.getConceptProperties(url);
-        if (cb == null) {
-            return "<html><body><i>Details could not be retrieved.</i></body></html>";
-        }
-
-        Map<Object, Object> relationsMap = cb.getRelations();
-        int i = 0;
-        for (Object obj : relationsMap.keySet()) {
-            Object value = relationsMap.get(obj);
-            if (value != null) {
-                String text = HTMLUtil.replaceEOF(HTMLUtil.makeHTMLLinks(value.toString()));
-                if (text.startsWith("[")) {
-                    text = text.substring(1, text.length() - 1);
-                }
-                if (text.length() > 0) {
-                    String color = i % 2 == 0 ? evenColor : oddColor;
-                    buffer.append("<tr>");
-                    buffer.append("<td class=\"servBodL\" style=\"background-color:" + color + ";padding:7px;font-weight: bold;\" >");
-                    buffer.append(HTMLUtil.makeHTMLLinks(obj.toString()));
-                    buffer.append("</td>");
-                    buffer.append("<td class=\"servBodL\" style=\"background-color:" + color + ";padding:7px;\" >");
-                    buffer.append(text);
-                    buffer.append("</td>");
-                    buffer.append("</tr>");
-                    i++;
-                }
-            }
-        }
-        buffer.append("</table>");
-
-        String directLink = bpRefData.getBpUrl();
-        if (directLink != null && directLink.length() > 0) {
-            buffer.append("<div style=\"padding:5px;\"><br><b>Direct link in BioPortal:</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-            buffer.append("<a href=\"");
-            buffer.append(directLink);
-            buffer.append("\" target=\"_blank\">");
-            buffer.append(directLink);
-            buffer.append("</a></div>");
-        }
-        buffer.append("</body></html>");
-
-        return buffer.toString();
-    }
-
-    private static String getBioPortalSearchUrl(String text, BioPortalSearchData bpSearchData) {
-        text = text.replaceAll(" ", "%20");
-        String urlString = bpSearchData.getBpRestBaseUrl() + BioPortalServerConstants.SEARCH_REST + "/" +
-                text + createSearchUrlQueryString(bpSearchData);
-        urlString = BioPortalUtil.addRestCallSuffixToUrl(urlString, bpSearchData.getBpRestCallSuffix());
-        return urlString;
-    }
-
-    private static String createSearchUrlQueryString(BioPortalSearchData bpSearchData) {
-        String res = "";
-        String ontIds = bpSearchData.getSearchOntologyIds();
-        String srchOpts = bpSearchData.getSearchOptions();
-        String pgOpt = bpSearchData.getSearchPageOption();
-        boolean firstSep = true;
-        if (ontIds != null) {
-            res += (firstSep ? "?" : "&") + "ontologyids=" + ontIds;
-            firstSep = false;
-        }
-        if (srchOpts != null) {
-            res += (firstSep ? "?" : "&") + srchOpts;
-            firstSep = false;
-        }
-        if (pgOpt != null) {
-            res += (firstSep ? "?" : "&") + pgOpt;
-            firstSep = false;
-        }
-        return res;
-    }
 }

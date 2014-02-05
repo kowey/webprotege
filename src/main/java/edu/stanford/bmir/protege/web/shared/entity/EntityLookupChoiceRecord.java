@@ -25,20 +25,6 @@ public class EntityLookupChoiceRecord implements IsSerializable, HasProjectId, H
 
     private OWLEntityData entityData;
 
-    /**
-     * For serialization purposes only
-     */
-    private EntityLookupChoiceRecord() {
-
-    }
-
-    public EntityLookupChoiceRecord(ProjectId projectId, UserId userId, EntityLookupRequest lookupRequest, OWLEntityData entityData) {
-        this.projectId = checkNotNull(projectId);
-        this.userId = checkNotNull(userId);
-        this.lookupRequest = checkNotNull(lookupRequest);
-        this.entityData = checkNotNull(entityData);
-    }
-
     @Override
     public ProjectId getProjectId() {
         return projectId;

@@ -25,14 +25,6 @@ public class ProjectFeedBasePanel extends Composite {
                 }
             }
         });
-        eventHandlerMan.addProjectEventHandler(NotePostedEvent.TYPE, new NotePostedHandler() {
-            @Override
-            public void handleNotePosted(NotePostedEvent event) {
-                if (event.getProjectId().equals(projectId)) {
-                    eventPanel.postNotePostedEvent(event);
-                }
-            }
-        });
         eventHandlerMan.addProjectEventHandler(UserStartingViewingProjectEvent.TYPE, new UserStartedViewingProjectHandler() {
             @Override
             public void handleUserStartedViewingProject(UserStartingViewingProjectEvent event) {

@@ -32,10 +32,6 @@ public class OntologyServiceManager {
         proxy.getImportedOntologies(projectId.getId(), cb);
     }
 
-    public void getMetrics(ProjectId projectId, AsyncCallback<List<MetricData>> cb) {
-        proxy.getMetrics(projectId.getId(), cb);
-    }
-
     /*
      * Entity methods
      */
@@ -197,26 +193,5 @@ public class OntologyServiceManager {
     /*
      * Util methods
      */
-
-    public void getBioPortalSearchContent(ProjectId projectId, String entityName, BioPortalSearchData bpSearchData,
-            AsyncCallback<String> cb) {
-        proxy.getBioPortalSearchContent(projectId.getId(), entityName, bpSearchData, cb);
-    }
-
-    public void getBioPortalSearchContentDetails(ProjectId projectId, BioPortalSearchData bpSearchData,
-            BioPortalReferenceData bpRefData, AsyncCallback<String> cb) {
-        proxy.getBioPortalSearchContentDetails(projectId.getId(), bpSearchData, bpRefData, cb);
-    }
-
-    public void createExternalReference(ProjectId projectId, String entityName, BioPortalReferenceData bpRefData,
-            UserId userId, String operationDescription, AsyncCallback<EntityData> cb) {
-        proxy.createExternalReference(projectId.getId(), entityName, bpRefData, userId.getUserName(), operationDescription, cb);
-    }
-
-    public void replaceExternalReference(ProjectId projectId, String entityName, BioPortalReferenceData bpRefData, EntityData oldValueEntityData,
-            UserId userId, String operationDescription, AsyncCallback<EntityData> cb) {
-        proxy.replaceExternalReference(projectId.getId(), entityName, bpRefData, oldValueEntityData, userId.getUserName(), operationDescription, cb);
-    }
-
 
 }

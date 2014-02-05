@@ -1,6 +1,5 @@
 package edu.stanford.bmir.protege.web.server.owlapi.manager;
 
-import org.coode.owlapi.oboformat.OBOFormatParserFactory;
 import org.semanticweb.binaryowl.owlapi.BinaryOWLOntologyDocumentParserFactory;
 import org.semanticweb.binaryowl.owlapi.BinaryOWLOntologyDocumentStorer;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -31,10 +30,8 @@ public class WebProtegeOWLManager {
         Collections.reverse(parserFactoryList);
         parserFactoryRegistry.clearParserFactories();
         for(OWLParserFactory parserFactory : parserFactoryList) {
-            if (!(parserFactory instanceof OBOFormatParserFactory)) {
                 // Replace the OBO one with the one above
                 parserFactoryRegistry.registerParserFactory(parserFactory);
-            }
         }
         parserFactoryRegistry.registerParserFactory(new BinaryOWLOntologyDocumentParserFactory());
     }

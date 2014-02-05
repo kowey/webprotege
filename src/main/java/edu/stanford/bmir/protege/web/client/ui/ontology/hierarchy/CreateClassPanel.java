@@ -27,9 +27,6 @@ import edu.stanford.bmir.protege.web.client.ui.util.ClassSelectionField;
 import edu.stanford.bmir.protege.web.client.ui.util.UIUtil;
 import edu.stanford.bmir.protege.web.client.ui.util.field.TextAreaField;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
-import edu.stanford.bmir.protege.web.shared.notes.AddNoteToEntityAction;
-import edu.stanford.bmir.protege.web.shared.notes.AddNoteToEntityResult;
-import edu.stanford.bmir.protege.web.shared.notes.NoteContent;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import org.semanticweb.owlapi.model.OWLClass;
 
@@ -186,15 +183,6 @@ public class CreateClassPanel extends FormPanel implements Selectable {
 //                "reason for change", new CreateClassHandler()); //TODO: remove the unneeded args
     }
 
-    protected void createNote(final EntityData newClass, String opDesc, String reasonForChange) {
-
-        NoteContent.Builder builder = NoteContent.builder();
-        builder.setSubject("Reason for change: " + opDesc);
-        builder.setBody(reasonForChange);
-        final OWLClass cls = DataFactory.getOWLClass(newClass.getName());
-        DispatchServiceManager.get().execute(new AddNoteToEntityAction(projectId, cls, builder.build()), new EmptySuccessWebProtegeCallback<AddNoteToEntityResult>());
-    }
-
     public String getOperationDescription() {
        return "Create class with name: " + titleField.getValueAsString() +
         ", parents: " + UIUtil.prettyPrintList(parentsField.getClsValues());
@@ -273,7 +261,6 @@ public class CreateClassPanel extends FormPanel implements Selectable {
         public void handleSuccess(EntityData entityData) {
             getEl().unmask();
             if (entityData != null) {
-                createNote(entityData, getOperationDescription(), getReasonForChange()); //create note
                 titleField.reset();
             } else {
                 GWT.log("Problem at creating class", null);

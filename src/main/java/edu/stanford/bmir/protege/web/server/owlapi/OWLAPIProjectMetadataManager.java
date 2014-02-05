@@ -101,13 +101,7 @@ public class OWLAPIProjectMetadataManager {
         try {
             READ_LOCK.lock();
             String defaultProjectTypeName = OWLAPIProjectType.getDefaultProjectType().getProjectTypeName();
-            String projectType = getPropertyValue(projectId, PROJECT_TYPE_PROPERTY_NAME, defaultProjectTypeName);
-            if(projectType.equals(OWLAPIProjectType.getOBOProjectType().getProjectTypeName())) {
-                return OWLAPIProjectType.getOBOProjectType();
-            }
-            else {
                 return OWLAPIProjectType.getDefaultProjectType();
-            }
         }
         finally {
             READ_LOCK.unlock();

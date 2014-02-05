@@ -23,12 +23,12 @@ import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.PropertyEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
-import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractPropertyWidgetWithNotes;
+import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractPropertyWidget;
 import edu.stanford.bmir.protege.web.client.ui.util.UIUtil;
 
 import java.util.*;
 
-public abstract class AbstractFieldWidget extends AbstractPropertyWidgetWithNotes {
+public abstract class AbstractFieldWidget extends AbstractPropertyWidget {
 
     protected static final String LABEL_SEPARATOR = "";
     protected static final String DELETE_ICON_STYLE_STRING = "style=\"position:relative; top:4px;\"";
@@ -57,7 +57,6 @@ public abstract class AbstractFieldWidget extends AbstractPropertyWidgetWithNote
 
         field = createField();
         deleteLink = createDeleteHyperlink();
-        commentLink = createCommentHyperLink();
 
         FormPanel formPanel = new FormPanel();
         formPanel.add(field, new AnchorLayoutData("100%"));
@@ -228,69 +227,6 @@ public abstract class AbstractFieldWidget extends AbstractPropertyWidgetWithNote
                 subject.getName());
     }
 
-    protected Anchor createCommentHyperLink() {
-        String text = "<img src=\"images/comment.gif\" title=\""
-                + "Add a comment on this value\" " + AbstractPropertyWidgetWithNotes.COMMENT_ICON_STYLE_STRING + "></img>";
-        EntityData value = UIUtil.getFirstItem(values);
-        int annotationsCount = (value == null ? 0 : value.getLocalAnnotationsCount());
-        if (annotationsCount > 0) {
-            text = "<img src=\"images/comment.gif\" title=\""
-                    + UIUtil.getNiceNoteCountText(annotationsCount)
-                    + " on this value. \nClick on the icon to see existing or to add new note(s).\" " + AbstractPropertyWidgetWithNotes.COMMENT_ICON_STYLE_STRING + "></img>"
-                    + "<span style=\"vertical-align:super;font-size:95%;color:#15428B;font-weight:bold;\">"
-                    + "&nbsp;" + annotationsCount + "</span>";
-        }
-        commentLink = new Anchor(text, true);
-        commentLink.setWidth("40px");
-        commentLink.setHeight("22px");
-        commentLink.addClickHandler(new ClickHandler() {
-    		double timeOfLastClick = 0;
-
-            public void onClick(ClickEvent event) {
-				double eventTime = new Date().getTime(); //take current time since there is no way to get time from a ClickEvent
-				if (eventTime - timeOfLastClick > 500) { //not the second click in a double click
-					onCellClickOrDblClick(event);
-        		};
-
-        		//Set new value for timeOfLastClick the time the last click was handled.
-        		//We use the current time (and not eventTime), because some time may have passed since eventTime
-        		//while executing the onCellClickOrDblClick method.
-        		timeOfLastClick = new Date().getTime();
-        	}
-
-            private void onCellClickOrDblClick(ClickEvent event) {
-                if (UIUtil.confirmIsLoggedIn()) {
-                    onEditNotes();
-                }
-            }
-        });
-        return commentLink;
-    }
-
-    protected void onEditNotes() {
-//        // TODO Auto-generated method stub
-//        super.onEditNotes(value);
-        String annotEntityName = null;
-        PropertyEntityData property = getProperty();
-        if (property.getValueType() == ValueType.Instance) {
-            //FIXME This solution will not work when multiple property values are specified:
-            //  it will add the comment always to the first instance.
-            //  This method should be generalized OR overwritten in subclasses that can deal
-            //  with multiple property values.
-            EntityData firstValue = UIUtil.getFirstItem(getValues());
-            if (firstValue != null) {
-                annotEntityName = firstValue.getName();
-            }
-            onEditNotes(annotEntityName);
-        }
-        else {
-            //TODO this is a hack. Fix it when the Changes API will provide
-            // ways to add notes to property values
-            // Until then we add the notes to the selected class itself
-            annotEntityName = getSubject().getName();
-            onEditNotes(annotEntityName, "[" + AbstractFieldWidget.this.getProperty().getBrowserText() + "] ", "");
-        }
-    }
 
     protected Field createFieldComponent() {
         TextField textField = new TextField();

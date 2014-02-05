@@ -11,8 +11,6 @@ public final class OWLAPIProjectType {
 
     private static final OWLAPIProjectType DEFAULT_PROJECT_TYPE = new OWLAPIProjectType("OWL Project");
 
-    private static final OWLAPIProjectType OBO_PROJECT_TYPE = new OWLAPIProjectType("OBO Project");
-
     private String projectTypeName;
 
     private OWLAPIProjectType() {
@@ -21,18 +19,9 @@ public final class OWLAPIProjectType {
     public static OWLAPIProjectType getDefaultProjectType() {
         return DEFAULT_PROJECT_TYPE;
     }
-    
-    public static OWLAPIProjectType getOBOProjectType() {
-        return OBO_PROJECT_TYPE;
-    }
 
     public static OWLAPIProjectType getProjectType(String typeName) {
-        if(typeName.equals(OBO_PROJECT_TYPE.getProjectTypeName())) {
-            return OBO_PROJECT_TYPE;
-        }
-        else {
             return DEFAULT_PROJECT_TYPE;
-        }
     }
 
     public OWLAPIProjectType(String projectTypeName) {

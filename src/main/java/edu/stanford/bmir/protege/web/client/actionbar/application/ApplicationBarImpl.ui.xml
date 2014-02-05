@@ -10,16 +10,11 @@
         .main {
             margin-left: 10px;
         }
-        .help-item {
-            margin-left: 10px;
-        }
     </ui:style>
 
 
 
     <g:HTMLPanel addStyleNames="{style.main}">
-
-        <g:Button ui:field="helpItem" addStyleNames="button-style {style.help-item}">Help &downarrow;</g:Button>
 
     </g:HTMLPanel>
 </ui:UiBinder>

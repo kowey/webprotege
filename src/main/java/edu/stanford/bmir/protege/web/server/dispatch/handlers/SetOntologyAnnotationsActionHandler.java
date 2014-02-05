@@ -8,7 +8,6 @@ import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
 import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWritePermissionValidator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.server.owlapi.RenameMap;
 import edu.stanford.bmir.protege.web.shared.event.ProjectEvent;
@@ -30,7 +29,7 @@ import java.util.Set;
  */
 public class SetOntologyAnnotationsActionHandler extends AbstractProjectChangeHandler<Set<OWLAnnotation>, SetOntologyAnnotationsAction, SetOntologyAnnotationsResult> {
 
-    private static final UserHasProjectWritePermissionValidator<SetOntologyAnnotationsAction> VALIDATOR = new UserHasProjectWritePermissionValidator<SetOntologyAnnotationsAction>();
+    private static final NullValidator VALIDATOR = new NullValidator();
 
     @Override
     public Class<SetOntologyAnnotationsAction> getActionClass() {

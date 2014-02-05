@@ -34,8 +34,6 @@ public interface OntologyService extends RemoteService {
 
     public ImportsData getImportedOntologies(String projectName);
 
-    public List<MetricData> getMetrics(String projectName);
-
     /*
      * Entity methods
      */
@@ -131,18 +129,5 @@ public interface OntologyService extends RemoteService {
     /*
      * Util methods
      */
-
-    public String getBioPortalSearchContent(String projectName, String entityName, BioPortalSearchData bpSearchData);
-
-    public String getBioPortalSearchContentDetails(String projectName, BioPortalSearchData bpSearchData,
-            BioPortalReferenceData bpRefData);
-
-    public EntityData createExternalReference(String projectName, String entityName, BioPortalReferenceData bpRefData,
-            String user, String operationDescription);
-
-    public EntityData replaceExternalReference(String projectName, String entityName, BioPortalReferenceData bpRefData,
-                                        EntityData oldValueEntityData,
-                                        String user, String operationDescription);
-
 
 }

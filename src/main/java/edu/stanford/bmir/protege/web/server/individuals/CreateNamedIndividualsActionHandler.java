@@ -8,7 +8,7 @@ import edu.stanford.bmir.protege.web.server.dispatch.AbstractHasProjectActionHan
 import edu.stanford.bmir.protege.web.server.dispatch.ExecutionContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestContext;
 import edu.stanford.bmir.protege.web.server.dispatch.RequestValidator;
-import edu.stanford.bmir.protege.web.server.dispatch.validators.UserHasProjectWritePermissionValidator;
+import edu.stanford.bmir.protege.web.server.dispatch.validators.NullValidator;
 import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProject;
 import edu.stanford.bmir.protege.web.shared.entity.OWLNamedIndividualData;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -26,7 +26,7 @@ public class CreateNamedIndividualsActionHandler extends AbstractHasProjectActio
 
     @Override
     protected RequestValidator<CreateNamedIndividualsAction> getAdditionalRequestValidator(CreateNamedIndividualsAction action, RequestContext requestContext) {
-        return new UserHasProjectWritePermissionValidator();
+        return new NullValidator();
     }
 
     @Override

@@ -22,10 +22,6 @@ public class OntologyFrameChangedEvent extends ProjectEvent<OntologyFrameChanged
         this.ontologyID = ontologyID;
     }
 
-    private OntologyFrameChangedEvent() {
-
-    }
-
 
     public OWLOntologyID getOntologyID() {
         return ontologyID;

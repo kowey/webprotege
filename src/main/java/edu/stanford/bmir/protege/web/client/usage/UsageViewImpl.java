@@ -22,7 +22,6 @@ import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.view.client.ListDataProvider;
-import edu.stanford.bmir.protege.web.client.csv.CSVGridResources;
 import edu.stanford.bmir.protege.web.shared.axiom.AxiomTypeGroup;
 import edu.stanford.bmir.protege.web.shared.usage.UsageFilter;
 import edu.stanford.bmir.protege.web.shared.usage.UsageReference;
@@ -79,7 +78,7 @@ public class UsageViewImpl extends Composite implements UsageView {
         });
 
 
-        dataGrid = new DataGrid<UsageReference>(Integer.MAX_VALUE, CSVGridResources.INSTANCE);
+        dataGrid = new DataGrid<UsageReference>(Integer.MAX_VALUE);
 
         dataGrid.addColumn(new EntityColumn(), "Entity");
         dataGrid.addColumn(new EntityTypeColumn(), "Type");

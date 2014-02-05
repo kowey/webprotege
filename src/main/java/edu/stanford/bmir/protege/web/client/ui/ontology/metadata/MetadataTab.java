@@ -14,7 +14,6 @@ public class MetadataTab extends AbstractTab {
 
 	protected AnnotationsPortlet annotationsPortlet;
 	protected ImportsTreePortlet importsPortlet;
-	protected MetricsPortlet metricsPortlet;
 
 	public MetadataTab(Project project) {
 		super(project);		

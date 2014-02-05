@@ -9,16 +9,12 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Widget;
 import edu.stanford.bmir.protege.web.shared.revision.RevisionNumber;
-import edu.stanford.bmir.protege.web.shared.event.NotePostedEvent;
 import edu.stanford.bmir.protege.web.shared.event.ProjectChangedEvent;
 import edu.stanford.bmir.protege.web.shared.event.UserStartingViewingProjectEvent;
 import edu.stanford.bmir.protege.web.shared.event.UserStoppedViewingProjectEvent;
-import edu.stanford.bmir.protege.web.shared.notes.NoteId;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Author: Matthew Horridge<br>
@@ -46,8 +42,6 @@ public class ProjectFeedPanel extends Composite {
     @UiField
     protected FlexTable changeEventTable;
 
-    private Set<NoteId> noteIds = new HashSet<NoteId>();
-
     interface RollingProjectChangedEventPanelUiBinder extends UiBinder<HTMLPanel, ProjectFeedPanel> {
 
     }
@@ -71,18 +65,6 @@ public class ProjectFeedPanel extends Composite {
         insertWidgetIntoFeed(changePanel);
     }
 
-
-    public void postNotePostedEvent(NotePostedEvent event) {
-        final NoteId noteId = event.getNoteDetails().getNoteHeader().getNoteId();
-        if(noteIds.contains(noteId)) {
-            return;
-        }
-        noteIds.add(noteId);
-        final NotePostedEventPanel notePostedEventPanel = new NotePostedEventPanel();
-        notePostedEventPanel.setValue(event);
-        insertWidgetIntoFeed(notePostedEventPanel);
-
-    }
 
     private void insertWidgetIntoFeed(Widget widget) {
         changeEventTable.insertRow(0);

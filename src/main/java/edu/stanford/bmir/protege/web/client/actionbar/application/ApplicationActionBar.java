@@ -12,7 +12,4 @@ import edu.stanford.bmir.protege.web.shared.user.UserId;
 public interface ApplicationActionBar extends IsWidget {
 
 
-    void setShowAboutBoxHandler(ShowAboutBoxHandler showAboutBoxHandler);
-
-    void setShowUserGuideHandler(ShowUserGuideHandler showUserGuideHandler);
 }
