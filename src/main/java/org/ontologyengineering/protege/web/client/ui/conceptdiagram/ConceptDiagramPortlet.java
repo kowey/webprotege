@@ -6,7 +6,6 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.*;
-import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
@@ -15,19 +14,14 @@ import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityResult;
 import edu.stanford.bmir.protege.web.client.model.PropertyValueUtil;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
-import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
-import edu.stanford.bmir.protege.web.shared.project.ProjectId;
-import edu.stanford.bmir.protege.web.shared.user.UserId;
-import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.ontologyengineering.protege.web.client.ConceptDiagram;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -69,7 +63,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 final int templateY = 20;
                 vPanel.add(new Label("Drag one of these templates out to instantiate it"));
                 vPanel.add(conceptTemplate, templateX, templateY);
-                final Concept concept = conceptTemplate.copyTemplate(vPanel, "concept", 0);
+                conceptTemplate.copyTemplate(vPanel, "concept", 0);
             } catch (Exception e) {
                 GWT.log("buh?", e);
 
@@ -164,9 +158,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final CreateClassResult result) {
-            GWT.log("[CM] created object: " + result.getObject().getIRI());
-            concept.setIri(Optional.of(result.getObject().getIRI()));
-            // we don't need to react to this IMHO
+            OWLClass owlClass = result.getObject();
+            GWT.log("[CM] created object: " + owlClass.getIRI());
+            concept.setIri(Optional.of(owlClass.getIRI()));
         }
     }
 
