@@ -19,7 +19,6 @@ import edu.stanford.bmir.protege.web.client.ui.ontology.search.OtherTerminologie
 import edu.stanford.bmir.protege.web.client.ui.portlet.EntityPortlet;
 import edu.stanford.bmir.protege.web.client.ui.portlet.html.HtmlMessagePortlet;
 import edu.stanford.bmir.protege.web.client.ui.portlet.propertyForm.PropertyFieldPortlet;
-import edu.stanford.bmir.protege.web.client.ui.projectfeed.ProjectFeedPortlet;
 import edu.stanford.bmir.protege.web.client.ui.tab.AbstractTab;
 import edu.stanford.bmir.protege.web.client.ui.tab.UserDefinedTab;
 import edu.stanford.bmir.protege.web.client.usage.UsagePortlet;
@@ -113,9 +112,6 @@ public class UIFactory {
             else if (portletJavaClassName.equals(OntologyIdPortlet.class.getName())) {
                 return new OntologyIdPortlet(project);
             }
-            else if (portletJavaClassName.equals(ProjectFeedPortlet.class.getName())) {
-                return new ProjectFeedPortlet(project);
-            }
             else if(portletJavaClassName.equals(EditorPortlet.class.getName())) {
                 return new EditorPortlet(project);
             }
@@ -149,7 +145,6 @@ public class UIFactory {
          */
         String[] portlets = {UsagePortlet.class.getName(), OntologyIdPortlet.class.getName(),
                 EditorPortlet.class.getName(),
-                ProjectFeedPortlet.class.getName(),
                 AllPropertiesPortlet.class.getName(), PropertiesViewPortlet.class.getName(), ClassTreePortlet.class.getName(), ImportsTreePortlet.class.getName(), IndividualsListPortlet.class.getName(),
                 OntologiesPortlet.class.getName(), PropertiesTreePortlet.class.getName(), ConditionsPortlet.class.getName(),
                 SuperclassesPortlet.class.getName()};
