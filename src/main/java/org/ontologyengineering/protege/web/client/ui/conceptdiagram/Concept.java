@@ -37,7 +37,7 @@ class Concept extends AbsolutePanel implements Cloneable,
             final Optional<String> label = (text.isEmpty() || text.equals(""))
                     ? Optional.<String>absent()
                     : Optional.of(text);
-            concept.setProvisionalLabel(label);
+            concept.setTempLabel(label);
             if (event.getNativeKeyCode() ==  KeyCodes.KEY_ENTER) {
                 concept.onMouseOut(null);
             }
@@ -60,8 +60,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
 
-    @NonNull Optional<String> provisionalLabel = Optional.absent();
-    @Setter(AccessLevel.NONE) @NonNull Optional<String> prevLabel = Optional.absent();
+    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
+    @NonNull Optional<String> label = Optional.absent();
     @Setter(AccessLevel.PACKAGE) @NonNull Optional<IRI> iri = Optional.absent();
 
     private boolean isMoving = false;
@@ -127,8 +127,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     public void onMouseOut(MouseOutEvent event) {
         this.getElement().setClassName("concept");
         wLabel.setReadOnly(true);
-        handleLabelChanges(this.prevLabel, this.provisionalLabel);
-        this.prevLabel = this.provisionalLabel;
+        handleLabelChanges(this.label, this.tempLabel);
+        this.label = this.tempLabel;
     }
 
     protected void handleLabelChanges(@NonNull final Optional<String> before,
@@ -167,14 +167,11 @@ class Concept extends AbsolutePanel implements Cloneable,
         }
     }
 
-    private void setProvisionalLabel(@NonNull Optional<String> label) {
-        this.provisionalLabel = label;
-    }
-
     public void setLabel(@NonNull Optional<String> label) {
-        this.prevLabel = this.provisionalLabel;
-        setProvisionalLabel(label);
-        wLabel.setText(this.provisionalLabel.or(""));
+        GWT.log("[CONCEPT] setLabel" + label + "(was " + this.label + "," + this.tempLabel + ")");
+        setTempLabel(label);
+        this.label = label;
+        wLabel.setText(label.or(""));
     }
 
     /**

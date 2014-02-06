@@ -128,19 +128,21 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     /**
-     * Called to update the browser text in the tree
+     * Called to update the concept label
      * @param event The event that describes the browser text change that happened.
      */
     protected void onEntityBrowserTextChanged(BrowserTextChangedEvent event) {
+        /*
         IRI toRename = event.getEntity().getIRI();
         Optional<String> newName = Optional.of(event.getNewBrowserText());
-        GWT.log("[CM rename] caught rename event " + toRename + " to " + newName);
+        GWT.log("[CM rename] caught rename event " + toRename + " to " + newName + " | " + event.getSource());
         Concept curve = namedCurves.get(toRename);
         if (curve != null) {
             if (!curve.getLabel().equals(newName)) {
                 curve.setLabel(newName);
             }
         }
+        */
     }
 
     public void createClass(@NonNull final Concept concept,
