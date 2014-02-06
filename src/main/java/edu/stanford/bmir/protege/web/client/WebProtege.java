@@ -69,7 +69,7 @@ public class WebProtege implements EntryPoint {
         AdminServiceManager.getInstance().authenticateToLogin(userName, response, new AsyncCallback<UserId>() {
 
           public void onSuccess(UserId userId) {
-            win.getEl().unmask();
+            //win.getEl().unmask();
             if (!userId.isGuest()) {
               Application.get().setCurrentUser(userId);
             }
