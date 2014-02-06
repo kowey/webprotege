@@ -31,11 +31,13 @@ class Concept extends AbsolutePanel implements Cloneable,
 
         @Override
         public void onKeyUp(KeyUpEvent event) {
+            // we respond to key up events up updating a provisional label
+            // only on Enter key or mouse-out do we actually commit the label
             final String text = textbox.getText().trim();
             final Optional<String> label = (text.isEmpty() || text.equals(""))
                     ? Optional.<String>absent()
                     : Optional.of(text);
-            concept.justSetLabel(label);
+            concept.setProvisionalLabel(label);
             if (event.getNativeKeyCode() ==  KeyCodes.KEY_ENTER) {
                 concept.onMouseOut(null);
             }
@@ -58,7 +60,7 @@ class Concept extends AbsolutePanel implements Cloneable,
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
 
-    @NonNull Optional<String> label = Optional.absent();
+    @NonNull Optional<String> provisionalLabel = Optional.absent();
     @Setter(AccessLevel.NONE) @NonNull Optional<String> prevLabel = Optional.absent();
     @Setter(AccessLevel.PACKAGE) @NonNull Optional<IRI> iri = Optional.absent();
 
@@ -125,8 +127,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     public void onMouseOut(MouseOutEvent event) {
         this.getElement().setClassName("concept");
         wLabel.setReadOnly(true);
-        handleLabelChanges(this.prevLabel, this.label);
-        this.prevLabel = this.label;
+        handleLabelChanges(this.prevLabel, this.provisionalLabel);
+        this.prevLabel = this.provisionalLabel;
     }
 
     protected void handleLabelChanges(@NonNull final Optional<String> before,
@@ -165,13 +167,14 @@ class Concept extends AbsolutePanel implements Cloneable,
         }
     }
 
-    private void justSetLabel(@NonNull Optional<String> label) {
-        this.label = label;
+    private void setProvisionalLabel(@NonNull Optional<String> label) {
+        this.provisionalLabel = label;
     }
 
     public void setLabel(@NonNull Optional<String> label) {
-        justSetLabel(label);
-        wLabel.setText(this.label.or(""));
+        this.prevLabel = this.provisionalLabel;
+        setProvisionalLabel(label);
+        wLabel.setText(this.provisionalLabel.or(""));
     }
 
     /**
