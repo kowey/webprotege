@@ -113,7 +113,6 @@ class Concept extends AbsolutePanel implements Cloneable,
         wTempQuery.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
-                wQueryResult.setText("!!!");
                 conceptManager.checkClassName(thisConcept());
             }
         });

@@ -157,7 +157,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public void checkClassName(@NonNull final Concept concept) {
         GWT.log("[CM] Want to know class name for " + concept + " | " + concept.getId());
         if (concept.getIri().isPresent()) {
-            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), iri.toString(),
+            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), concept.getIri().toString(),
                     new GetTriplesHandler(concept));
         }
      }
@@ -276,7 +276,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             for (Triple triple : triples) {
                 GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
                 if (triple.getProperty().toString().equals("rdfs:label")) {
-                    concept.getWQueryResult().setText(">>" +  triple.getValue() + "<<")
+                    concept.getWQueryResult().setText(">>" +  triple.getValue() + "<<");
                 }
             }
         }
