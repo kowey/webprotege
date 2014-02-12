@@ -157,7 +157,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public void checkClassName(@NonNull final Concept concept) {
         GWT.log("[CM] Want to know class name for " + concept + " | " + concept.getId());
         if (concept.getIri().isPresent()) {
-            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), concept.getIri().toString(),
+            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), concept.getIri().get().toString(),
                     new GetTriplesHandler(concept));
         }
      }
