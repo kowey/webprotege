@@ -257,7 +257,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void handleSuccess(final Void result) {
             GWT.log("[CM] My rename invocation succeeded ", null);
-            fireEvent(new DirtyChangedEvent());
+            //fireEvent(new DirtyChangedEvent()); // this was an attempt at propagating the rename
         }
     }
 
