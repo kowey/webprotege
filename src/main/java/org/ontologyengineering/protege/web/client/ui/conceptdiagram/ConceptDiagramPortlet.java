@@ -134,7 +134,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * @param event The event that describes the browser text change that happened.
      */
     protected void onEntityBrowserTextChanged(BrowserTextChangedEvent event) {
-        /*
+
         IRI toRename = event.getEntity().getIRI();
         Optional<String> newName = Optional.of(event.getNewBrowserText());
         GWT.log("[CM rename] caught rename event " + toRename + " to " + newName + " | " + event.getSource());
@@ -144,7 +144,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 curve.setLabel(newName);
             }
         }
-        */
+
     }
 
     public void createClass(@NonNull final Concept concept,
