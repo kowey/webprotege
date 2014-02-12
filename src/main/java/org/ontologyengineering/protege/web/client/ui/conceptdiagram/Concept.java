@@ -74,6 +74,11 @@ class Concept extends AbsolutePanel implements Cloneable,
     private int height = 80;
     private int rounding = 20;
     final private TextBox wLabel = new TextBox();
+    final private Label wQueryResult = new Label("???");
+
+    private Concept thisConcept() {
+        return this;
+    }
 
     public String getCurveId() {
         return this.id + "_curve";
@@ -99,11 +104,22 @@ class Concept extends AbsolutePanel implements Cloneable,
         this.wLabel.addKeyUpHandler(new RenameHandler(this, wLabel));
         this.wLabel.setReadOnly(true);
 
-        final VerticalPanel wButtons = new VerticalPanel();
+        this.add(this.wQueryResult, this.width + 5, 25);
+
+        final Panel wButtons = new HorizontalPanel();
         wButtons.getElement().setClassName("concept-button");
 
+        final Button wTempQuery = new Button("?");
+        wTempQuery.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                wQueryResult.setText("!!!");
+                conceptManager.checkClassName(thisConcept());
+            }
+        });
         final Button wDelete = new Button("X");
         wDelete.addClickHandler(new DeleteHandler(this));
+        wButtons.add(wTempQuery);
         wButtons.add(wDelete);
         this.add(wButtons, this.width + 5, this.height - 10);
         this.add(wCurve, 1, 1);

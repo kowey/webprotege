@@ -6,20 +6,21 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.*;
+import edu.stanford.bmir.protege.web.client.dispatch.DispatchService;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityAction;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityResult;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.model.PropertyValueUtil;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
+import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
+import edu.stanford.bmir.protege.web.client.rpc.data.Triple;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
+import edu.stanford.bmir.protege.web.shared.DirtyChangedEvent;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedEvent;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import lombok.NonNull;
@@ -32,6 +33,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -152,6 +154,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 getCreateClassAsyncHandler(concept));
     }
 
+    public void checkClassName(@NonNull final Concept concept) {
+        GWT.log("[CM] Want to know class name for " + concept + " | " + concept.getId());
+        if (concept.getIri().isPresent()) {
+            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), iri.toString(),
+                    new GetTriplesHandler(concept));
+        }
+     }
+
     public void deleteClass(@NonNull final IRI iri) {
         GWT.log("[CM] Should delete class " + iri.toString());
         OWLClass entity = DataFactory.getOWLClass(iri.toString());
@@ -251,7 +261,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
-    /*class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
+    @RequiredArgsConstructor
+    class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
+
+        private final Concept concept;
 
         @Override
         public void handleFailure(Throwable caught) {
@@ -262,10 +275,13 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void handleSuccess(List<Triple> triples) {
             for (Triple triple : triples) {
                 GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
+                if (triple.getProperty().toString().equals("rdfs:label")) {
+                    concept.getWQueryResult().setText(">>" +  triple.getValue() + "<<")
+                }
             }
         }
 
-    }*/
+    }
 
     public static native void gwtjsPlumbConnect(JavaScriptObject pairs) /*-{
             $wnd.gwtjsconnect(pairs);
