@@ -87,14 +87,14 @@ class Concept extends AbsolutePanel implements Cloneable,
     @Override
     public void onLoad() {
         this.getElement().setId(this.id);
-        this.setWidth((this.width + 90) + "px");
+        this.setWidth((this.width + 120) + "px");
         this.setHeight((this.height + 10) + "px");
         super.onLoad();
 
         final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
         wCurve.getElement().setId(getCurveId());
 
-        this.add(this.wLabel, this.width + 5, 5);
+        this.add(this.wLabel, this.width + 5, 10);
         this.wLabel.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
