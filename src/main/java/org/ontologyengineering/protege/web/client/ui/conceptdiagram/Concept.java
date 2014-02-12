@@ -38,6 +38,9 @@ class Concept extends AbsolutePanel implements Cloneable,
                     ? Optional.<String>absent()
                     : Optional.of(text);
             concept.setTempLabel(label);
+            // once the user has begun to type things (even a single char)
+            // we no longer consider it annoying to lose focus on mouse-out
+            concept.setRenaming(false);
             if (event.getNativeKeyCode() ==  KeyCodes.KEY_ENTER) {
                 concept.onMouseOut(null);
             }
@@ -65,6 +68,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     @Setter(AccessLevel.PACKAGE) @NonNull Optional<IRI> iri = Optional.absent();
 
     private boolean isMoving = false;
+    private boolean isRenaming = false;
+
     private int width  = 120;
     private int height = 80;
     private int rounding = 20;
@@ -85,6 +90,12 @@ class Concept extends AbsolutePanel implements Cloneable,
         wCurve.getElement().setId(getCurveId());
 
         this.add(this.wLabel, this.width + 5, 5);
+        this.wLabel.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                isRenaming = true;
+            }
+        });
         this.wLabel.addKeyUpHandler(new RenameHandler(this, wLabel));
         this.wLabel.setReadOnly(true);
 
@@ -125,10 +136,12 @@ class Concept extends AbsolutePanel implements Cloneable,
 
     @Override
     public void onMouseOut(MouseOutEvent event) {
-        this.getElement().setClassName("concept");
-        wLabel.setReadOnly(true);
-        handleLabelChanges(this.label, this.tempLabel);
-        this.label = this.tempLabel;
+        if (! this.isRenaming) {
+            this.getElement().setClassName("concept");
+            wLabel.setReadOnly(true);
+            handleLabelChanges(this.label, this.tempLabel);
+            this.label = this.tempLabel;
+        }
     }
 
     protected void handleLabelChanges(@NonNull final Optional<String> before,
