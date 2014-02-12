@@ -15,4 +15,7 @@ public interface ConceptManager {
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
                             @NonNull final String newName);
+
+    public void checkClassName(@NonNull final Concept concept);
+
 }
