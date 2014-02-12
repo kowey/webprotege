@@ -180,7 +180,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         if (oldName.equals(newName) || newName == null || newName.length() == 0) {
             return;
         }
-        GWT.log("[CM] Rename " + iri + " from " + oldName + " to " + newName, null);
+        GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
         // TODO: surely there is a cleaner way to express this?
         OWLAnnotationProperty keyRdfsLabel =
                 DataFactory.get().getRDFSLabel();
@@ -250,14 +250,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     class RenameClassHandler extends AbstractAsyncHandler<Void> {
         @Override
         public void handleFailure(final Throwable caught) {
-            GWT.log("[CM] Error at deleting class", caught);
+            GWT.log("[CM] Error renaming class", caught);
             MessageBox.showErrorMessage("Class not deleted", caught);
         }
 
         @Override
         public void handleSuccess(final Void result) {
-            GWT.log("[CM] Renamed ", null);
-
+            GWT.log("[CM] My rename invocation succeeded ", null);
+            fireEvent(new DirtyChangedEvent());
         }
     }
 
