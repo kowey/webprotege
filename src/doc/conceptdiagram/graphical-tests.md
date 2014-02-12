@@ -22,6 +22,9 @@
       * do: Hover, select text box, replace name
       * expect 1: Relabeled concept
       * expect 2: Concept renamed in class tree
+      * relax: Editor seems slow to catch up, may need manual refresh to see new label
+      * detail: should be able to rename by hitting enter
+      * detail: ... or by mousing out
 
 4. Rename in editor
 
@@ -33,7 +36,7 @@
 5. Repeat rename visually...
 
       * do/expect: see above
-      * PROBLEM 2014-02-12: seems not to work? resets after a while.  Could it be slow propagation of the original rename event?
+      * PROBLEM 2014-02-12: seems not to work? resets after a while. Could it be slow propagation of the original rename event?
 
 ## Delete the concept
 
