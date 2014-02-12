@@ -43,7 +43,6 @@ public abstract class DraggableShape extends Raphael
 
     @Override
     public void onMouseUp(MouseUpEvent event) {
-      GWT.log("mouse up! " + event.getClientX() + " " + dshape.getAbsoluteLeft());
     }
   }
 
