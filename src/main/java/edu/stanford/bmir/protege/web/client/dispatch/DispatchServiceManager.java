@@ -78,7 +78,8 @@ public class DispatchServiceManager {
             }
         }
 
-        GWT.log("[DISPATCH] Making request to server.  Request " + requestCount + ". (" + action + ")");
+        //EYK - disabled this because it was generating lots of noise, confusing me
+        //GWT.log("[DISPATCH] Making request to server.  Request " + requestCount + ". (" + action + ")");
         requestCount++;
         async.executeAction(action, new AsyncCallbackProxy(action, callback));
     }

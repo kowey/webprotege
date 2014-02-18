@@ -61,7 +61,8 @@ public class RenderingServiceManager implements RenderingServiceAsync {
             }
         }
         if(toFetch.isEmpty()) {
-            GWT.log("RenderingSeviceManager:  Using cached results");
+            //EYK: disabled because noisy
+            //GWT.log("RenderingSeviceManager:  Using cached results");
             async.onSuccess(new GetRenderingResponse(cachedResult));
         }
         else {

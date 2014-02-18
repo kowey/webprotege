@@ -62,7 +62,8 @@ public class EventPollingManager {
 
 
     public void pollForProjectEvents() {
-        GWT.log("[Event Polling Manager] Polling for project events for " + projectId + " from " + nextTag);
+        //Disabled by EYK because generating lots of confusing noise
+        //GWT.log("[Event Polling Manager] Polling for project events for " + projectId + " from " + nextTag);
         UserId userId = Application.get().getUserId();
         DispatchServiceManager.get().execute(new GetProjectEventsAction(nextTag, projectId, userId), new AsyncCallback<GetProjectEventsResult>() {
             @Override
