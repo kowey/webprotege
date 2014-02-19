@@ -5,6 +5,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchService;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
@@ -17,24 +18,27 @@ import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.Triple;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration;
+import edu.stanford.bmir.protege.web.client.ui.editor.EditorManager;
+import edu.stanford.bmir.protege.web.client.ui.frame.LabelledFrame;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import edu.stanford.bmir.protege.web.shared.DirtyChangedEvent;
+import edu.stanford.bmir.protege.web.shared.PrimitiveType;
+import edu.stanford.bmir.protege.web.shared.dispatch.Result;
+import edu.stanford.bmir.protege.web.shared.dispatch.UpdateObjectAction;
+import edu.stanford.bmir.protege.web.shared.entity.OWLPrimitiveData;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedEvent;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
+import edu.stanford.bmir.protege.web.shared.frame.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.*;
+import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager {
@@ -137,7 +141,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         IRI toRename = event.getEntity().getIRI();
         Optional<String> newName = Optional.of(event.getNewBrowserText());
-        GWT.log("[CM rename] caught rename event " + toRename + " to " + newName + " | " + event.getSource());
+        GWT.log("[CM rename] received BrowserTextChangedEvent event " + event +
+                " | " + toRename + " to " + newName +
+                " | " + event.getSource());
         Concept curve = namedCurves.get(toRename);
         if (curve != null) {
             if (!curve.getLabel().equals(newName)) {
@@ -172,7 +178,17 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         refreshFromServer(500);
     }
 
-
+    private AnnotationPropertyFrame createFrame(@NonNull final IRI iri,
+                                                @NonNull final PropertyValueList annotations) {
+        // FIXME: don't know what to populate these with
+        OWLPrimitiveDataList domains = new OWLPrimitiveDataList(new ArrayList<OWLPrimitiveData>());
+        OWLPrimitiveDataList ranges  = new OWLPrimitiveDataList(new ArrayList<OWLPrimitiveData>());
+        //
+        OWLAnnotationProperty property = DataFactory.getOWLAnnotationProperty(iri.toString());
+        final Set<OWLEntity> domainsClasses = new HashSet<OWLEntity>(domains.getSignature());
+        final Set<OWLEntity> rangeTypes = new HashSet<OWLEntity>(ranges.getSignature());
+        return new AnnotationPropertyFrame(property, annotations.getAnnotationPropertyValues(), domainsClasses, rangeTypes);
+    }
 
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
@@ -181,9 +197,39 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             return;
         }
         GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
-        // TODO: surely there is a cleaner way to express this?
         OWLAnnotationProperty keyRdfsLabel =
                 DataFactory.get().getRDFSLabel();
+
+        // FIXME: just trying to get an object update
+        OWLLiteral oldNameOwl = new OWLLiteralImplNoCompression(oldName, "", DataFactory.getXSDString());
+        OWLLiteral newNameOwl = new OWLLiteralImplNoCompression(newName, "", DataFactory.getXSDString());
+        PropertyAnnotationValue oldPair = new PropertyAnnotationValue(keyRdfsLabel, oldNameOwl);
+        PropertyAnnotationValue newPair = new PropertyAnnotationValue(keyRdfsLabel, newNameOwl);
+        List<PropertyValue> oldPairs = new ArrayList<PropertyValue>();
+        List<PropertyValue> newPairs = new ArrayList<PropertyValue>();
+        oldPairs.add(oldPair);
+        newPairs.add(newPair);
+        LabelledFrame<AnnotationPropertyFrame> oldFrame =
+                new LabelledFrame(oldName, createFrame(iri, new PropertyValueList(oldPairs)));
+        LabelledFrame<AnnotationPropertyFrame> newFrame =
+                new LabelledFrame(newName, createFrame(iri, new PropertyValueList(newPairs)));
+
+        UpdateObjectAction<LabelledFrame<AnnotationPropertyFrame>> updateAction =
+            new UpdateAnnotationPropertyFrameAction(getProjectId(), oldFrame, newFrame);
+        GWT.log("[CM] Launching laborious rename action");
+        DispatchServiceManager.get().execute(updateAction, new AsyncCallback<Result>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                GWT.log("[CM] Updating object failed", caught);
+            }
+
+            @Override
+            public void onSuccess(Result result) {
+                GWT.log("[CM] Object successfully renamed");
+            }
+        });
+
+        /*
         new PropertyValueUtil().replacePropertyValue(getProjectId(),
                 iri.toString(), // TODO: why isn't this just iri?
                 keyRdfsLabel.getIRI().toString(),
@@ -193,6 +239,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 getUserId(),
                 "Relabel " + iri + " from " + oldName + " to " + newName,
                 new RenameClassHandler());
+                */
     }
 
     public void onDeleteClass(@NonNull final IRI iri) {
