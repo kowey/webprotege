@@ -95,6 +95,8 @@ public class EventPollingManager {
                 GWT.log("[Event Polling Manager] Event: " + event.toString());
             }
             EventBusManager.getManager().postEvents(eventList.getEvents());
+            GWT.log("[Event Polling Manager EYK] ------------------------ DONE");
+            GWT.log("");
         }
     }
 

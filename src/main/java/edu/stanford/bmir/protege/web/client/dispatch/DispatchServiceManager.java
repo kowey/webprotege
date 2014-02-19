@@ -20,6 +20,7 @@ import edu.stanford.bmir.protege.web.shared.dispatch.DispatchServiceResultContai
 import edu.stanford.bmir.protege.web.shared.dispatch.InvocationExceptionTolerantAction;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import edu.stanford.bmir.protege.web.shared.event.EventBusManager;
+import edu.stanford.bmir.protege.web.shared.event.GetProjectEventsResult;
 import edu.stanford.bmir.protege.web.shared.event.HasEventList;
 import edu.stanford.bmir.protege.web.shared.event.SerializableEvent;
 import edu.stanford.bmir.protege.web.shared.events.EventList;
@@ -30,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Executes RPC calls and invokes their corresponding callback functions
+ * upon server response.
+ *
  * Author: Matthew Horridge<br>
  * Stanford University<br>
  * Bio-Medical Informatics Research Group<br>
@@ -106,6 +110,9 @@ public class DispatchServiceManager {
 
         @Override
         public void onSuccess(DispatchServiceResultContainer result) {
+            if (hasEvents(result.getResult())) {
+                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess START");
+            }
             // TODO: Fix
             if(action instanceof HasProjectId) {
                 ResultCache resultCache = getResultCache(((HasProjectId) action).getProjectId());
@@ -113,8 +120,14 @@ public class DispatchServiceManager {
             }
             cacheRenderables(result.getResult());
             dispatchEvents(result.getResult());
+            if (result.getResult().getClass() != GetProjectEventsResult.class) {
+                GWT.log("[DISPATCH EYK] about to delegate: " + result.getResult());
+            }
             delegate.onSuccess(result.getResult());
-
+            if (hasEvents(result.getResult())) {
+                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess END");
+                GWT.log("[DISPATCH EYK]");
+            }
         }
 
     }
@@ -127,6 +140,16 @@ public class DispatchServiceManager {
         }
     }
 
+    private boolean hasEvents(Object result) {
+        if(result instanceof HasEventList<?>) {
+            EventList<? extends SerializableEvent<?>> eventList = ((HasEventList<? extends SerializableEvent<?>>) result).getEventList();
+            List<? extends SerializableEvent<?>> events = eventList.getEvents();
+            return (!events.isEmpty());
+        } else {
+            return false;
+        }
+    }
+
     private void dispatchEvents(Object result) {
         if(result instanceof HasEventList<?>) {
             EventList<? extends SerializableEvent<?>> eventList = ((HasEventList<? extends SerializableEvent<?>>) result).getEventList();
@@ -136,7 +159,7 @@ public class DispatchServiceManager {
             // TODO: more than once!
 
             for(Event<?> event : events) {
-                GWT.log("[DISPATCH] Dispatching event (" + event.toDebugString() + ")");
+                GWT.log("[DISPATCH] Dispatching event (" + event /*.toDebugString()*/ + ")");
             }
             EventBusManager.getManager().postEvents(events);
         }

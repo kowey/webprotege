@@ -22,12 +22,14 @@ import edu.stanford.bmir.protege.web.client.events.UserLoggedOutHandler;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.project.ProjectManager;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractWebProtegeAsyncCallback;
+import edu.stanford.bmir.protege.web.client.ui.frame.LabelledFrame;
 import edu.stanford.bmir.protege.web.shared.HasDispose;
 import edu.stanford.bmir.protege.web.shared.dispatch.GetObjectAction;
 import edu.stanford.bmir.protege.web.shared.dispatch.GetObjectResult;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import edu.stanford.bmir.protege.web.shared.dispatch.UpdateObjectAction;
 import edu.stanford.bmir.protege.web.shared.event.HandlerRegistrationManager;
+import edu.stanford.bmir.protege.web.shared.frame.AnnotationPropertyFrame;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 
 import java.io.Serializable;
@@ -67,6 +69,7 @@ public class EditorPresenter implements HasDispose {
     private Timer commitOnValueChangedTimer = new Timer() {
         @Override
         public void run() {
+            GWT.log("Calling commitCurrentValue [2] timer");
             commitCurrentValue(editorState.get());
         }
     };
@@ -135,6 +138,7 @@ public class EditorPresenter implements HasDispose {
     private <C extends EditorCtx, O extends Serializable> void unbindPrevious(final EditorState<C, O> editorState) {
         valueChangedReg.removeHandler();
         commitOnValueChangedTimer.cancel();
+        GWT.log("calling commitCurrentValue [1]");
         commitCurrentValue(editorState);
         clearEditorState();
     }
@@ -150,12 +154,15 @@ public class EditorPresenter implements HasDispose {
         }
         final O pristineValue = editorState.getPristineObject();
         final O editedValue = value.get();
+        if (value.isPresent() && value.get() instanceof LabelledFrame) {
+            GWT.log("Updating object (editedValue displayName)" + ((LabelledFrame)value.get()).getDisplayName());
+        }
         if(pristineValue.equals(editedValue)) {
             return;
         }
         final C editorCtx = editorState.getEditorContext();
         UpdateObjectAction<O> updateAction = editorState.getEditorManager().createUpdateObjectAction(pristineValue, editedValue, editorCtx);
-        GWT.log("Updating object");
+        GWT.log("Updating object (commitCurrentValue) pristine " + pristineValue + " edited " + editedValue);
         DispatchServiceManager.get().execute(updateAction, new AsyncCallback<Result>() {
             @Override
             public void onFailure(Throwable caught) {
@@ -222,6 +229,7 @@ public class EditorPresenter implements HasDispose {
     }
 
     private void rescheduleCommit() {
+        GWT.log("[EDITOR] rescheduleCommit for " + VALUE_CHANGED_COMMIT_DELAY_MS + "ms");
         commitOnValueChangedTimer.cancel();
         commitOnValueChangedTimer.schedule(VALUE_CHANGED_COMMIT_DELAY_MS);
     }
