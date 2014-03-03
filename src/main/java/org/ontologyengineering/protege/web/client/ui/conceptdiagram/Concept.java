@@ -4,11 +4,8 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.*;
 
-import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.IRI;
