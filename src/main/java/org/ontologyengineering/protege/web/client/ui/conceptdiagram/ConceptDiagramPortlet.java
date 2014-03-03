@@ -178,16 +178,33 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         refreshFromServer(500);
     }
 
-    private AnnotationPropertyFrame createFrame(@NonNull final IRI iri,
-                                                @NonNull final PropertyValueList annotations) {
+    private LabelledFrame<AnnotationPropertyFrame>
+    createNamingFrame(@NonNull final IRI iri,
+                      @NonNull final String name) {
+        // that which is being named
+        OWLAnnotationProperty property = DataFactory.getOWLAnnotationProperty(iri.toString());
+
         // FIXME: don't know what to populate these with
+        // is this the domain and range of rdfs:label triples?
         OWLPrimitiveDataList domains = new OWLPrimitiveDataList(new ArrayList<OWLPrimitiveData>());
         OWLPrimitiveDataList ranges  = new OWLPrimitiveDataList(new ArrayList<OWLPrimitiveData>());
-        //
-        OWLAnnotationProperty property = DataFactory.getOWLAnnotationProperty(iri.toString());
         final Set<OWLEntity> domainsClasses = new HashSet<OWLEntity>(domains.getSignature());
         final Set<OWLEntity> rangeTypes = new HashSet<OWLEntity>(ranges.getSignature());
-        return new AnnotationPropertyFrame(property, annotations.getAnnotationPropertyValues(), domainsClasses, rangeTypes);
+
+        // complicated way of saying [("rdfs:label", name)]
+        OWLLiteral nameLiteral = new OWLLiteralImplNoCompression(name, "", DataFactory.getXSDString());
+        PropertyAnnotationValue labelAnnoPair =
+                new PropertyAnnotationValue(DataFactory.get().getRDFSLabel(), nameLiteral);
+        PropertyValueList pvList =
+                new PropertyValueList(Arrays.<PropertyValue>asList(labelAnnoPair));
+
+        // packing everything up into a frame
+        AnnotationPropertyFrame annoFrame =
+            new AnnotationPropertyFrame(property,
+                                        pvList.getAnnotationPropertyValues(),
+                                        domainsClasses,
+                                        rangeTypes);
+        return new LabelledFrame(name, annoFrame);
     }
 
     public void renameClass(@NonNull final IRI iri,
@@ -197,26 +214,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             return;
         }
         GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
-        OWLAnnotationProperty keyRdfsLabel =
-                DataFactory.get().getRDFSLabel();
-
-        // FIXME: just trying to get an object update
-        OWLLiteral oldNameOwl = new OWLLiteralImplNoCompression(oldName, "", DataFactory.getXSDString());
-        OWLLiteral newNameOwl = new OWLLiteralImplNoCompression(newName, "", DataFactory.getXSDString());
-        PropertyAnnotationValue oldPair = new PropertyAnnotationValue(keyRdfsLabel, oldNameOwl);
-        PropertyAnnotationValue newPair = new PropertyAnnotationValue(keyRdfsLabel, newNameOwl);
-        List<PropertyValue> oldPairs = new ArrayList<PropertyValue>();
-        List<PropertyValue> newPairs = new ArrayList<PropertyValue>();
-        oldPairs.add(oldPair);
-        newPairs.add(newPair);
-        LabelledFrame<AnnotationPropertyFrame> oldFrame =
-                new LabelledFrame(oldName, createFrame(iri, new PropertyValueList(oldPairs)));
-        LabelledFrame<AnnotationPropertyFrame> newFrame =
-                new LabelledFrame(newName, createFrame(iri, new PropertyValueList(newPairs)));
+        LabelledFrame<AnnotationPropertyFrame> oldFrame = createNamingFrame(iri, oldName);
+        LabelledFrame<AnnotationPropertyFrame> newFrame = createNamingFrame(iri, newName);
 
         UpdateObjectAction<LabelledFrame<AnnotationPropertyFrame>> updateAction =
             new UpdateAnnotationPropertyFrameAction(getProjectId(), oldFrame, newFrame);
-        GWT.log("[CM] Launching laborious rename action");
         DispatchServiceManager.get().execute(updateAction, new AsyncCallback<Result>() {
             @Override
             public void onFailure(Throwable caught) {
@@ -228,18 +230,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 GWT.log("[CM] Object successfully renamed");
             }
         });
-
-        /*
-        new PropertyValueUtil().replacePropertyValue(getProjectId(),
-                iri.toString(), // TODO: why isn't this just iri?
-                keyRdfsLabel.getIRI().toString(),
-                ValueType.Literal,
-                oldName,
-                newName,
-                getUserId(),
-                "Relabel " + iri + " from " + oldName + " to " + newName,
-                new RenameClassHandler());
-                */
     }
 
     public void onDeleteClass(@NonNull final IRI iri) {
