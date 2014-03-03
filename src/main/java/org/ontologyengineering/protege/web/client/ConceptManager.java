@@ -5,6 +5,8 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Concept;
 import org.semanticweb.owlapi.model.IRI;
 
 public interface ConceptManager {
+    public void selectClass(final IRI iri);
+
     public void createClass(final Concept concept,
                             final String name);
 

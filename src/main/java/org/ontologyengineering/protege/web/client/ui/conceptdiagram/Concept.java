@@ -143,6 +143,9 @@ class Concept extends AbsolutePanel implements Cloneable,
     @Override
     public void onMouseOver(MouseOverEvent event) {
         mouseOverHighlight();
+        if (this.iri.isPresent()) {
+            this.conceptManager.selectClass(this.iri.get());
+        }
         wLabel.setReadOnly(false);
     }
 
