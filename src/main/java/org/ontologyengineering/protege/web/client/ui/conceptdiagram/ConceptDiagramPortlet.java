@@ -13,11 +13,14 @@ import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
+import edu.stanford.bmir.protege.web.client.rpc.data.SubclassEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.Triple;
+import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration;
 import edu.stanford.bmir.protege.web.client.ui.frame.LabelledFrame;
 import edu.stanford.bmir.protege.web.client.ui.library.msgbox.MessageBox;
 import edu.stanford.bmir.protege.web.client.ui.portlet.AbstractOWLEntityPortlet;
+import edu.stanford.bmir.protege.web.client.ui.selection.SelectionEvent;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import edu.stanford.bmir.protege.web.shared.dispatch.UpdateObjectAction;
@@ -29,6 +32,7 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemove
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.ontologyengineering.protege.web.client.ConceptDiagram;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
@@ -40,6 +44,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     private boolean registeredEventHandlers = false;
     private Map<IRI, Concept> namedCurves = new HashMap();
+    private Collection<EntityData> selection = Collections.emptyList();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
@@ -134,8 +139,16 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
-    public ArrayList<EntityData> getSelection() {
-        return null;
+    public Collection<EntityData> getSelection() {
+        GWT.log("[CM] get selection");
+        return this.selection;
+    }
+
+    @Override
+    public void setSelection(final Collection<EntityData> selection) {
+        GWT.log("[CM] set selection " + selection);
+        this.selection = selection;
+        notifySelectionListeners(new SelectionEvent(ConceptDiagramPortlet.this));
     }
 
 
@@ -171,6 +184,16 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         }
 
+    }
+
+    public void selectClass(@NonNull final IRI iri) {
+        // FIXME: bit of cargo culting, not sure why it has to be a SubclassEntityData
+        // in particular and not just any old EntityData, but selection doesn't
+        // propagate otherwise
+        final EntityData entityData =
+            new SubclassEntityData(iri.toString(), "", Collections.<EntityData>emptySet(), 0);
+        entityData.setValueType(ValueType.Cls);
+        setSelection(Collections.singleton(entityData));
     }
 
     public void createClass(@NonNull final Concept concept,
