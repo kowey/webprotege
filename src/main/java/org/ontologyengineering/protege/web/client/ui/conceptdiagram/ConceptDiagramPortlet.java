@@ -193,7 +193,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         OWLClass entity = DataFactory.getOWLClass(iri.toString());
         DispatchServiceManager.get().execute(
                 new DeleteEntityAction(entity, getProjectId()),
-                new DeleteClassHandler());
+                new DeleteClassHandler(iri));
 
         refreshFromServer(500);
     }
@@ -216,7 +216,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         PropertyAnnotationValue labelAnnoPair =
                 new PropertyAnnotationValue(DataFactory.get().getRDFSLabel(), nameLiteral);
         PropertyValueList pvList =
-                new PropertyValueList(Arrays.<PropertyValue>asList(labelAnnoPair));
+                new PropertyValueList(Collections.singleton(labelAnnoPair));
 
         // packing everything up into a frame
         AnnotationPropertyFrame annoFrame =
@@ -290,7 +290,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
+    @RequiredArgsConstructor
     class DeleteClassHandler extends AbstractAsyncHandler<DeleteEntityResult> {
+        final IRI iri;
 
         @Override
         public void handleFailure(final Throwable caught) {
@@ -301,6 +303,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void handleSuccess(final DeleteEntityResult result) {
             GWT.log("[CM] Delete successfully class ", null);;
+            onDeleteClass(iri);
         }
     }
 
