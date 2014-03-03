@@ -5,17 +5,17 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Concept;
 import org.semanticweb.owlapi.model.IRI;
 
 public interface ConceptManager {
-    public void createClass(@NonNull final Concept concept,
-                            @NonNull final String name);
+    public void createClass(final Concept concept,
+                            final String name);
 
-    public void deleteClass(@NonNull final IRI iri);
+    public void deleteClass(final IRI iri);
 
-    public void onDeleteClass(@NonNull final IRI iri);
+    public void onDeleteClass(final IRI iri);
 
-    public void renameClass(@NonNull final IRI iri,
-                            @NonNull final String oldName,
-                            @NonNull final String newName);
+    public void renameClass(final IRI iri,
+                            final String oldName,
+                            final String newName);
 
-    public void checkClassName(@NonNull final Concept concept);
+    public void checkClassName(final Concept concept);
 
 }
