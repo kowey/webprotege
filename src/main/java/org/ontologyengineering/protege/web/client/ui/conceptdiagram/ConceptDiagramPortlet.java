@@ -25,6 +25,8 @@ import edu.stanford.bmir.protege.web.shared.entity.OWLPrimitiveData;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedEvent;
 import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import edu.stanford.bmir.protege.web.shared.frame.*;
+import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
+import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptManager;
@@ -72,6 +74,16 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             @Override
             public void browserTextChanged(BrowserTextChangedEvent event) {
                 onEntityBrowserTextChanged(event);
+            }
+        });
+
+        addProjectEventHandler(ClassHierarchyParentRemovedEvent.TYPE, new ClassHierarchyParentRemovedHandler() {
+            @Override
+            public void handleClassHierarchyParentRemoved(ClassHierarchyParentRemovedEvent event) {
+                if (isEventForThisProject(event)) {
+                    GWT.log("[CM] parent removed " + event);
+                    handleParentRemovedEvent(event);
+                }
             }
         });
     }
@@ -124,6 +136,21 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     public ArrayList<EntityData> getSelection() {
         return null;
+    }
+
+
+    /**
+     * Called upon (external) concept deletion
+     *
+     * @param event An event identifying the concept to be removed and its parent
+     */
+    private void handleParentRemovedEvent(ClassHierarchyParentRemovedEvent event) {
+        GWT.log("[CM] handling parent remove " + event.getParent() + ", child: " + event.getChild());
+        IRI toRename = event.getChild().getIRI();
+        Concept curve = namedCurves.get(toRename);
+        if (curve != null) {
+            curve.delete();
+        }
     }
 
     /**
