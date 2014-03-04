@@ -4,14 +4,20 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
+
+import java.awt.*;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -74,7 +80,10 @@ class Concept extends Pattern implements Cloneable,
     @Setter @NonNull Optional<IRI> iri = Optional.absent();
 
     private boolean isMoving = false;
+    private boolean isResizing = false;
     private boolean isRenaming = false;
+
+    private Point resizePoint = new Point(0, 0);
 
     private int rounding = 20;
     final private TextBox wLabel = new TextBox();
@@ -140,7 +149,7 @@ class Concept extends Pattern implements Cloneable,
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
         TemplateHandler.addHandler(container, this, copy, counter);
-        makeDraggable("#" + copy.getId());
+        copy.makeDraggable();
         return copy;
     }
 
@@ -186,6 +195,15 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
+    /**
+     * @param event some mouse event
+     * @return Location of current mouse pointer relative to pattern
+     */
+    private Point mouseLocation(MouseEvent event) {
+        final Element elm = this.getElement();
+        return new Point(event.getRelativeX(elm), event.getRelativeY(elm));
+    }
+
     @Override
     public void onMouseUp(MouseUpEvent event) {
         this.isMoving = false;
@@ -193,14 +211,28 @@ class Concept extends Pattern implements Cloneable,
 
     @Override
     public void onMouseDown(MouseDownEvent event) {
-        this.isMoving = true;
+        if (event.isShiftKeyDown()) {
+            this.isResizing = true;
+            this.resizePoint = mouseLocation(event);
+            toggleDraggable();
+        } else {
+            this.isMoving = true;
+        }
     }
 
     @Override
     public void onMouseMove(MouseMoveEvent event) {
+        GWT.log("mouse move: [moving: " + this.isMoving + ", resizing:" + this.isResizing + "]");
         if (this.isMoving) {
             this.onMouseOut(null);
+        } else if (this.isResizing && !event.isShiftKeyDown()) {
+            this.isResizing = false;
+            makeDraggable(); // re-enable
+        } else if (this.isResizing) {
+            Point currentPoint = mouseLocation(event);
+            GWT.log("Initial " +  resizePoint + ", current " + currentPoint);
         }
+
     }
 
     public void setLabel(@NonNull Optional<String> label) {
@@ -240,7 +272,19 @@ class Concept extends Pattern implements Cloneable,
         this.wLabel.setReadOnly(true);
     }
 
-    private native void makeDraggable(String draggableId) /*-{
+    protected void makeDraggable() {
+        _makeDraggable("#" + getId());
+    }
+
+    protected void toggleDraggable() {
+        _toggleDraggable("#" + getId());
+    }
+
+    private native void _makeDraggable(String draggableId) /*-{
         $wnd.make_draggable(draggableId);
+        }-*/;
+
+    private native void _toggleDraggable(String draggableId) /*-{
+        $wnd.toggle_draggable(draggableId);
         }-*/;
 }

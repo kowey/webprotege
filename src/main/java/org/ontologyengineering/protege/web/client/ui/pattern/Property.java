@@ -106,8 +106,6 @@ class Property extends Pattern implements Cloneable,
 
     }
 
-
-
     @Override
     public void onMouseUp(MouseUpEvent event) {
         this.isMoving = false;
