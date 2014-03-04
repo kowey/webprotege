@@ -6,6 +6,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import lombok.Data;
 import lombok.NonNull;
+import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -16,9 +17,8 @@ class TemplateHandler implements MouseMoveHandler {
     private @NonNull final AbsolutePanel container;
     // gwt compiler gets confused if we call this template
     // no kidding! (this is due to lombok's name mangling)
-    private @NonNull final Concept _template;
-    private @NonNull final Concept copy;
-    private @NonNull final String prefix;
+    private @NonNull final Pattern _template;
+    private @NonNull final Pattern copy;
     private final int counter;
     private HandlerRegistration registration;
 
@@ -28,21 +28,19 @@ class TemplateHandler implements MouseMoveHandler {
     public void onMouseMove(MouseMoveEvent event) {
         if (this.isFarFromTemplate()) {
             _template.copyTemplate(container,
-                    prefix,
                     counter + 1);
             if (registration != null) {
                 registration.removeHandler();
-                copy.switchToConceptMode();
+                copy.switchToInstanceMode();
             }
         }
     }
 
     public static void addHandler(final AbsolutePanel container,
-                                  final Concept template,
-                                  final Concept copy,
-                                  final String  idPrefix,
+                                  final Pattern template,
+                                  final Pattern copy,
                                   final int counter) {
-        TemplateHandler handler = new TemplateHandler(container, template, copy, idPrefix, counter);
+        TemplateHandler handler = new TemplateHandler(container, template, copy, counter);
         HandlerRegistration reg =
                 copy.addDomHandler(handler, MouseMoveEvent.getType());
         handler.setRegistration(reg);

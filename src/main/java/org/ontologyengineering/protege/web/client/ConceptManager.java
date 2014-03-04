@@ -1,7 +1,6 @@
 package org.ontologyengineering.protege.web.client;
 
-import lombok.NonNull;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Concept;
+import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
 import org.semanticweb.owlapi.model.IRI;
 
 public interface ConceptManager {

@@ -1,12 +1,13 @@
-package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
+package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.common.base.Optional;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
-import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableRect;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableShape;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
 
 /**
@@ -17,7 +18,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @Getter @Setter @RequiredArgsConstructor @ToString
-class Property extends AbsolutePanel implements Cloneable,
+class Subsumption extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
     @RequiredArgsConstructor
@@ -34,6 +35,7 @@ class Property extends AbsolutePanel implements Cloneable,
         }
     }
 
+    @Getter private static String idPrefix = "subsumes";
     @NonNull final String id;
     //@NonNull final ConceptManager conceptManager;
 
@@ -43,16 +45,14 @@ class Property extends AbsolutePanel implements Cloneable,
     private boolean isMoving = false;
     private boolean isRenaming = false;
 
-    private int width  = 50;
-    private int height = 40;
     private int rounding = 20;
 
-    public String getCurveIdSrc() {
-        return this.id + "_curvesrc";
+    public String getCurveIdOuter() {
+        return this.id + "_curve_outer";
     }
 
-    public String getCurveIdTgt() {
-        return this.id + "_curvetgt";
+    public String getCurveIdInner() {
+        return this.id + "_curve_inner";
     }
 
     @Override
@@ -62,32 +62,37 @@ class Property extends AbsolutePanel implements Cloneable,
         this.setHeight((this.height + 10) + "px");
         super.onLoad();
 
-        final DraggableShape wCurveSrc = new DraggableRect(this.width, this.height, this.rounding);
-        final DraggableShape wCurveTgt = new DraggableRect(this.width, this.height, this.rounding);
-        wCurveSrc.getElement().setId(getCurveIdSrc());
-        wCurveTgt.getElement().setId(getCurveIdTgt());
+        final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
+        final DraggableShape wCurveInner = new DraggableRect(this.width / 2, this.height / 2, this.rounding);
+        wCurveInner.getElement().setId(getCurveIdInner());
+        wCurveOuter.getElement().setId(getCurveIdOuter());
 
         final Panel wButtons = new HorizontalPanel();
         wButtons.getElement().setClassName("concept-button");
 
+        final TextBox wLabel = new TextBox();
+        wLabel.setText("SUBSUMPTION");
+        wLabel.setReadOnly(true);
+
         final Button wDelete = new Button("X");
         wDelete.addClickHandler(new DeleteHandler());
         wButtons.add(wDelete);
+
+        this.add(wLabel, this.width + 5, 10);
         this.add(wButtons, this.width + 5, this.height - 10);
-        this.add(wCurveSrc, 1, 1);
-        this.add(wCurveTgt, 11+this.width, 1);
+        this.add(wCurveOuter, 1, 1);
+        this.add(wCurveInner, 1 + this.width / 3, 1 + this.height / 3);
     }
 
 
-    public Property copyTemplate(@NonNull final AbsolutePanel container,
-                                 @NonNull final String idPrefix,
+    public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
                                  final int counter) {
 
-        Property copy  = new Property(idPrefix + counter);
+        Subsumption copy  = new Subsumption(idPrefix + counter);
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
-        //TemplateHandler.addHandler(container, this, copy, idPrefix, counter);
+        TemplateHandler.addHandler(container, this, copy, counter);
         makeDraggable("#" + copy.getId());
         return copy;
     }
@@ -131,7 +136,7 @@ class Property extends AbsolutePanel implements Cloneable,
         removeFromParent();
     }
 
-    public void switchToLiveMode() {
+    public void switchToInstanceMode() {
         addDomHandler(this, MouseOverEvent.getType());
         addDomHandler(this, MouseOutEvent.getType());
         addDomHandler(this, MouseUpEvent.getType());
@@ -143,7 +148,7 @@ class Property extends AbsolutePanel implements Cloneable,
     /**
      * Note: you should only ever call this once
      */
-    public void startTemplateMode(final String label) {
+    public void startTemplateMode() {
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
         this.getElement().setClassName("template");
     }

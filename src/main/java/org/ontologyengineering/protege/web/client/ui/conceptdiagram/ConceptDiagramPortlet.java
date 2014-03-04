@@ -32,8 +32,11 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemove
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.ontologyengineering.protege.web.client.ConceptDiagram;
 import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
+import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
+import org.ontologyengineering.protege.web.client.ui.pattern.Property;
+import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
@@ -52,19 +55,24 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     // draw the pattern templates
     private void initTemplates(AbsolutePanel vPanel) {
-        final Concept conceptTemplate = new Concept("template", this);
-        final Property propertyTemplate = new Property("prop-template");
+        vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        conceptTemplate.startTemplateMode("CONCEPT");
-        propertyTemplate.startTemplateMode("PROPERTY");
+        final List<Pattern> templates =
+                Arrays.<Pattern>asList(
+                new Concept("concept-template", this),
+                new Subsumption("subsume-template"));
 
         final int templateX = 0;
         final int templateY = 20;
-        vPanel.add(new Label("Drag one of these templates out to instantiate it"));
-        vPanel.add(conceptTemplate, templateX, templateY);
-        vPanel.add(propertyTemplate, templateX, templateY + conceptTemplate.getHeight() + 20);
-        conceptTemplate.copyTemplate(vPanel, "concept", 0);
-        propertyTemplate.copyTemplate(vPanel, "property", 0);
+        final int yGap = 20;
+
+        int currentY = templateY;
+        for (Pattern template : templates) {
+            template.startTemplateMode();
+            vPanel.add(template, templateX, currentY);
+            currentY += template.getHeight() + yGap;
+            template.copyTemplate(vPanel, 0);
+        }
     }
 
     @Override
