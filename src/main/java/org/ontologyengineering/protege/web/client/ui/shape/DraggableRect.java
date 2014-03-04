@@ -17,11 +17,15 @@
 package org.ontologyengineering.protege.web.client.ui.shape;
 
 import com.hydro4ge.raphaelgwt.client.Raphael;
+import lombok.Getter;
+import lombok.Setter;
 
 public class DraggableRect extends DraggableShape
 {
-  private final int height;
-  private final int width;
+
+    // FIXME: would like to access the raphael version
+    @Getter @Setter private int height;
+    @Getter @Setter private int width;
   private final int rounding;
 
   /**
@@ -53,6 +57,14 @@ public class DraggableRect extends DraggableShape
   protected int relativeShapeLeft(int cx, int cy) {
     return cx;
   }
+
+    public void setSize(int width, int height) {
+        super.setSize(width, height);
+        this.width = width;
+        this.height = height;
+        this.clear();
+        this.onLoad();
+    }
 }
 
 

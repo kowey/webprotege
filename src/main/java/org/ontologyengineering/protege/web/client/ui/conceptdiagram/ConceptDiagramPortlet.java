@@ -362,7 +362,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     @RequiredArgsConstructor
     class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
-
         private final Concept concept;
 
         @Override
@@ -374,9 +373,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void handleSuccess(List<Triple> triples) {
             for (Triple triple : triples) {
                 GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
-                if (triple.getProperty().toString().equals("rdfs:label")) {
-                    concept.getWQueryResult().setText(">>" +  triple.getValue() + "<<");
-                }
             }
         }
 

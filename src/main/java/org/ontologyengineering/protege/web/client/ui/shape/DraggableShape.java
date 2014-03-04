@@ -130,5 +130,6 @@ public abstract class DraggableShape extends Raphael
   public HandlerRegistration addMouseOutHandler(MouseOutHandler handler) {
     return this.addDomHandler(handler, MouseOutEvent.getType());
   }
+
 }
 
