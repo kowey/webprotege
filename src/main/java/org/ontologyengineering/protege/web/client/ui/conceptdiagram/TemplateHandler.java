@@ -15,7 +15,7 @@ class TemplateHandler implements MouseMoveHandler {
 
     private @NonNull final AbsolutePanel container;
     // gwt compiler gets confused if we call this template
-    // no kidding!
+    // no kidding! (this is due to lombok's name mangling)
     private @NonNull final Concept _template;
     private @NonNull final Concept copy;
     private @NonNull final String prefix;
