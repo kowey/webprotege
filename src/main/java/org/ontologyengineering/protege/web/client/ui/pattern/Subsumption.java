@@ -35,7 +35,7 @@ class Subsumption extends Pattern implements Cloneable,
         }
     }
 
-    @Getter private static String idPrefix = "subsumes";
+    @Getter private String idPrefix = "subsumes";
     @NonNull final String id;
     //@NonNull final ConceptManager conceptManager;
 

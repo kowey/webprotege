@@ -35,7 +35,7 @@ class Property extends Pattern implements Cloneable,
         }
     }
 
-    @Getter private static String idPrefix = "property";
+    @Getter private String idPrefix = "property";
     @NonNull final String id;
     //@NonNull final ConceptManager conceptManager;
 

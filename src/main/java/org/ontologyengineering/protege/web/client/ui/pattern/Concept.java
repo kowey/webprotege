@@ -60,7 +60,7 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
-    @Getter private static String idPrefix = "concept";
+    @Getter private String idPrefix = "concept";
 
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
