@@ -1,4 +1,4 @@
-package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
+package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
@@ -8,6 +8,9 @@ import com.google.gwt.user.client.ui.*;
 
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableRect;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableShape;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
 
 /**
@@ -18,7 +21,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @Getter @Setter @RequiredArgsConstructor @ToString
-class Concept extends AbsolutePanel implements Cloneable,
+class Concept extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
     @RequiredArgsConstructor
@@ -57,21 +60,25 @@ class Concept extends AbsolutePanel implements Cloneable,
         }
     }
 
+    @Getter private String idPrefix = "concept";
+
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
 
     @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
     @NonNull Optional<String> label = Optional.absent();
-    @Setter(AccessLevel.PACKAGE) @NonNull Optional<IRI> iri = Optional.absent();
+
+    /**
+     * FIXME: You should probably not use the setter for this method
+     */
+    @Setter @NonNull Optional<IRI> iri = Optional.absent();
 
     private boolean isMoving = false;
     private boolean isRenaming = false;
 
-    private int width  = 120;
-    private int height = 80;
     private int rounding = 20;
     final private TextBox wLabel = new TextBox();
-    final private Label wQueryResult = new Label("???");
+    final private Label wQueryResult = new Label("");
 
     private Concept thisConcept() {
         return this;
@@ -123,15 +130,16 @@ class Concept extends AbsolutePanel implements Cloneable,
 
 
     public Concept copyTemplate(@NonNull final AbsolutePanel container,
-                                @NonNull final String idPrefix,
                                 final int counter) {
+
+
 
         Concept copy  = new Concept(idPrefix + counter, conceptManager);
         copy.setLabel(this.getLabel());
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
-        TemplateHandler.addHandler(container, this, copy, idPrefix, counter);
+        TemplateHandler.addHandler(container, this, copy, counter);
         makeDraggable("#" + copy.getId());
         return copy;
     }
@@ -212,7 +220,7 @@ class Concept extends AbsolutePanel implements Cloneable,
         removeFromParent();
     }
 
-    public void switchToConceptMode() {
+    public void switchToInstanceMode() {
         addDomHandler(this, MouseOverEvent.getType());
         addDomHandler(this, MouseOutEvent.getType());
         addDomHandler(this, MouseUpEvent.getType());
@@ -225,8 +233,8 @@ class Concept extends AbsolutePanel implements Cloneable,
     /**
      * Note: you should only ever call this once
      */
-    public void startTemplateMode(final String label) {
-        this.setLabel(Optional.of("CONCEPT"));
+    public void startTemplateMode() {
+        this.setLabel(Optional.of("CLASS"));
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
         this.getElement().setClassName("template");
         this.wLabel.setReadOnly(true);
