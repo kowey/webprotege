@@ -50,6 +50,23 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         super(project);
     }
 
+    // draw the pattern templates
+    private void initTemplates(AbsolutePanel vPanel) {
+        final Concept conceptTemplate = new Concept("template", this);
+        final Property propertyTemplate = new Property("prop-template");
+
+        conceptTemplate.startTemplateMode("CONCEPT");
+        propertyTemplate.startTemplateMode("PROPERTY");
+
+        final int templateX = 0;
+        final int templateY = 20;
+        vPanel.add(new Label("Drag one of these templates out to instantiate it"));
+        vPanel.add(conceptTemplate, templateX, templateY);
+        vPanel.add(propertyTemplate, templateX, templateY + conceptTemplate.getHeight() + 20);
+        conceptTemplate.copyTemplate(vPanel, "concept", 0);
+        propertyTemplate.copyTemplate(vPanel, "property", 0);
+    }
+
     @Override
     public void initialize() {
         setTitle("ConceptDiagram");
@@ -102,18 +119,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void onClick(ClickEvent clickEvent) {
             try {
-                final Concept conceptTemplate = new Concept("template", conceptManager);
-                conceptTemplate.startTemplateMode("CONCEPT");
-                final int templateX = 0;
-                final int templateY = 20;
-                vPanel.add(new Label("Drag one of these templates out to instantiate it"));
-                vPanel.add(conceptTemplate, templateX, templateY);
-                conceptTemplate.copyTemplate(vPanel, "concept", 0);
+                initTemplates(vPanel);
             } catch (Exception e) {
                 GWT.log("buh?", e);
-
             }
-
         }}
 
     public void koweySetup() {
