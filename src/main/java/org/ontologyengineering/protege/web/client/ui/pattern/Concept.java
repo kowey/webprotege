@@ -8,8 +8,8 @@ import com.google.gwt.user.client.ui.*;
 
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableRect;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DraggableShape;
+import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
+import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
 

@@ -14,39 +14,44 @@
  * limitations under the License.
  */
 
-package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
+package org.ontologyengineering.protege.web.client.ui.shape;
 
 import com.hydro4ge.raphaelgwt.client.Raphael;
 
-public class DraggableCircle extends DraggableShape
+public class DraggableRect extends DraggableShape
 {
-  static  final private int PADDING = 5;
-  private final int radius;
+  private final int height;
+  private final int width;
+  private final int rounding;
 
   /**
    *
    * @param parent can be null
-   * @param radius
+   * @param width
+   * @param height
+   * @param rounding
    */
-  public DraggableCircle(Raphael parent, int radius) {
-    super(parent, (radius+PADDING)*2, (radius+PADDING)*2);
-    this.radius = radius;
+  public DraggableRect(Raphael parent, int width,  int height, int rounding) {
+    super(parent, width, height);
+    this.width = width;
+    this.height = height;
+    this.rounding = rounding;
   }
 
-  public DraggableCircle(int radius) {
-     this(null, radius);
+  public DraggableRect(int width, int height, int rounding) {
+     this(null, width, height, rounding);
   }
 
   protected Shape createShape() {
-    return new Circle(this.radius+PADDING, this.radius+PADDING, this.radius);
+    return new Rect(0, 0, this.width, this.height, this.rounding);
   }
 
   protected int relativeShapeTop(int cx, int cy) {
-    return cy - (radius + PADDING);
+    return cy;
   }
 
   protected int relativeShapeLeft(int cx, int cy) {
-    return cx - (radius + PADDING);
+    return cx;
   }
 }
 

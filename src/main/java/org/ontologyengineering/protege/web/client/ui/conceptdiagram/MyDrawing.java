@@ -24,6 +24,8 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.hydro4ge.raphaelgwt.client.PathBuilder;
 import com.hydro4ge.raphaelgwt.client.Raphael;
+import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
+import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 
 import java.util.ArrayList;
 import java.util.List;
