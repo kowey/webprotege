@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
+package org.ontologyengineering.protege.web.client.ui.shape;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
