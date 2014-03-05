@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.layout.client.Layout;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 
@@ -148,7 +149,7 @@ class Concept extends Pattern implements Cloneable,
 
     private int rounding = 20;
     final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
-    ButtonBar buttonBar = new ButtonBar(this);
+    ButtonBar buttonBar = new ButtonBar();
 
     private Concept thisConcept() {
         return this;
@@ -158,9 +159,7 @@ class Concept extends Pattern implements Cloneable,
         return this.id + "_curve";
     }
 
-    @Data class ButtonBar {
-        final private AbsolutePanel panel;
-
+    @Data class ButtonBar extends DockPanel {
         final private TextBox wLabel = new TextBox();
         final Panel wButtons = new HorizontalPanel();
         final Button wDelete = new Button("X");
@@ -185,27 +184,19 @@ class Concept extends Pattern implements Cloneable,
             });
         }
 
-        /**
-         * Reflow this button bar in its panel around a shape of the
-         * given height and width.  If the buttons have not been
-         * placed
-         *
-         * @param shapeHeight
-         * @param shapeWidth
-         */
-        private void reposition(int shapeWidth, int shapeHeight) {
-            wLabel.removeFromParent();
-            wButtons.removeFromParent();
-            final int left = shapeWidth + 5;
-            panel.add(wLabel, left, 10);
-            panel.add(wButtons, left, shapeHeight - 10);
+        private void reposition(int curveWidth, int curveHeight) {
+            setHeight(curveHeight + 10 + "px");
         }
 
-        public ButtonBar(AbsolutePanel panel) {
-            this.panel = panel;
+        public ButtonBar() {
+            wLabel.setWidth("6em");
             wButtons.getElement().setClassName("concept-button");
             wButtons.add(wDelete);
             wButtons.add(wResize);
+            add(wLabel, NORTH);
+            add(wButtons, SOUTH);
+            setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
+            setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
             reposition(Concept.this.width, Concept.this.height);
             activate();
         }
@@ -215,23 +206,24 @@ class Concept extends Pattern implements Cloneable,
     @Override
     public void onLoad() {
         this.getElement().setId(this.id);
-        rescale(this.width, this.height);
         super.onLoad();
         wCurve.getElement().setId(getCurveId());
         this.add(wCurve, 1, 1);
+        setSize(this.width, this.height);
     }
 
     /**
      * Resize this concept and reposition its helper widgets
      * accordingly
      */
-    private void rescale(int width, int height) {
+    private void setSize(int width, int height) {
         this.width = width;
         this.height = height;
-        this.setWidth((width + 120) + "px");
-        this.setHeight((height + 10) + "px");
         wCurve.setSize(width, height);
+        buttonBar.removeFromParent(); // no-op if not there
+        this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
+        this.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
     }
 
 
@@ -315,7 +307,7 @@ class Concept extends Pattern implements Cloneable,
             ResizeScale scale = canvasState.resizingScale(event);
             int newWidth = Math.round(width * scale.getX());
             int newHeight = Math.round(height * scale.getY());
-            rescale(newWidth, newHeight);
+            setSize(newWidth, newHeight);
             GWT.log("Desired scale = " + scale + " would be " + newWidth + "x" + newHeight);
         }
     }

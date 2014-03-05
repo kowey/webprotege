@@ -1,7 +1,7 @@
 .concept {
         border: 2px transparent /*solid orange*/;
         position: absolute;
-        z-index:2;
+        z-index:3;
 }
 
 .concept .gwt-TextBox-readonly {
@@ -15,11 +15,15 @@
 }
 
 .concept-button {
-    display: none;
+    visibility: hidden;
 }
 
 .concept-over .concept-button {
-    display: inline;
+    visibility: visible;
+}
+
+.debug {
+        border: 3px dotted red;
 }
 
 .concept-over {
