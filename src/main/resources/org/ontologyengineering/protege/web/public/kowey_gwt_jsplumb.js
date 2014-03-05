@@ -26,6 +26,6 @@ function gwtjsplumbinit() {
      jsPlumb.draggable($(draggableId));
  }
 
- function toggle_draggable(draggableId) {
-     jsPlumb.toggleDraggable($(draggableId));
+ function make_undraggable(draggableId) {
+     jsPlumb.setDraggable($(draggableId), false);
  }

@@ -17,7 +17,7 @@ import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
 
-import java.awt.*;
+import java.lang.Math;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -32,7 +32,6 @@ class Concept extends Pattern implements Cloneable,
 
     @RequiredArgsConstructor
     class RenameHandler implements KeyUpHandler {
-        @NonNull private final Concept concept;
         @NonNull private final TextBox textbox;
 
         @Override
@@ -43,26 +42,24 @@ class Concept extends Pattern implements Cloneable,
             final Optional<String> label = (text.isEmpty() || text.equals(""))
                     ? Optional.<String>absent()
                     : Optional.of(text);
-            concept.setTempLabel(label);
+            setTempLabel(label);
             // once the user has begun to type things (even a single char)
             // we no longer consider it annoying to lose focus on mouse-out
-            concept.setRenaming(false);
+            canvasState.setRenaming(false);
             if (event.getNativeKeyCode() ==  KeyCodes.KEY_ENTER) {
-                concept.onMouseOut(null);
+                onMouseOut(null);
             }
         }
     }
 
     @RequiredArgsConstructor
     class DeleteHandler implements ClickHandler {
-        @NonNull private final Concept concept;
-
         @Override
         public void onClick(ClickEvent event) {
             if (iri.isPresent()) {
                 conceptManager.deleteClass(iri.get());
             }
-            concept.delete();
+            Concept.this.delete();
         }
     }
 
@@ -79,15 +76,79 @@ class Concept extends Pattern implements Cloneable,
      */
     @Setter @NonNull Optional<IRI> iri = Optional.absent();
 
-    private boolean isMoving = false;
-    private boolean isResizing = false;
-    private boolean isRenaming = false;
+    @Data class ResizeScale {
+        private final float x;
+        private final float y;
 
-    private Point resizePoint = new Point(0, 0);
+        public String toString() {
+            return x + "×" + y;
+        }
+    }
+
+    @Data class CanvasState {
+        private boolean isMoving = false;
+        private boolean isRenaming = false;
+
+        private boolean isAboutToResize = false;
+        @Setter(AccessLevel.NONE) boolean isResizing = false;
+        @Setter(AccessLevel.NONE) private int resizePointX = 0;
+        @Setter(AccessLevel.NONE) private int resizePointY = 0;
+
+        /**
+         * Signal to this canvas state that we're ready to switch to resize mode.
+         * Triggered on some non-resize event, like a button press.
+         * Haven't actually started yet, though
+         */
+        public void prepareForResizing() {
+            isAboutToResize = true;
+            makeUndraggable();
+        }
+
+        public void startResizing(MouseEvent event) {
+            isAboutToResize = false;
+            isResizing = true;
+            final Element elm = Concept.this.getElement();
+            resizePointX = event.getRelativeX(elm);
+            resizePointY = event.getRelativeY(elm);
+            GWT.log("Started resizing at " + resizePointX + " and " + resizePointY);
+        }
+
+        /**
+         * How much to scale the thing we are currently resizing.
+         * The idea here is to be give live feedback by resizing as the
+         * user drags their mouse. (If we're not currently resizing,
+         * this would just be 1:1).
+         *
+         * @param event
+         * @return
+         */
+        public ResizeScale resizingScale(MouseEvent event) {
+            if (isResizing) {
+                final Element elm = Concept.this.getElement();
+                final int currentX = event.getRelativeX(elm);
+                final int currentY = event.getRelativeY(elm);
+                final float scaleX = (resizePointX > 0) ? (currentX / (float)resizePointX) : 1;
+                final float scaleY = (resizePointY > 0) ? (currentY / (float)resizePointY) : 1;
+                resizePointX = currentX;
+                resizePointY = currentY;
+                return new ResizeScale(scaleX, scaleY);
+            } else {
+                return new ResizeScale(1,1);
+            }
+        }
+
+        public void stopResizing() {
+            isResizing = false;
+            makeDraggable();
+        }
+    }
+
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
+    CanvasState canvasState = new CanvasState();
 
     private int rounding = 20;
-    final private TextBox wLabel = new TextBox();
-    final private Label wQueryResult = new Label("");
+    final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
+    ButtonBar buttonBar = new ButtonBar(this);
 
     private Concept thisConcept() {
         return this;
@@ -97,44 +158,80 @@ class Concept extends Pattern implements Cloneable,
         return this.id + "_curve";
     }
 
+    @Data class ButtonBar {
+        final private AbsolutePanel panel;
+
+        final private TextBox wLabel = new TextBox();
+        final Panel wButtons = new HorizontalPanel();
+        final Button wDelete = new Button("X");
+        final Button wResize = new Button("⇲");
+
+        private void activate() {
+            this.wLabel.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent clickEvent) {
+                    canvasState.setRenaming(true);
+                }
+            });
+            this.wLabel.addKeyUpHandler(new RenameHandler(wLabel));
+            this.wLabel.setReadOnly(true);
+
+            wDelete.addClickHandler(new DeleteHandler());
+            wResize.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent clickEvent) {
+                    canvasState.prepareForResizing();
+                }
+            });
+        }
+
+        /**
+         * Reflow this button bar in its panel around a shape of the
+         * given height and width.  If the buttons have not been
+         * placed
+         *
+         * @param shapeHeight
+         * @param shapeWidth
+         */
+        private void reposition(int shapeWidth, int shapeHeight) {
+            wLabel.removeFromParent();
+            wButtons.removeFromParent();
+            final int left = shapeWidth + 5;
+            panel.add(wLabel, left, 10);
+            panel.add(wButtons, left, shapeHeight - 10);
+        }
+
+        public ButtonBar(AbsolutePanel panel) {
+            this.panel = panel;
+            wButtons.getElement().setClassName("concept-button");
+            wButtons.add(wDelete);
+            wButtons.add(wResize);
+            reposition(Concept.this.width, Concept.this.height);
+            activate();
+        }
+    }
+
+
     @Override
     public void onLoad() {
         this.getElement().setId(this.id);
-        this.setWidth((this.width + 120) + "px");
-        this.setHeight((this.height + 10) + "px");
+        rescale(this.width, this.height);
         super.onLoad();
-
-        final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
         wCurve.getElement().setId(getCurveId());
-
-        this.add(this.wLabel, this.width + 5, 10);
-        this.wLabel.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                isRenaming = true;
-            }
-        });
-        this.wLabel.addKeyUpHandler(new RenameHandler(this, wLabel));
-        this.wLabel.setReadOnly(true);
-
-        this.add(this.wQueryResult, this.width + 5, 25);
-
-        final Panel wButtons = new HorizontalPanel();
-        wButtons.getElement().setClassName("concept-button");
-
-        final Button wTempQuery = new Button("?");
-        wTempQuery.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                conceptManager.checkClassName(thisConcept());
-            }
-        });
-        final Button wDelete = new Button("X");
-        wDelete.addClickHandler(new DeleteHandler(this));
-        wButtons.add(wTempQuery);
-        wButtons.add(wDelete);
-        this.add(wButtons, this.width + 5, this.height - 10);
         this.add(wCurve, 1, 1);
+    }
+
+    /**
+     * Resize this concept and reposition its helper widgets
+     * accordingly
+     */
+    private void rescale(int width, int height) {
+        this.width = width;
+        this.height = height;
+        this.setWidth((width + 120) + "px");
+        this.setHeight((height + 10) + "px");
+        wCurve.setSize(width, height);
+        buttonBar.reposition(width, height);
     }
 
 
@@ -163,14 +260,14 @@ class Concept extends Pattern implements Cloneable,
         if (this.iri.isPresent()) {
             this.conceptManager.selectClass(this.iri.get());
         }
-        wLabel.setReadOnly(false);
+        buttonBar.wLabel.setReadOnly(false);
     }
 
     @Override
     public void onMouseOut(MouseOutEvent event) {
-        if (! this.isRenaming) {
+        if (! this.canvasState.isRenaming()) {
             this.getElement().setClassName("concept");
-            wLabel.setReadOnly(true);
+            buttonBar.wLabel.setReadOnly(true);
             handleLabelChanges(this.label, this.tempLabel);
             this.label = this.tempLabel;
         }
@@ -195,51 +292,39 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
-    /**
-     * @param event some mouse event
-     * @return Location of current mouse pointer relative to pattern
-     */
-    private Point mouseLocation(MouseEvent event) {
-        final Element elm = this.getElement();
-        return new Point(event.getRelativeX(elm), event.getRelativeY(elm));
-    }
-
     @Override
     public void onMouseUp(MouseUpEvent event) {
-        this.isMoving = false;
+        this.canvasState.setMoving(false);
+        this.canvasState.stopResizing();
     }
 
     @Override
     public void onMouseDown(MouseDownEvent event) {
-        if (event.isShiftKeyDown()) {
-            this.isResizing = true;
-            this.resizePoint = mouseLocation(event);
-            toggleDraggable();
+        if (canvasState.isAboutToResize()) {
+            canvasState.startResizing(event);
         } else {
-            this.isMoving = true;
+            canvasState.setMoving(true);
         }
     }
 
     @Override
     public void onMouseMove(MouseMoveEvent event) {
-        GWT.log("mouse move: [moving: " + this.isMoving + ", resizing:" + this.isResizing + "]");
-        if (this.isMoving) {
-            this.onMouseOut(null);
-        } else if (this.isResizing && !event.isShiftKeyDown()) {
-            this.isResizing = false;
-            makeDraggable(); // re-enable
-        } else if (this.isResizing) {
-            Point currentPoint = mouseLocation(event);
-            GWT.log("Initial " +  resizePoint + ", current " + currentPoint);
+        if (canvasState.isMoving()) {
+            onMouseOut(null);
+        } else if (canvasState.isResizing) {
+            ResizeScale scale = canvasState.resizingScale(event);
+            int newWidth = Math.round(width * scale.getX());
+            int newHeight = Math.round(height * scale.getY());
+            rescale(newWidth, newHeight);
+            GWT.log("Desired scale = " + scale + " would be " + newWidth + "x" + newHeight);
         }
-
     }
 
     public void setLabel(@NonNull Optional<String> label) {
         GWT.log("[CONCEPT] setLabel" + label + "(was " + this.label + "," + this.tempLabel + ")");
         setTempLabel(label);
         this.label = label;
-        wLabel.setText(label.or(""));
+        buttonBar.wLabel.setText(label.or(""));
     }
 
     /**
@@ -269,22 +354,22 @@ class Concept extends Pattern implements Cloneable,
         this.setLabel(Optional.of("CLASS"));
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
         this.getElement().setClassName("template");
-        this.wLabel.setReadOnly(true);
+        buttonBar.wLabel.setReadOnly(true);
     }
 
     protected void makeDraggable() {
         _makeDraggable("#" + getId());
     }
 
-    protected void toggleDraggable() {
-        _toggleDraggable("#" + getId());
+    protected void makeUndraggable() {
+        _makeUndraggable("#" + getId());
     }
 
     private native void _makeDraggable(String draggableId) /*-{
         $wnd.make_draggable(draggableId);
         }-*/;
 
-    private native void _toggleDraggable(String draggableId) /*-{
-        $wnd.toggle_draggable(draggableId);
+    private native void _makeUndraggable(String draggableId) /*-{
+        $wnd.make_undraggable(draggableId);
         }-*/;
 }
