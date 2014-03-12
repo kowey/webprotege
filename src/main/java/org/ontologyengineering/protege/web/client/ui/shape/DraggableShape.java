@@ -20,6 +20,7 @@ import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.hydro4ge.raphaelgwt.client.Raphael;
+import org.ontologyengineering.protege.web.client.util.Rectangle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,6 +87,17 @@ public abstract class DraggableShape extends Raphael
   protected abstract Shape createShape();
   protected abstract int relativeShapeTop(int cx, int cy);
   protected abstract int relativeShapeLeft(int cx, int cy);
+
+    /**
+     * Bounding box for this shape
+     */
+    public Rectangle getAbsoluteBBox() {
+        int x1 = getAbsoluteLeft();
+        int x2 = x1 + getOffsetWidth();
+        int y1 = getAbsoluteTop();
+        int y2 = y1 + getOffsetHeight();
+        return new Rectangle(x1, y1, x2, y2);
+    }
 
   /**
    *
