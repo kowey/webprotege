@@ -1,10 +1,12 @@
 package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
@@ -62,9 +64,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 new Concept("concept-template", this),
                 new Subsumption("subsume-template"));
 
-        final int templateX = 0;
-        final int templateY = 20;
         final int yGap = 20;
+        final int templateX = 0;
+        final int templateY = 3 * yGap;
 
         int currentY = templateY;
         for (Pattern template : templates) {
@@ -133,12 +135,60 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         }}
 
+    @RequiredArgsConstructor
+    class SearchHandler implements KeyUpHandler {
+        @NonNull private final TextBox textbox;
+        @NonNull private final String color;
+
+        @Override
+        public void onKeyUp(KeyUpEvent event) {
+            // we respond to key up events up updating a provisional label
+            // only on Enter key or mouse-out do we actually commit the label
+            final String text = textbox.getText().trim();
+            ImmutableListMultimap<Boolean, Concept> partitionedMap =
+                    Multimaps.index(namedCurves.values(), new Function<Concept, Boolean>() {
+                @Override
+                public Boolean apply(Concept input) {
+                    if (input.getLabel().isPresent() && !text.isEmpty()) {
+                        String clabel = input.getLabel().get();
+                        return clabel.contains(text);
+                    } else {
+                        return false;
+                    }
+                }
+            });
+
+            Collection<Concept> matching = partitionedMap.get(true);
+            Collection<Concept> nonMatching = partitionedMap.get(false);
+
+            for (Concept concept : nonMatching) {
+                concept.setMatchStatus(Concept.MatchStatus.NO_MATCH, color);
+            }
+            if (matching.size() > 1) {
+                for (Concept concept : matching) {
+                    concept.setMatchStatus(Concept.MatchStatus.PARTIAL_MATCH, color);
+                }
+            } else {
+                for (Concept concept : matching) {
+                    concept.setMatchStatus(Concept.MatchStatus.UNIQUE_MATCH, color);
+                }
+            }
+
+        }
+    }
+
+
     public void koweySetup() {
         AbsolutePanel vPanel = new AbsolutePanel();
         vPanel.getElement().getStyle().setProperty("height", "100%");
         vPanel.getElement().getStyle().setProperty("width", "100%");
         final Button btn = new Button("Start");
+        final TextBox searchBox = new TextBox();
+        final Label searchBoxCaption = new Label("search:");
+
         vPanel.add(btn);
+        vPanel.add(searchBoxCaption);
+        vPanel.add(searchBox);
         btn.addClickHandler(new CreateDiagramHandler(vPanel, this));
         btn.addClickHandler(new ClickHandler() {
             @Override
@@ -146,6 +196,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 btn.removeFromParent();
             }
         });
+        searchBox.addKeyUpHandler(new SearchHandler(searchBox, "blue"));
         this.add(vPanel);
     }
 
