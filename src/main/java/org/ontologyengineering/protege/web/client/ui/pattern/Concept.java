@@ -370,40 +370,33 @@ class Concept extends Pattern implements Cloneable,
         buttonBar.wLabel.setReadOnly(true);
     }
 
-    public void setMatchStatus(MatchStatus status) {
+    public void setMatchStatus(MatchStatus status, String color) {
         this.matchStatus = status;
-        redrawForMatchStatus(status);
+        redrawForMatchStatus(status, color);
     }
 
-    private void redrawForMatchStatus(MatchStatus status) {
+    private void redrawForMatchStatus(MatchStatus status, String color) {
+        Style labelStyle = buttonBar.wLabel.getElement().getStyle();
 
-        // TODO: there must be a better way to express "toggle this style among
-        // one of the following enumerated values"
-        final String labelStyle = buttonBar.wLabel.getStyleName();
-        for (String style_ : Arrays.asList("no", "partial", "unique")) {
-            String style = "concept-" + style_ + "-match";
-            if (labelStyle.contains(style)) {
-                buttonBar.wLabel.removeStyleName(style);
-            }
-        }
-
-        GWT.log("STYLE " + buttonBar.wLabel.getStyleName());
         switch (status) {
             case NO_MATCH:
-                buttonBar.wLabel.addStyleName("concept-no-match");
+                labelStyle.setProperty("color", "black");
+                labelStyle.setProperty("fontWeight", "normal");
                 wCurve.attr("stroke", "black");
                 wCurve.attr("stroke-width", "1");
                 wCurve.attr("stroke-dasharray", "");
                 break;
             case PARTIAL_MATCH:
-                buttonBar.wLabel.addStyleName("concept-partial-match");
-                wCurve.attr("stroke", "orange");
+                labelStyle.setProperty("color", color);
+                labelStyle.setProperty("fontWeight", "normal");
+                wCurve.attr("stroke", color);
                 wCurve.attr("stroke-width", "2");
                 wCurve.attr("stroke-dasharray", "-");
                 break;
             case UNIQUE_MATCH:
-                buttonBar.wLabel.addStyleName("concept-unique-match");
-                wCurve.attr("stroke", "orange");
+                labelStyle.setProperty("color", color);
+                labelStyle.setProperty("fontWeight", "bold");
+                wCurve.attr("stroke", color);
                 wCurve.attr("stroke-width", "5");
                 wCurve.attr("stroke-dasharray", "- . .");
                 break;

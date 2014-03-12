@@ -138,6 +138,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     @RequiredArgsConstructor
     class SearchHandler implements KeyUpHandler {
         @NonNull private final TextBox textbox;
+        @NonNull private final String color;
 
         @Override
         public void onKeyUp(KeyUpEvent event) {
@@ -161,15 +162,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             Collection<Concept> nonMatching = partitionedMap.get(false);
 
             for (Concept concept : nonMatching) {
-                concept.setMatchStatus(Concept.MatchStatus.NO_MATCH);
+                concept.setMatchStatus(Concept.MatchStatus.NO_MATCH, color);
             }
             if (matching.size() > 1) {
                 for (Concept concept : matching) {
-                    concept.setMatchStatus(Concept.MatchStatus.PARTIAL_MATCH);
+                    concept.setMatchStatus(Concept.MatchStatus.PARTIAL_MATCH, color);
                 }
             } else {
                 for (Concept concept : matching) {
-                    concept.setMatchStatus(Concept.MatchStatus.UNIQUE_MATCH);
+                    concept.setMatchStatus(Concept.MatchStatus.UNIQUE_MATCH, color);
                 }
             }
 
@@ -195,7 +196,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 btn.removeFromParent();
             }
         });
-        searchBox.addKeyUpHandler(new SearchHandler(searchBox));
+        searchBox.addKeyUpHandler(new SearchHandler(searchBox, "blue"));
         this.add(vPanel);
     }
 
