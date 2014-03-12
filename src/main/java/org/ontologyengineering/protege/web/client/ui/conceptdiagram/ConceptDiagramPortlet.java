@@ -45,7 +45,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 import java.util.*;
 
 
-public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager {
+public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager, SearchManager {
 
     private boolean registeredEventHandlers = false;
     private Map<IRI, Concept> namedCurves = new HashMap();
@@ -62,7 +62,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         final List<Pattern> templates =
                 Arrays.<Pattern>asList(
                 new Concept("concept-template", this),
-                new Subsumption("subsume-template"));
+                new Subsumption("subsume-template", this));
 
         final int yGap = 20;
         final int templateX = 0;
@@ -136,7 +136,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }}
 
     @RequiredArgsConstructor
-    class SearchHandler implements KeyUpHandler {
+    public class SearchHandlerImpl implements KeyUpHandler, SearchHandler {
         @NonNull private final TextBox textbox;
         @NonNull private final String color;
 
@@ -175,6 +175,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
 
         }
+
+        public void bind() {
+            textbox.addKeyUpHandler(this);
+        }
+    }
+
+    public SearchHandler makeSearchHandler(TextBox textbox, String color) {
+        return new SearchHandlerImpl(textbox, color);
     }
 
 
@@ -196,7 +204,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 btn.removeFromParent();
             }
         });
-        searchBox.addKeyUpHandler(new SearchHandler(searchBox, "blue"));
+        makeSearchHandler(searchBox, "blue").bind();
         this.add(vPanel);
     }
 
