@@ -31,6 +31,16 @@ public
 class Concept extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
+    public enum MatchStatus {
+        NO_MATCH,
+        PARTIAL_MATCH,
+        UNIQUE_MATCH;
+
+        public MatchStatus getNext() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+    }
+
     @RequiredArgsConstructor
     class RenameHandler implements KeyUpHandler {
         @NonNull private final TextBox textbox;
@@ -151,6 +161,8 @@ class Concept extends Pattern implements Cloneable,
     final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
     ButtonBar buttonBar = new ButtonBar();
 
+    private MatchStatus matchStatus = MatchStatus.NO_MATCH;
+
     private Concept thisConcept() {
         return this;
     }
@@ -164,6 +176,7 @@ class Concept extends Pattern implements Cloneable,
         final Panel wButtons = new HorizontalPanel();
         final Button wDelete = new Button("X");
         final Button wResize = new Button("⇲");
+        final Button wFun = new Button("???");
 
         private void activate() {
             this.wLabel.addClickHandler(new ClickHandler() {
@@ -182,6 +195,12 @@ class Concept extends Pattern implements Cloneable,
                     canvasState.prepareForResizing();
                 }
             });
+            wFun.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent clickEvent) {
+                    setMatchStatus(matchStatus.getNext());
+                }
+            });
         }
 
         private void reposition(int curveWidth, int curveHeight) {
@@ -193,6 +212,7 @@ class Concept extends Pattern implements Cloneable,
             wButtons.getElement().setClassName("concept-button");
             wButtons.add(wDelete);
             wButtons.add(wResize);
+            wButtons.add(wFun);
             add(wLabel, NORTH);
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
@@ -347,6 +367,31 @@ class Concept extends Pattern implements Cloneable,
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
         this.getElement().setClassName("template");
         buttonBar.wLabel.setReadOnly(true);
+    }
+
+    public void setMatchStatus(MatchStatus status) {
+        this.matchStatus = status;
+        redrawForMatchStatus(status);
+    }
+
+    private void redrawForMatchStatus(MatchStatus status) {
+        switch (status) {
+            case NO_MATCH:
+                wCurve.attr("stroke", "black");
+                wCurve.attr("stroke-width", "1");
+                wCurve.attr("stroke-dasharray", "");
+                break;
+            case PARTIAL_MATCH:
+                wCurve.attr("stroke", "orange");
+                wCurve.attr("stroke-width", "2");
+                wCurve.attr("stroke-dasharray", "-");
+                break;
+            case UNIQUE_MATCH:
+                wCurve.attr("stroke", "orange");
+                wCurve.attr("stroke-width", "5");
+                wCurve.attr("stroke-dasharray", "- . .");
+                break;
+        }
     }
 
     protected void makeDraggable() {
