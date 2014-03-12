@@ -19,6 +19,7 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHand
 import org.semanticweb.owlapi.model.IRI;
 
 import java.lang.Math;
+import java.util.Arrays;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -375,18 +376,33 @@ class Concept extends Pattern implements Cloneable,
     }
 
     private void redrawForMatchStatus(MatchStatus status) {
+
+        // TODO: there must be a better way to express "toggle this style among
+        // one of the following enumerated values"
+        final String labelStyle = buttonBar.wLabel.getStyleName();
+        for (String style_ : Arrays.asList("no", "partial", "unique")) {
+            String style = "concept-" + style_ + "-match";
+            if (labelStyle.contains(style)) {
+                buttonBar.wLabel.removeStyleName(style);
+            }
+        }
+
+        GWT.log("STYLE " + buttonBar.wLabel.getStyleName());
         switch (status) {
             case NO_MATCH:
+                buttonBar.wLabel.addStyleName("concept-no-match");
                 wCurve.attr("stroke", "black");
                 wCurve.attr("stroke-width", "1");
                 wCurve.attr("stroke-dasharray", "");
                 break;
             case PARTIAL_MATCH:
+                buttonBar.wLabel.addStyleName("concept-partial-match");
                 wCurve.attr("stroke", "orange");
                 wCurve.attr("stroke-width", "2");
                 wCurve.attr("stroke-dasharray", "-");
                 break;
             case UNIQUE_MATCH:
+                buttonBar.wLabel.addStyleName("concept-unique-match");
                 wCurve.attr("stroke", "orange");
                 wCurve.attr("stroke-width", "5");
                 wCurve.attr("stroke-dasharray", "- . .");

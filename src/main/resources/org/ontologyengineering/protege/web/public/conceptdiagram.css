@@ -4,6 +4,21 @@
         z-index:3;
 }
 
+.concept-no-match {
+    color: black;
+    font-weight: normal;
+}
+
+.concept-partial-match {
+    color: orange;
+    font-weight: normal;
+}
+
+.concept-unique-match {
+    color: orange;
+    font-weight: bold;
+}
+
 .concept .gwt-TextBox-readonly {
     border: none;
     box-shadow: none;
