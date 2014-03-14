@@ -2,13 +2,14 @@ package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.*;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Label;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.project.Project;
@@ -32,24 +33,32 @@ import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Property;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
+import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
+import org.ontologyengineering.protege.web.client.util.Rectangle;
+
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
 import java.util.*;
+import java.util.List;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager, SearchManager {
 
     private boolean registeredEventHandlers = false;
-    private Map<IRI, Concept> namedCurves = new HashMap();
+    final private Map<IRI, Concept> namedCurves = new HashMap();
     private Collection<EntityData> selection = Collections.emptyList();
+    @Getter private Optional<DraggableShape> snapSeeker = Optional.absent();
+    final private ListMultimap<DraggableShape, Concept> snapCandidates = ArrayListMultimap.create();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
@@ -61,8 +70,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         final List<Pattern> templates =
                 Arrays.<Pattern>asList(
-                new Concept("concept-template", this),
-                new Subsumption("subsume-template", this));
+                new Concept("concept-template", this, this),
+                new Subsumption("subsume-template", this, vPanel));
 
         final int yGap = 20;
         final int templateX = 0;
@@ -135,6 +144,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         }}
 
+    /*
+     * ************ Searching and snapping *****************
+     */
+
     @RequiredArgsConstructor
     public class SearchHandlerImpl implements KeyUpHandler, SearchHandler {
         @NonNull private final TextBox textbox;
@@ -185,6 +198,23 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         return new SearchHandlerImpl(textbox, color);
     }
 
+    public List<Concept> getSnapCandidates(DraggableShape dragged) {
+        List<Concept> matches = new LinkedList<Concept>();
+        Rectangle dbox = dragged.getAbsoluteBBox();
+        GWT.log("[CM] getSnapCandidates for " + dbox);
+        for (Concept candidate : namedCurves.values()) {
+            Rectangle cbox = candidate.getWCurve().getAbsoluteBBox();
+            if (dbox.intersects(cbox)) {
+                matches.add(candidate);
+            }
+            GWT.log("[CM] candidate " + candidate.getLabel() + cbox + dbox.intersects(cbox));
+        }
+        return matches;
+    }
+
+    /*
+     * ************ Initialisation *****************
+     */
 
     public void koweySetup() {
         AbsolutePanel vPanel = new AbsolutePanel();

@@ -22,6 +22,16 @@
     visibility: visible;
 }
 
+/* concept that is being resized; must be higher to grab the mouse events */
+.resizing {
+    z-index: 4;
+}
+
+.snap-to-drag-curve {
+    z-index: 4; /* must be higher than concepts */
+}
+
+
 .debug {
         border: 3px dotted red;
 }

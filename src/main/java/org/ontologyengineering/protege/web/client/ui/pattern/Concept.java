@@ -13,11 +13,13 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.semanticweb.owlapi.model.IRI;
 
+import java.awt.*;
 import java.lang.Math;
 import java.util.Arrays;
 
@@ -41,6 +43,19 @@ class Concept extends Pattern implements Cloneable,
             return values()[(ordinal() + 1) % values().length];
         }
     }
+
+    @Getter private String idPrefix = "concept";
+
+    @NonNull final String id;
+    @NonNull final ConceptManager conceptManager;
+    @NonNull final SearchManager searchManager;
+
+    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
+    @NonNull Optional<String> label = Optional.absent();
+
+    /*
+     * ************ Searching and snapping *****************
+     */
 
     @RequiredArgsConstructor
     class RenameHandler implements KeyUpHandler {
@@ -75,13 +90,7 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
-    @Getter private String idPrefix = "concept";
 
-    @NonNull final String id;
-    @NonNull final ConceptManager conceptManager;
-
-    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
-    @NonNull Optional<String> label = Optional.absent();
 
     /**
      * FIXME: You should probably not use the setter for this method
@@ -122,6 +131,7 @@ class Concept extends Pattern implements Cloneable,
             final Element elm = Concept.this.getElement();
             resizePointX = event.getRelativeX(elm);
             resizePointY = event.getRelativeY(elm);
+            Concept.this.wCurve.addStyleName("resizing");
             GWT.log("Started resizing at " + resizePointX + " and " + resizePointY);
         }
 
@@ -152,6 +162,7 @@ class Concept extends Pattern implements Cloneable,
         public void stopResizing() {
             isResizing = false;
             makeDraggable();
+            Concept.this.wCurve.removeStyleName("resizing");
         }
     }
 
@@ -223,7 +234,6 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
-
     @Override
     public void onLoad() {
         this.getElement().setId(this.id);
@@ -250,10 +260,7 @@ class Concept extends Pattern implements Cloneable,
 
     public Concept copyTemplate(@NonNull final AbsolutePanel container,
                                 final int counter) {
-
-
-
-        Concept copy  = new Concept(idPrefix + counter, conceptManager);
+        Concept copy  = new Concept(idPrefix + counter, conceptManager, searchManager);
         copy.setLabel(this.getLabel());
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
@@ -305,10 +312,15 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
+
+
+
     @Override
     public void onMouseUp(MouseUpEvent event) {
         this.canvasState.setMoving(false);
         this.canvasState.stopResizing();
+        GWT.log(wCurve.getAbsoluteBBox().toString());
+        //searchManager.getSearchIndex();
     }
 
     @Override

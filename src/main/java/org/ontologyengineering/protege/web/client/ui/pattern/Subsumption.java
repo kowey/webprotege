@@ -14,10 +14,7 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHand
 import org.openrdf.query.algebra.Sum;
 import org.semanticweb.owlapi.model.IRI;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -36,6 +33,7 @@ class Subsumption extends Pattern implements Cloneable,
 
     @NonNull final String id;
     @NonNull final SearchManager searchManager;
+    @NonNull final AbsolutePanel parentPanel;
 
     @NonNull final String COLOR_SUBSET = "blue";
     @NonNull final String COLOR_SUPERSET = "green";
@@ -61,6 +59,8 @@ class Subsumption extends Pattern implements Cloneable,
 
     final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
     final DraggableShape wCurveInner = new DraggableRect(this.width / 2, this.height / 2, this.rounding);
+    // widgets that are not contained in the template frame necessarily
+    final Collection<Widget> freeWidgets = Arrays.<Widget>asList(wCurveInner, wCurveOuter);
 
     // ----------------------------------------------------------------
     // Handlers
@@ -81,7 +81,9 @@ class Subsumption extends Pattern implements Cloneable,
     }
 
     @RequiredArgsConstructor
-    class CurveActivationHandler implements MouseOverHandler, MouseOutHandler, KeyUpHandler {
+    class CurveActivationHandler implements MouseOverHandler, MouseOutHandler,
+            MouseUpHandler, MouseDownHandler,
+            KeyUpHandler {
         final DraggableShape curve;
         final TextBox searchBox;
 
@@ -107,6 +109,23 @@ class Subsumption extends Pattern implements Cloneable,
         }
 
         @Override
+        public void onMouseUp(MouseUpEvent event) {
+            GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
+            List<Concept> candidates = searchManager.getSnapCandidates(curve);
+            if (! candidates.isEmpty()) {
+                Concept match = candidates.get(0);
+                GWT.log("[SUBSUMPTION] match found! " + curve.getElement().getId() + " with " + match.getLabel());
+            }
+
+        }
+
+        @Override
+        public void onMouseDown(MouseDownEvent event) {
+            GWT.log("[SUBSUMPTION] start seeking " + curve.getElement().getId());
+
+        }
+
+        @Override
         public void onKeyUp(KeyUpEvent event) {
             forceActive();
         }
@@ -117,6 +136,8 @@ class Subsumption extends Pattern implements Cloneable,
         public void bind() {
             curve.addDomHandler(this, MouseOverEvent.getType());
             curve.addDomHandler(this, MouseOutEvent.getType());
+            curve.addDomHandler(this, MouseUpEvent.getType());
+            curve.addDomHandler(this, MouseDownEvent.getType());
             searchBox.addDomHandler(this, KeyUpEvent.getType());
         }
     }
@@ -206,8 +227,11 @@ class Subsumption extends Pattern implements Cloneable,
         if (getActiveCurve().equals(Optional.of(curve))) {
             curve.attr("stroke", color);
             curve.attr("stroke-width", "2");
+            curve.attr("fill", color);
+            curve.attr("opacity", "0.5");
         } else {
             curve.attr("stroke", "black");
+            curve.attr("fill", "white");
             curve.attr("stroke-width", "1");
         }
     }
@@ -215,6 +239,12 @@ class Subsumption extends Pattern implements Cloneable,
     private void highlightActiveCurves() {
         highlightIfActive(wCurveInner, COLOR_SUBSET);
         highlightIfActive(wCurveOuter, COLOR_SUPERSET);
+    }
+
+    private void addToParent(Widget widget, int relativeX, int relativeY) {
+        int parentRelativeX = relativeX + parentPanel.getWidgetLeft(this);
+        int parentRelativeY = relativeY + parentPanel.getWidgetTop(this);
+        parentPanel.add(widget, parentRelativeX, parentRelativeY);
     }
 
     @Override
@@ -228,8 +258,12 @@ class Subsumption extends Pattern implements Cloneable,
         wCurveInner.getElement().setId(getCurveIdInner());
         wCurveOuter.getElement().setId(getCurveIdOuter());
 
-        this.add(wCurveOuter, 1, 1);
-        this.add(wCurveInner, 1 + this.width / 3, 1 + this.height / 3);
+        addToParent(wCurveOuter, 1, 1);
+        addToParent(wCurveInner, 1 + this.width / 3, 1 + this.height / 3);
+        for (Widget widget : freeWidgets) {
+            widget.addStyleName("snap-to-drag-curve");
+        }
+
         this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
 
@@ -244,7 +278,7 @@ class Subsumption extends Pattern implements Cloneable,
     public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
                                  final int counter) {
 
-        Subsumption copy  = new Subsumption(idPrefix + counter, searchManager);
+        Subsumption copy  = new Subsumption(idPrefix + counter, searchManager, parentPanel);
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
@@ -310,6 +344,9 @@ class Subsumption extends Pattern implements Cloneable,
      */
     public void startTemplateMode() {
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
+        for (Widget widget : freeWidgets) {
+            widget.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
+        }
         this.getElement().setClassName("template");
     }
 
