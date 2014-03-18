@@ -154,11 +154,33 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @NonNull private final TextBox textbox;
         @NonNull private final String color;
 
+        @NonNull private Collection<Concept> matching = Collections.emptyList();
+        @NonNull private Collection<Concept> nonMatching = Collections.emptyList();
+
+        @NonNull boolean hasSearch = false;
+
+        public Optional<Collection<Concept>> getMatching() {
+            if (hasSearch) {
+                return Optional.of(matching);
+            } else {
+                return Optional.absent();
+            }
+        }
+
+        public Optional<Collection<Concept>> getNonMatching() {
+            if (hasSearch) {
+                return Optional.of(nonMatching);
+            } else {
+                return Optional.absent();
+            }
+        }
+
         @Override
         public void onKeyUp(KeyUpEvent event) {
             // we respond to key up events up updating a provisional label
             // only on Enter key or mouse-out do we actually commit the label
             final String text = textbox.getText().trim();
+            setHasSearch(!text.isEmpty());
             ImmutableListMultimap<Boolean, Concept> partitionedMap =
                     Multimaps.index(namedCurves.values(), new Function<Concept, Boolean>() {
                 @Override
@@ -172,8 +194,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 }
             });
 
-            Collection<Concept> matching = partitionedMap.get(true);
-            Collection<Concept> nonMatching = partitionedMap.get(false);
+            matching = partitionedMap.get(true);
+            nonMatching = partitionedMap.get(false);
 
             for (Concept concept : nonMatching) {
                 concept.setMatchStatus(this, MatchStatus.NO_MATCH);

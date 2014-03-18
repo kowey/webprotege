@@ -12,6 +12,7 @@ import java.util.Map;
 @Data
 public class VisualEffect {
 
+    final private String debugName;
 
     final private Map<Key, String> attributes = new HashMap();
     final private Map<Key, String> defaults = new HashMap();
@@ -30,6 +31,30 @@ public class VisualEffect {
         setAttribute(new Key(object, attribute), value, defaultValue);
     }
 
+    public String toString() {
+        Map<Object, String> attrs = new HashMap<Object, String>();
+        for (Map.Entry<Key, String> pair : attributes.entrySet()) {
+            Object obj = pair.getKey().getObject();
+            String attr = pair.getKey().getAttribute();
+            String value = pair.getValue();
+            String attrValue = attr + ":" + value;
 
+            if (attrs.containsKey(obj)) {
+                attrs.put(obj, attrs.get(obj) + " " + attrValue);
+            } else {
+                attrs.put(obj, attrValue);
+            }
+        }
+
+        StringBuffer buf = new StringBuffer();
+        buf.append(debugName + " :: ");
+        for (Map.Entry<Object, String> pair : attrs.entrySet()) {
+            Object obj = pair.getKey();
+            String key = obj.getClass().getName() + "@" + obj.hashCode();
+            String objAttrs = pair.getValue();
+            buf.append("[" + key + "] " + objAttrs);
+        }
+        return buf.toString();
+    }
 
 }

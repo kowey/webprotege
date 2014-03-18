@@ -18,7 +18,9 @@ public interface SearchManager {
     public interface SearchHandler {
         public void bind();
         public String getColor();
-    };
+        public Optional<Collection<Concept>> getMatching();
+        public Optional<Collection<Concept>> getNonMatching();
+    }
 
     public enum MatchStatus {
         NO_MATCH,

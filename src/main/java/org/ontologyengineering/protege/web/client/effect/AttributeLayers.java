@@ -1,5 +1,6 @@
 package org.ontologyengineering.protege.web.client.effect;
 
+import com.google.common.base.Optional;
 import lombok.NonNull;
 
 import java.util.*;
@@ -52,7 +53,7 @@ public class AttributeLayers {
     // attributes should have defaults - should they declared ahead of time? what if
     // defaults collide? I guess we ignore them
 
-    final private VisualEffect defaultEffect = new VisualEffect();
+    final private VisualEffect defaultEffect = new VisualEffect("default effect");
 
     // front of the list is the top of the stack
     // note that we have to search the whole list to find effects
@@ -70,9 +71,7 @@ public class AttributeLayers {
                                  @NonNull final Map<Key, String> target) {
 
         // set any defaults we don't already know about
-        final Iterator it = source.entrySet().iterator();
-        while (it.hasNext()) {
-            final Map.Entry<Key, String> pair = (Map.Entry)it.next();
+        for (Map.Entry<Key, String> pair : source.entrySet()) {
             final Key key = pair.getKey();
             final String value = pair.getValue();
             if (! target.containsKey(key)) {
@@ -114,11 +113,39 @@ public class AttributeLayers {
     }
 
     public void applyAttributes(Painter painter) {
-        final Iterator it = getAttributes().entrySet().iterator();
-        while (it.hasNext()) {
-            final Map.Entry<Key, String> pair = (Map.Entry)it.next();
+        for (Map.Entry<Key, String> pair : getAttributes().entrySet()) {
             painter.apply(pair.getKey(), pair.getValue());
         }
     }
 
+    /**
+     * This is mainly intended as a helper function to attribute layers
+     * of your own design.
+     *
+     * The idea is that you might be keeping track of attributes coming
+     * in from multiple sources (for example, search boxes), each called
+     * a context; and that you want to either set/unset the effect
+     * coming out of that context.
+     *
+     * This helper deletes whatever effect (if present) is set for that
+     * context, and then add whatever effect (if present) you specify
+     *
+     * @param contextEffects
+     * @param context
+     * @param newEffect
+     * @param <K> the context type
+     */
+    public <K> void setContextEffect(Map<K, VisualEffect>contextEffects,
+                                     K context,
+                                     Optional<VisualEffect> newEffect) {
+
+        if (contextEffects.containsKey(context)) {
+            removeEffect(contextEffects.get(context));
+        }
+        if (newEffect.isPresent()) {
+            VisualEffect effect = newEffect.get();
+            contextEffects.put(context, effect);
+            addEffect(effect);
+        }
+    }
 }

@@ -1,6 +1,9 @@
 package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
@@ -10,14 +13,12 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.ConceptDiagramPortlet;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
-import org.openrdf.query.algebra.Sum;
 import org.semanticweb.owlapi.model.IRI;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -41,6 +42,9 @@ class Subsumption extends Pattern implements Cloneable,
 
     @NonNull final String COLOR_SUBSET = "blue";
     @NonNull final String COLOR_SUPERSET = "green";
+    @NonNull final String COLOR_SUBSET_SEARCH = "darkblue";
+    @NonNull final String COLOR_SUPERSET_SEARCH = "darkgreen";
+
 
     @Getter private String idPrefix = "subsumes";
 
@@ -61,6 +65,7 @@ class Subsumption extends Pattern implements Cloneable,
 
     @Getter(AccessLevel.NONE)  @Setter(AccessLevel.NONE)
     private Set<DraggableShape> activeCurves = new HashSet();
+    private Optional<Concept> alreadyChosen = Optional.absent();
 
     final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
     final DraggableShape wCurveInner = new DraggableRect(this.width / 2, this.height / 2, this.rounding);
@@ -85,18 +90,48 @@ class Subsumption extends Pattern implements Cloneable,
         }
     }
 
-    @RequiredArgsConstructor
+    @Data
     class CurveActivationHandler implements MouseOverHandler, MouseOutHandler,
-            MouseUpHandler, MouseDownHandler,
+            MouseUpHandler, MouseDownHandler, MouseMoveHandler,
             KeyUpHandler {
+
         final DraggableShape curve;
+        final String color;
         final TextBox searchBox;
+        final SearchManager.SearchHandler searchHandler;
+
+        Collection<Concept> candidates = Collections.emptyList();
+
+        private boolean dragging = false;
 
         public void forceActive() {
             Subsumption.this.activeCurves.clear();
             Subsumption.this.activeCurves.add(curve);
             Subsumption.this.highlightActiveCurves();
         }
+
+        private Collection<Concept> getSnapCandidates() {
+            Collection<Concept> candidates = searchManager.getSnapCandidates(curve);
+            // avoid chosing a shape that was already chosen for the other role,
+            // ie. superset if we are subset or vice-versa
+            if (alreadyChosen.isPresent()) {
+                candidates.remove(alreadyChosen.get());
+            }
+            // narrow the matching to things which have been preselected in the search
+            // box (if applicable)
+            if (searchHandler.getMatching().isPresent()) {
+                final Collection<Concept> searchBoxMatching = searchHandler.getMatching().get();
+
+                candidates = Collections2.filter(candidates, new Predicate<Concept>() {
+                    @Override
+                    public boolean apply(@NonNull Concept concept) {
+                        return searchBoxMatching.contains(concept);
+                    }
+                });
+            }
+            return candidates;
+        }
+
 
         @Override
         public void onMouseOver(MouseOverEvent event) {
@@ -114,20 +149,45 @@ class Subsumption extends Pattern implements Cloneable,
         }
 
         @Override
-        public void onMouseUp(MouseUpEvent event) {
-            GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
-            List<Concept> candidates = searchManager.getSnapCandidates(curve);
-            if (! candidates.isEmpty()) {
-                Concept match = candidates.get(0);
-                GWT.log("[SUBSUMPTION] match found! " + curve.getElement().getId() + " with " + match.getLabel());
-            }
+        public void onMouseMove(MouseMoveEvent event) {
+            if (isDragging()) {
+                GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
+                Collection<Concept> newCandidates = getSnapCandidates();
 
+                for (Concept oldCandidate : candidates) {
+                    oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
+                }
+
+                if (newCandidates.size() == 1) {
+                    Concept.Effects effects = newCandidates.iterator().next().getEffects();
+                    effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapUnique(color)));
+                } else {
+                    for (Concept newCandidate : newCandidates) {
+                        Concept.Effects effects = newCandidate.getEffects();
+                        effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapPartial(color)));
+                    }
+                }
+                candidates = newCandidates;
+            }
         }
 
         @Override
         public void onMouseDown(MouseDownEvent event) {
             GWT.log("[SUBSUMPTION] start seeking " + curve.getElement().getId());
+            setDragging(true);
+        }
 
+        @Override
+        public void onMouseUp(MouseUpEvent event) {
+            setDragging(false);
+            // if we have a unique match, indicate it with a visual snap
+            if (candidates.size() == 1) {
+                Concept match = candidates.iterator().next();
+                alreadyChosen = Optional.of(match);
+                curve.setVisible(false);
+                searchBox.setText(match.getLabel().or("<UNNAMED>"));
+                searchBox.setEnabled(false);
+            }
         }
 
         @Override
@@ -143,6 +203,7 @@ class Subsumption extends Pattern implements Cloneable,
             curve.addDomHandler(this, MouseOutEvent.getType());
             curve.addDomHandler(this, MouseUpEvent.getType());
             curve.addDomHandler(this, MouseDownEvent.getType());
+            curve.addDomHandler(this, MouseMoveEvent.getType());
             searchBox.addDomHandler(this, KeyUpEvent.getType());
         }
     }
@@ -215,23 +276,15 @@ class Subsumption extends Pattern implements Cloneable,
 
         @NonNull private VisualEffect activePattern(@NonNull final DraggableShape curve,
                                                     @NonNull final String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("subsumption template hover (" + color + ")");
             effect.setAttribute(curve, "stroke", color, "black");
-            effect.setAttribute(curve, "fill", color, "white");
-            effect.setAttribute(curve, "opacity", "0.5", "1");
-            effect.setAttribute(curve, "stroke-width", "2", "1");
+            effect.setAttribute(curve, "stroke-width", "3", "1");
             return effect;
         }
 
         public void setEffect(@NonNull final DraggableShape curve,
                               @NonNull final Optional<VisualEffect> newEffect) {
-            if (curveEffects.containsKey(curve)) {
-                removeEffect(curveEffects.get(curve));
-            }
-            if (newEffect.isPresent()) {
-                addEffect(newEffect.get());
-                curveEffects.put(curve, newEffect.get());
-            }
+            setContextEffect(curveEffects, curve, newEffect);
         }
 
         private void applyAttributes() {
@@ -311,11 +364,16 @@ class Subsumption extends Pattern implements Cloneable,
         this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
 
-        new CurveActivationHandler(wCurveOuter, buttonBar.wSuperset).bind();
-        new CurveActivationHandler(wCurveInner, buttonBar.wSubset).bind();
+        SearchManager.SearchHandler supersetHandler =
+                searchManager.makeSearchHandler(buttonBar.wSuperset, COLOR_SUPERSET_SEARCH);
+        SearchManager.SearchHandler subsetHandler =
+                searchManager.makeSearchHandler(buttonBar.wSubset, COLOR_SUBSET_SEARCH);
 
-        searchManager.makeSearchHandler(buttonBar.wSuperset, COLOR_SUPERSET).bind();
-        searchManager.makeSearchHandler(buttonBar.wSubset, COLOR_SUBSET).bind();
+
+        new CurveActivationHandler(wCurveOuter, COLOR_SUPERSET, buttonBar.wSuperset, supersetHandler).bind();
+        new CurveActivationHandler(wCurveInner, COLOR_SUBSET, buttonBar.wSubset, subsetHandler).bind();
+        supersetHandler.bind();
+        subsetHandler.bind();
     }
 
 
