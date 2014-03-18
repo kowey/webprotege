@@ -33,6 +33,7 @@ import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -148,7 +149,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * ************ Searching and snapping *****************
      */
 
-    @RequiredArgsConstructor
+    @Data
     public class SearchHandlerImpl implements KeyUpHandler, SearchHandler {
         @NonNull private final TextBox textbox;
         @NonNull private final String color;
@@ -175,15 +176,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             Collection<Concept> nonMatching = partitionedMap.get(false);
 
             for (Concept concept : nonMatching) {
-                concept.setMatchStatus(Concept.MatchStatus.NO_MATCH, color);
+                concept.setMatchStatus(this, MatchStatus.NO_MATCH);
             }
             if (matching.size() > 1) {
                 for (Concept concept : matching) {
-                    concept.setMatchStatus(Concept.MatchStatus.PARTIAL_MATCH, color);
+                    concept.setMatchStatus(this, MatchStatus.PARTIAL_MATCH);
                 }
             } else {
                 for (Concept concept : matching) {
-                    concept.setMatchStatus(Concept.MatchStatus.UNIQUE_MATCH, color);
+                    concept.setMatchStatus(this, MatchStatus.UNIQUE_MATCH);
                 }
             }
 

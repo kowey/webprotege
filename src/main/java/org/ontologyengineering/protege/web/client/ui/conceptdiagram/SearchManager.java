@@ -17,7 +17,19 @@ public interface SearchManager {
 
     public interface SearchHandler {
         public void bind();
+        public String getColor();
     };
+
+    public enum MatchStatus {
+        NO_MATCH,
+        PARTIAL_MATCH,
+        UNIQUE_MATCH;
+
+        public MatchStatus getNext() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+    }
+
     public SearchHandler makeSearchHandler(TextBox textbox, String color);
 
     /**

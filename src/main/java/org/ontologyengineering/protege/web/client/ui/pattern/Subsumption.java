@@ -6,6 +6,10 @@ import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
+import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
+import org.ontologyengineering.protege.web.client.effect.Key;
+import org.ontologyengineering.protege.web.client.effect.Painter;
+import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.ConceptDiagramPortlet;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
@@ -47,6 +51,7 @@ class Subsumption extends Pattern implements Cloneable,
 
     private boolean isMoving = false;
     private boolean isRenaming = false;
+    private Effects visualEffects = new Effects();
 
     private int rounding = 20;
 
@@ -204,6 +209,48 @@ class Subsumption extends Pattern implements Cloneable,
         }
     }
 
+    @Data class Effects extends AttributeLayers {
+
+        final Map<DraggableShape,VisualEffect> curveEffects = new HashMap();
+
+        @NonNull private VisualEffect activePattern(@NonNull final DraggableShape curve,
+                                                    @NonNull final String color) {
+            VisualEffect effect = new VisualEffect();
+            effect.setAttribute(curve, "stroke", color, "black");
+            effect.setAttribute(curve, "fill", color, "white");
+            effect.setAttribute(curve, "opacity", "0.5", "1");
+            effect.setAttribute(curve, "stroke-width", "2", "1");
+            return effect;
+        }
+
+        public void setEffect(@NonNull final DraggableShape curve,
+                              @NonNull final Optional<VisualEffect> newEffect) {
+            if (curveEffects.containsKey(curve)) {
+                removeEffect(curveEffects.get(curve));
+            }
+            if (newEffect.isPresent()) {
+                addEffect(newEffect.get());
+                curveEffects.put(curve, newEffect.get());
+            }
+        }
+
+        private void applyAttributes() {
+            applyAttributes(new Painter() {
+                @Override
+                public void apply(Key key, String value) {
+                    final Object obj = key.getObject();
+                    final String attr = key.getAttribute();
+                    if (curveEffects.containsKey(obj)) {
+                        DraggableShape curve = (DraggableShape)obj;
+                        curve.attr(attr, value);
+                    }
+                }
+            });
+        }
+
+    }
+
+
 
     public String getCurveIdOuter() {
         return this.id + "_curve_outer";
@@ -225,15 +272,12 @@ class Subsumption extends Pattern implements Cloneable,
 
     private void highlightIfActive(DraggableShape curve, String color) {
         if (getActiveCurve().equals(Optional.of(curve))) {
-            curve.attr("stroke", color);
-            curve.attr("stroke-width", "2");
-            curve.attr("fill", color);
-            curve.attr("opacity", "0.5");
+            VisualEffect effect = visualEffects.activePattern(curve, color);
+            visualEffects.setEffect(curve, Optional.of(effect));
         } else {
-            curve.attr("stroke", "black");
-            curve.attr("fill", "white");
-            curve.attr("stroke-width", "1");
+            visualEffects.setEffect(curve, Optional.<VisualEffect>absent());
         }
+        visualEffects.applyAttributes();
     }
 
     private void highlightActiveCurves() {
