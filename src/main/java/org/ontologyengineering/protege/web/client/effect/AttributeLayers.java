@@ -1,5 +1,6 @@
 package org.ontologyengineering.protege.web.client.effect;
 
+import com.google.common.base.Optional;
 import lombok.NonNull;
 
 import java.util.*;
@@ -121,4 +122,34 @@ public class AttributeLayers {
         }
     }
 
+    /**
+     * This is mainly intended as a helper function to attribute layers
+     * of your own design.
+     *
+     * The idea is that you might be keeping track of attributes coming
+     * in from multiple sources (for example, search boxes), each called
+     * a context; and that you want to either set/unset the effect
+     * coming out of that context.
+     *
+     * This helper deletes whatever effect (if present) is set for that
+     * context, and then add whatever effect (if present) you specify
+     *
+     * @param contextEffects
+     * @param context
+     * @param newEffect
+     * @param <K> the context type
+     */
+    public <K> void setContextEffect(Map<K, VisualEffect>contextEffects,
+                                     K context,
+                                     Optional<VisualEffect> newEffect) {
+
+        if (contextEffects.containsKey(context)) {
+            removeEffect(contextEffects.get(context));
+        }
+        if (newEffect.isPresent()) {
+            VisualEffect effect = newEffect.get();
+            contextEffects.put(context, effect);
+            addEffect(effect);
+        }
+    }
 }

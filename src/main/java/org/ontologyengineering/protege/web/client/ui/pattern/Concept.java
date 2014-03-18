@@ -22,9 +22,7 @@ import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.lang.Math;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -63,8 +61,9 @@ class Concept extends Pattern implements Cloneable,
 
         // here we model the possibility of there being more than one search box
         final private Map<SearchManager.SearchHandler, VisualEffect> searchEffects = new HashMap();
+        final private Map<DraggableShape, VisualEffect> dragSnapEffects = new HashMap();
 
-        @NonNull private VisualEffect searchBoxPartial(String color) {
+        @NonNull public VisualEffect searchBoxPartial(String color) {
             VisualEffect effect = new VisualEffect();
             effect.setAttribute(label, "color", color, "black");
             effect.setAttribute(curve, "stroke", color, "black");
@@ -73,7 +72,7 @@ class Concept extends Pattern implements Cloneable,
             return effect;
         }
 
-        @NonNull private VisualEffect searchBoxUnique(String color) {
+        @NonNull public VisualEffect searchBoxUnique(String color) {
             VisualEffect effect = new VisualEffect();
             effect.setAttribute(label, "color", color, "black");
             effect.setAttribute(label, "fontWeight", "bold", "normal");
@@ -83,20 +82,34 @@ class Concept extends Pattern implements Cloneable,
             return effect;
         }
 
-        public void setSearchBoxEffect(SearchManager.SearchHandler searchBox,
-                                       Optional<VisualEffect> newEffect) {
-
-            if (searchEffects.containsKey(searchBox)) {
-                removeEffect(searchEffects.get(searchBox));
-            }
-            if (newEffect.isPresent()) {
-                VisualEffect effect = newEffect.get();
-                searchEffects.put(searchBox, effect);
-                addEffect(effect);
-            }
+        @NonNull public VisualEffect dragSnapPartial(String color) {
+            VisualEffect effect = new VisualEffect();
+            effect.setAttribute(curve, "fill", color, "white");
+            effect.setAttribute(curve, "opacity", "0.25", "1");
+            return effect;
         }
 
-        public void applyAttributes() {
+        @NonNull public VisualEffect dragSnapUnique(String color) {
+            VisualEffect effect = new VisualEffect();
+            effect.setAttribute(curve, "fill", color, "white");
+            effect.setAttribute(curve, "opacity", "0.5", "1");
+            return effect;
+        }
+
+
+        public void applySearchBoxEffect(SearchManager.SearchHandler searchBox,
+                                         Optional<VisualEffect> newEffect) {
+            setContextEffect(searchEffects, searchBox, newEffect);
+            applyAttributes();
+        }
+
+        public void applyDragSnapEffect(DraggableShape dragged,
+                                        Optional<VisualEffect> newEffect) {
+            setContextEffect(dragSnapEffects, dragged, newEffect);
+            applyAttributes();
+        }
+
+        private void applyAttributes() {
             applyAttributes(new Painter() {
                 final Style labelStyle = label.getElement().getStyle();
                 @Override
@@ -444,8 +457,7 @@ class Concept extends Pattern implements Cloneable,
                 break;
 
         }
-        effects.setSearchBoxEffect(searchBox, mEffect);
-        effects.applyAttributes();
+        effects.applySearchBoxEffect(searchBox, mEffect);
     }
 
     protected void makeDraggable() {
