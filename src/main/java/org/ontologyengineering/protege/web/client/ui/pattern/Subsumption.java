@@ -96,7 +96,7 @@ class Subsumption extends Pattern implements Cloneable,
         final TextBox searchBox;
         final SearchManager.SearchHandler searchHandler;
 
-        Collection<Concept> candidates = Collections.EMPTY_LIST;
+        Collection<Concept> candidates = Collections.emptyList();
 
         private boolean dragging = false;
 
@@ -105,6 +105,24 @@ class Subsumption extends Pattern implements Cloneable,
             Subsumption.this.activeCurves.add(curve);
             Subsumption.this.highlightActiveCurves();
         }
+
+        private Collection<Concept> getSnapCandidates() {
+            Collection<Concept> candidates = searchManager.getSnapCandidates(curve);
+            // narrow the matching to things which have been preselected in the search
+            // box (if applicable)
+            if (searchHandler.getMatching().isPresent()) {
+                final Collection<Concept> searchBoxMatching = searchHandler.getMatching().get();
+
+                candidates = Collections2.filter(candidates, new Predicate<Concept>() {
+                    @Override
+                    public boolean apply(@NonNull Concept concept) {
+                        return searchBoxMatching.contains(concept);
+                    }
+                });
+            }
+            return candidates;
+        }
+
 
         @Override
         public void onMouseOver(MouseOverEvent event) {
@@ -126,22 +144,7 @@ class Subsumption extends Pattern implements Cloneable,
             if (isDragging()) {
                 GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
 
-                Collection<Concept> newCandidates = searchManager.getSnapCandidates(curve);
-
-                // narrow the matching to things which have been preselected in the search
-                // box (if applicable)
-                if (searchHandler.getMatching().isPresent()) {
-                    GWT.log("[SUBSUMPTION] I ought to filter here");
-                    final Collection<Concept> searchBoxMatching = searchHandler.getMatching().get();
-
-                    newCandidates = Collections2.filter(newCandidates, new Predicate<Concept>() {
-                        @Override
-                        public boolean apply(@NonNull Concept concept) {
-                            return searchBoxMatching.contains(concept);
-                        }
-                    });
-                }
-
+                Collection<Concept> newCandidates = getSnapCandidates();
 
                 for (Concept oldCandidate : candidates) {
                     oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
@@ -169,6 +172,13 @@ class Subsumption extends Pattern implements Cloneable,
         @Override
         public void onMouseUp(MouseUpEvent event) {
             setDragging(false);
+            // if we have a unique match, indicate it with a visual snap
+            if (candidates.size() == 1) {
+                Concept match = candidates.iterator().next();
+                curve.setVisible(false);
+                searchBox.setText(match.getLabel().or("<UNNAMED>"));
+                searchBox.setEnabled(false);
+            }
         }
 
         @Override
@@ -259,8 +269,7 @@ class Subsumption extends Pattern implements Cloneable,
                                                     @NonNull final String color) {
             VisualEffect effect = new VisualEffect();
             effect.setAttribute(curve, "stroke", color, "black");
-
-            effect.setAttribute(curve, "stroke-width", "2", "1");
+            effect.setAttribute(curve, "stroke-width", "3", "1");
             return effect;
         }
 
