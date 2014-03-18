@@ -4,24 +4,28 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
-import com.google.gwt.layout.client.Layout;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.effect.Key;
+import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
+import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
+import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.semanticweb.owlapi.model.IRI;
 
-import java.awt.*;
 import java.lang.Math;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by kowey on 2014-02-03.
@@ -34,17 +38,9 @@ public
 class Concept extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
-    public enum MatchStatus {
-        NO_MATCH,
-        PARTIAL_MATCH,
-        UNIQUE_MATCH;
-
-        public MatchStatus getNext() {
-            return values()[(ordinal() + 1) % values().length];
-        }
-    }
-
     @Getter private String idPrefix = "concept";
+    private int rounding = 20;
+
 
     @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
@@ -52,6 +48,72 @@ class Concept extends Pattern implements Cloneable,
 
     @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
     @NonNull Optional<String> label = Optional.absent();
+
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
+    CanvasState canvasState = new CanvasState();
+
+    final private TextBox wLabel = new TextBox();
+    final private DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
+    final private ButtonBar buttonBar = new ButtonBar(wLabel);
+    final private Effects effects = new Effects(wCurve, wLabel);
+
+    @Data class Effects extends AttributeLayers {
+        @NonNull final private DraggableShape curve;
+        @NonNull final private TextBox label;
+
+        // here we model the possibility of there being more than one search box
+        final private Map<SearchManager.SearchHandler, VisualEffect> searchEffects = new HashMap();
+
+        @NonNull private VisualEffect searchBoxPartial(String color) {
+            VisualEffect effect = new VisualEffect();
+            effect.setAttribute(label, "color", color, "black");
+            effect.setAttribute(curve, "stroke", color, "black");
+            effect.setAttribute(curve, "stroke-width", "2", "1");
+            effect.setAttribute(curve, "stroke-dasharray", "-", "");
+            return effect;
+        }
+
+        @NonNull private VisualEffect searchBoxUnique(String color) {
+            VisualEffect effect = new VisualEffect();
+            effect.setAttribute(label, "color", color, "black");
+            effect.setAttribute(label, "fontWeight", "bold", "normal");
+            effect.setAttribute(curve, "stroke", color, "black");
+            effect.setAttribute(curve, "stroke-width", "5", "1");
+            effect.setAttribute(curve, "stroke-dasharray", "- . .", "");
+            return effect;
+        }
+
+        public void setSearchBoxEffect(SearchManager.SearchHandler searchBox,
+                                       Optional<VisualEffect> newEffect) {
+
+            if (searchEffects.containsKey(searchBox)) {
+                removeEffect(searchEffects.get(searchBox));
+            }
+            if (newEffect.isPresent()) {
+                VisualEffect effect = newEffect.get();
+                searchEffects.put(searchBox, effect);
+                addEffect(effect);
+            }
+        }
+
+        public void applyAttributes() {
+            applyAttributes(new Painter() {
+                final Style labelStyle = label.getElement().getStyle();
+                @Override
+                public void apply(Key key, String value) {
+                    final Object obj = key.getObject();
+                    final String attr = key.getAttribute();
+                    if (obj == label) {
+                        labelStyle.setProperty(attr, value);
+                    } else if (obj == curve) {
+                        curve.attr(attr, value);
+                    }
+                }
+            });
+        }
+
+    }
+
 
     /*
      * ************ Searching and snapping *****************
@@ -166,14 +228,7 @@ class Concept extends Pattern implements Cloneable,
         }
     }
 
-    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
-    CanvasState canvasState = new CanvasState();
 
-    private int rounding = 20;
-    final DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
-    ButtonBar buttonBar = new ButtonBar();
-
-    private MatchStatus matchStatus = MatchStatus.NO_MATCH;
 
     private Concept thisConcept() {
         return this;
@@ -184,11 +239,10 @@ class Concept extends Pattern implements Cloneable,
     }
 
     @Data class ButtonBar extends DockPanel {
-        final private TextBox wLabel = new TextBox();
+        final private TextBox wLabel;
         final Panel wButtons = new HorizontalPanel();
         final Button wDelete = new Button("X");
         final Button wResize = new Button("⇲");
-        final Button wFun = new Button("???");
 
         private void activate() {
             this.wLabel.addClickHandler(new ClickHandler() {
@@ -207,24 +261,18 @@ class Concept extends Pattern implements Cloneable,
                     canvasState.prepareForResizing();
                 }
             });
-            wFun.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    setMatchStatus(matchStatus.getNext());
-                }
-            });
         }
 
         private void reposition(int curveWidth, int curveHeight) {
             setHeight(curveHeight + 10 + "px");
         }
 
-        public ButtonBar() {
+        public ButtonBar(@NonNull final TextBox wLabel) {
+            this.wLabel = wLabel;
             wLabel.setWidth("6em");
             wButtons.getElement().setClassName("concept-button");
             wButtons.add(wDelete);
             wButtons.add(wResize);
-            wButtons.add(wFun);
             add(wLabel, NORTH);
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
@@ -382,37 +430,22 @@ class Concept extends Pattern implements Cloneable,
         buttonBar.wLabel.setReadOnly(true);
     }
 
-    public void setMatchStatus(MatchStatus status, String color) {
-        this.matchStatus = status;
-        redrawForMatchStatus(status, color);
-    }
+    public void setMatchStatus(SearchManager.SearchHandler searchBox,
+                               SearchManager.MatchStatus status) {
+        final String color = searchBox.getColor();
 
-    private void redrawForMatchStatus(MatchStatus status, String color) {
-        Style labelStyle = buttonBar.wLabel.getElement().getStyle();
-
+        Optional<VisualEffect> mEffect = Optional.<VisualEffect>absent();
         switch (status) {
-            case NO_MATCH:
-                labelStyle.setProperty("color", "black");
-                labelStyle.setProperty("fontWeight", "normal");
-                wCurve.attr("stroke", "black");
-                wCurve.attr("stroke-width", "1");
-                wCurve.attr("stroke-dasharray", "");
-                break;
             case PARTIAL_MATCH:
-                labelStyle.setProperty("color", color);
-                labelStyle.setProperty("fontWeight", "normal");
-                wCurve.attr("stroke", color);
-                wCurve.attr("stroke-width", "2");
-                wCurve.attr("stroke-dasharray", "-");
+                mEffect = Optional.of(effects.searchBoxPartial(color));
                 break;
             case UNIQUE_MATCH:
-                labelStyle.setProperty("color", color);
-                labelStyle.setProperty("fontWeight", "bold");
-                wCurve.attr("stroke", color);
-                wCurve.attr("stroke-width", "5");
-                wCurve.attr("stroke-dasharray", "- . .");
+                mEffect = Optional.of(effects.searchBoxUnique(color));
                 break;
+
         }
+        effects.setSearchBoxEffect(searchBox, mEffect);
+        effects.applyAttributes();
     }
 
     protected void makeDraggable() {
