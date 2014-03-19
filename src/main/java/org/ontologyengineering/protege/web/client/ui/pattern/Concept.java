@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.IRI;
 
 import java.lang.Math;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -61,8 +62,8 @@ class Concept extends Pattern implements Cloneable,
         @NonNull final private TextBox label;
 
         // here we model the possibility of there being more than one search box
-        final private Map<SearchManager.SearchHandler, VisualEffect> searchEffects = new HashMap();
-        final private Map<DraggableShape, VisualEffect> dragSnapEffects = new HashMap();
+        final private Map<SearchHandler, VisualEffect> searchEffects = new IdentityHashMap();
+        final private Map<DraggableShape, VisualEffect> dragSnapEffects = new IdentityHashMap();
 
         @NonNull public VisualEffect searchBoxPartial(String color) {
             VisualEffect effect = new VisualEffect("searchbox partial (" + color + ")");
