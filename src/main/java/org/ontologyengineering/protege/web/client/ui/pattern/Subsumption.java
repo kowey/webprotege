@@ -65,6 +65,7 @@ class Subsumption extends Pattern implements Cloneable,
 
     @Getter(AccessLevel.NONE)  @Setter(AccessLevel.NONE)
     private Set<DraggableShape> activeCurves = new HashSet();
+    private Optional<Concept> alreadyChosen = Optional.absent();
 
     final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
     final DraggableShape wCurveInner = new DraggableRect(this.width / 2, this.height / 2, this.rounding);
@@ -111,6 +112,11 @@ class Subsumption extends Pattern implements Cloneable,
 
         private Collection<Concept> getSnapCandidates() {
             Collection<Concept> candidates = searchManager.getSnapCandidates(curve);
+            // avoid chosing a shape that was already chosen for the other role,
+            // ie. superset if we are subset or vice-versa
+            if (alreadyChosen.isPresent()) {
+                candidates.remove(alreadyChosen.get());
+            }
             // narrow the matching to things which have been preselected in the search
             // box (if applicable)
             if (searchHandler.getMatching().isPresent()) {
@@ -146,7 +152,6 @@ class Subsumption extends Pattern implements Cloneable,
         public void onMouseMove(MouseMoveEvent event) {
             if (isDragging()) {
                 GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
-
                 Collection<Concept> newCandidates = getSnapCandidates();
 
                 for (Concept oldCandidate : candidates) {
@@ -178,6 +183,7 @@ class Subsumption extends Pattern implements Cloneable,
             // if we have a unique match, indicate it with a visual snap
             if (candidates.size() == 1) {
                 Concept match = candidates.iterator().next();
+                alreadyChosen = Optional.of(match);
                 curve.setVisible(false);
                 searchBox.setText(match.getLabel().or("<UNNAMED>"));
                 searchBox.setEnabled(false);
