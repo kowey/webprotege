@@ -131,7 +131,7 @@ class Concept extends Pattern implements Cloneable,
 
 
     /*
-     * ************ Searching and snapping *****************
+     * ************ Handlers *****************
      */
 
     @RequiredArgsConstructor
