@@ -109,6 +109,10 @@ class Subsumption extends Pattern implements Cloneable {
         @NonNull final private String searchColor;
         @NonNull final private SearchHandler searchHandler;
 
+        // initial x/y coordinates for the curve (relative to parent)
+        final private int homeX;
+        final private int homeY;
+
         // we need to keep track of pre-existing candidates so that
         // we can remove any visual effects we've applied on them once
         // they are no longer candidates
@@ -124,6 +128,8 @@ class Subsumption extends Pattern implements Cloneable {
             this.searchBox = searchBox;
             this.searchColor = searchColor;
             this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
+            this.homeX = Subsumption.this.parentPanel.getWidgetLeft(curve);
+            this.homeY = Subsumption.this.parentPanel.getWidgetTop(curve);
         }
 
         public Optional<Collection<Concept>> getMatching() {
@@ -204,6 +210,11 @@ class Subsumption extends Pattern implements Cloneable {
          * Clear the current search and apply visual effects as appropriate
          */
         public void reset() {
+            Subsumption.this.parentPanel.setWidgetPosition(curve, homeX, homeY);
+            update();
+            alreadyChosen = Optional.absent();
+            curve.setVisible(true);
+            searchBox.setEnabled(true);
             searchHandler.reset();
         }
 
@@ -268,9 +279,19 @@ class Subsumption extends Pattern implements Cloneable {
         final private Label wSubsumes = new Label("SUBSUMES");
 
         final Panel wButtons = new HorizontalPanel();
-        final Button wDelete = new Button("X");
+        final Button wReset = new Button("X");
+
+        final Collection<SearchHandler> searchHandlers = new LinkedList();
 
         private void activate() {
+            wReset.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent clickEvent) {
+                    for (SearchHandler handler : searchHandlers) {
+                        handler.reset();
+                    }
+                }
+            });
         }
 
         private void reposition(int curveWidth, int curveHeight) {
@@ -282,7 +303,7 @@ class Subsumption extends Pattern implements Cloneable {
             wSuperset.setWidth("6em");
 
             wButtons.getElement().setClassName("subsumption-button");
-            wButtons.add(wDelete);
+            wButtons.add(wReset);
             add(wSuperset, NORTH);
             add(wSubsumes, NORTH);
             add(wSubset, NORTH);
@@ -387,10 +408,16 @@ class Subsumption extends Pattern implements Cloneable {
         this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
 
-        new CurveMatchHandler(wCurveOuter, COLOR_SUPERSET,
-                buttonBar.wSuperset, COLOR_SUPERSET_SEARCH).bind();
-        new CurveMatchHandler(wCurveInner, COLOR_SUBSET,
-                buttonBar.wSubset, COLOR_SUBSET_SEARCH).bind();
+        Collection<SearchHandler> searchHandlers = buttonBar.getSearchHandlers();
+        searchHandlers.add(new CurveMatchHandler(
+                wCurveOuter, COLOR_SUPERSET,
+                buttonBar.wSuperset, COLOR_SUPERSET_SEARCH));
+        searchHandlers.add(new CurveMatchHandler(
+                wCurveInner, COLOR_SUBSET,
+                buttonBar.wSubset, COLOR_SUBSET_SEARCH));
+        for (SearchHandler handler : searchHandlers) {
+            handler.bind();
+        }
     }
 
     public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
