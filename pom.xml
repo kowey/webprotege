@@ -18,7 +18,7 @@
     <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- We need to refer to the Lombok jar later on, particularly in the GWT compiler -->
-    <lombokVersion>1.12.2</lombokVersion>
+    <lombokVersion>1.12.5-xng</lombokVersion>
     <!-- Is there a better way to do this? I would just use the maven-dependency-plugin
          and grab ${org.projectlombok:lombok:jar}, but it doesn't seem to be accessible
          where it counts from the gwt:run goal (unless I do mvn validate gwt:run) -->
