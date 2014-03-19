@@ -14,6 +14,7 @@ import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
@@ -97,7 +98,7 @@ class Concept extends Pattern implements Cloneable,
         }
 
 
-        public void applySearchBoxEffect(SearchManager.SearchHandler searchBox,
+        public void applySearchBoxEffect(SearchHandler searchBox,
                                          Optional<VisualEffect> newEffect) {
             setContextEffect(searchEffects, searchBox, newEffect);
             applyAttributes();
@@ -455,7 +456,6 @@ class Concept extends Pattern implements Cloneable,
             case UNIQUE_MATCH:
                 mEffect = Optional.of(effects.searchBoxUnique(color));
                 break;
-
         }
         effects.applySearchBoxEffect(searchBox, mEffect);
     }

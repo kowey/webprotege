@@ -71,9 +71,7 @@ public class AttributeLayers {
                                  @NonNull final Map<Key, String> target) {
 
         // set any defaults we don't already know about
-        final Iterator it = source.entrySet().iterator();
-        while (it.hasNext()) {
-            final Map.Entry<Key, String> pair = (Map.Entry)it.next();
+        for (Map.Entry<Key, String> pair : source.entrySet()) {
             final Key key = pair.getKey();
             final String value = pair.getValue();
             if (! target.containsKey(key)) {
@@ -115,9 +113,7 @@ public class AttributeLayers {
     }
 
     public void applyAttributes(Painter painter) {
-        final Iterator it = getAttributes().entrySet().iterator();
-        while (it.hasNext()) {
-            final Map.Entry<Key, String> pair = (Map.Entry)it.next();
+        for (Map.Entry<Key, String> pair : getAttributes().entrySet()) {
             painter.apply(pair.getKey(), pair.getValue());
         }
     }
