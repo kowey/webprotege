@@ -42,6 +42,9 @@ class Subsumption extends Pattern implements Cloneable,
 
     @NonNull final String COLOR_SUBSET = "blue";
     @NonNull final String COLOR_SUPERSET = "green";
+    @NonNull final String COLOR_SUBSET_SEARCH = "darkblue";
+    @NonNull final String COLOR_SUPERSET_SEARCH = "darkgreen";
+
 
     @Getter private String idPrefix = "subsumes";
 
@@ -356,9 +359,9 @@ class Subsumption extends Pattern implements Cloneable,
         buttonBar.reposition(width, height);
 
         SearchManager.SearchHandler supersetHandler =
-                searchManager.makeSearchHandler(buttonBar.wSuperset, COLOR_SUPERSET);
+                searchManager.makeSearchHandler(buttonBar.wSuperset, COLOR_SUPERSET_SEARCH);
         SearchManager.SearchHandler subsetHandler =
-                searchManager.makeSearchHandler(buttonBar.wSubset, COLOR_SUBSET);
+                searchManager.makeSearchHandler(buttonBar.wSubset, COLOR_SUBSET_SEARCH);
 
 
         new CurveActivationHandler(wCurveOuter, COLOR_SUPERSET, buttonBar.wSuperset, supersetHandler).bind();
