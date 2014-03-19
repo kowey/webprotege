@@ -257,7 +257,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 btn.removeFromParent();
             }
         });
-        makeSearchHandler(searchBox, "blue").bind();
+        makeSearchHandler(searchBox, "orange").bind();
         this.add(vPanel);
     }
 
