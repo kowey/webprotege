@@ -98,7 +98,8 @@ class Subsumption extends Pattern implements Cloneable {
      * search boxes (for example, by typing into them)
      */
     @Getter @Setter
-    class CurveMatchHandler implements MouseOverHandler, MouseOutHandler,
+    class CurveMatchHandler implements SearchHandler,
+            MouseOverHandler, MouseOutHandler,
             MouseUpHandler, MouseDownHandler, MouseMoveHandler,
             KeyUpHandler {
 
@@ -123,6 +124,10 @@ class Subsumption extends Pattern implements Cloneable {
             this.searchBox = searchBox;
             this.searchColor = searchColor;
             this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
+        }
+
+        public Optional<Collection<Concept>> getMatching() {
+            return Optional.of(candidates);
         }
 
         /**
@@ -176,7 +181,7 @@ class Subsumption extends Pattern implements Cloneable {
          * Clear any stale drag-to-snap visual effects from old candidates,
          * figure out the ones and apply effects accordingly
          */
-        public void updateSnapCandidates() {
+        public void update() {
             Collection<Concept> newCandidates = getSnapCandidates();
 
             for (Concept oldCandidate : candidates) {
@@ -193,6 +198,13 @@ class Subsumption extends Pattern implements Cloneable {
                 }
             }
             candidates = newCandidates;
+        }
+
+        /**
+         * Clear the current search and apply visual effects as appropriate
+         */
+        public void reset() {
+            searchHandler.reset();
         }
 
 
@@ -214,7 +226,7 @@ class Subsumption extends Pattern implements Cloneable {
         @Override
         public void onMouseMove(MouseMoveEvent event) {
             if (isDragging()) {
-                updateSnapCandidates();
+                update();
             }
         }
 
