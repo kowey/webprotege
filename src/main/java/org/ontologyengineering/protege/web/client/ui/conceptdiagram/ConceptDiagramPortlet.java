@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
-import org.ontologyengineering.protege.web.client.ui.pattern.Property;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
@@ -90,7 +89,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     @Override
     public void initialize() {
         setTitle("ConceptDiagram");
-        koweySetup();
+        this.add(createMainPanel());
         registerEventHandlers();
         reload();
     }
@@ -239,7 +238,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * ************ Initialisation *****************
      */
 
-    public void koweySetup() {
+    public AbsolutePanel createMainPanel() {
         AbsolutePanel vPanel = new AbsolutePanel();
         vPanel.getElement().getStyle().setProperty("height", "100%");
         vPanel.getElement().getStyle().setProperty("width", "100%");
@@ -258,7 +257,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         });
         makeSearchHandler(searchBox, "orange").bind();
-        this.add(vPanel);
+        return vPanel;
     }
 
     @Override
