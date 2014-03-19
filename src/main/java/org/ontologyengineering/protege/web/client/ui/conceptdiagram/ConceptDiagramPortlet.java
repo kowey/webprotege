@@ -166,32 +166,26 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         }
 
-        public Optional<Collection<Concept>> getNonMatching() {
-            if (hasSearch) {
-                return Optional.of(nonMatching);
-            } else {
-                return Optional.absent();
-            }
-        }
-
-        @Override
-        public void onKeyUp(KeyUpEvent event) {
-            // we respond to key up events up updating a provisional label
-            // only on Enter key or mouse-out do we actually commit the label
+        /**
+         * Track the latest changes to our search results
+         * and propagate visual effects to matching/non-matching
+         * results accordingly
+         */
+        public void update() {
             final String text = textbox.getText().trim();
             setHasSearch(!text.isEmpty());
             ImmutableListMultimap<Boolean, Concept> partitionedMap =
                     Multimaps.index(namedCurves.values(), new Function<Concept, Boolean>() {
-                @Override
-                public Boolean apply(Concept input) {
-                    if (input.getLabel().isPresent() && !text.isEmpty()) {
-                        String clabel = input.getLabel().get();
-                        return clabel.contains(text);
-                    } else {
-                        return false;
-                    }
-                }
-            });
+                        @Override
+                        public Boolean apply(Concept input) {
+                            if (input.getLabel().isPresent() && !text.isEmpty()) {
+                                String clabel = input.getLabel().get();
+                                return clabel.contains(text);
+                            } else {
+                                return false;
+                            }
+                        }
+                    });
 
             matching = partitionedMap.get(true);
             nonMatching = partitionedMap.get(false);
@@ -208,7 +202,19 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                     concept.setMatchStatus(this, MatchStatus.UNIQUE_MATCH);
                 }
             }
+        }
 
+        /**
+         * Clear the current search and apply visual effects as appropriate
+         */
+        public void reset() {
+            textbox.setText("");
+            update();
+        }
+
+        @Override
+        public void onKeyUp(KeyUpEvent event) {
+            update();
         }
 
         public void bind() {
