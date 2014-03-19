@@ -141,6 +141,7 @@ public class AttributeLayers {
 
         if (contextEffects.containsKey(context)) {
             removeEffect(contextEffects.get(context));
+            contextEffects.remove(context);
         }
         if (newEffect.isPresent()) {
             VisualEffect effect = newEffect.get();
