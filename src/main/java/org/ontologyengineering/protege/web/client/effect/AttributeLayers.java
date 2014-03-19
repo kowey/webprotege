@@ -53,7 +53,7 @@ public class AttributeLayers {
     // attributes should have defaults - should they declared ahead of time? what if
     // defaults collide? I guess we ignore them
 
-    final private VisualEffect defaultEffect = new VisualEffect();
+    final private VisualEffect defaultEffect = new VisualEffect("default effect");
 
     // front of the list is the top of the stack
     // note that we have to search the whole list to find effects

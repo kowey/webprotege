@@ -8,4 +8,9 @@ import lombok.Data;
 @Data public class Key {
     final private Object object;
     final private String attribute;
+
+    public String toString() {
+        return ("[" + object.getClass() + "@" + object.hashCode() + "] " + attribute);
+    }
+
 }

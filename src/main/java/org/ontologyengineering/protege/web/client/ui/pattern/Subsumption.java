@@ -267,7 +267,7 @@ class Subsumption extends Pattern implements Cloneable,
 
         @NonNull private VisualEffect activePattern(@NonNull final DraggableShape curve,
                                                     @NonNull final String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("subsumption template hover (" + color + ")");
             effect.setAttribute(curve, "stroke", color, "black");
             effect.setAttribute(curve, "stroke-width", "3", "1");
             return effect;

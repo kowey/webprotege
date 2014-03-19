@@ -64,7 +64,7 @@ class Concept extends Pattern implements Cloneable,
         final private Map<DraggableShape, VisualEffect> dragSnapEffects = new HashMap();
 
         @NonNull public VisualEffect searchBoxPartial(String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("searchbox partial (" + color + ")");
             effect.setAttribute(label, "color", color, "black");
             effect.setAttribute(curve, "stroke", color, "black");
             effect.setAttribute(curve, "stroke-width", "2", "1");
@@ -73,7 +73,7 @@ class Concept extends Pattern implements Cloneable,
         }
 
         @NonNull public VisualEffect searchBoxUnique(String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("searchbox unique (" + color + ")");
             effect.setAttribute(label, "color", color, "black");
             effect.setAttribute(label, "fontWeight", "bold", "normal");
             effect.setAttribute(curve, "stroke", color, "black");
@@ -83,14 +83,14 @@ class Concept extends Pattern implements Cloneable,
         }
 
         @NonNull public VisualEffect dragSnapPartial(String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("dragsnap partial (" + color + ")");
             effect.setAttribute(curve, "fill", color, "white");
             effect.setAttribute(curve, "opacity", "0.25", "1");
             return effect;
         }
 
         @NonNull public VisualEffect dragSnapUnique(String color) {
-            VisualEffect effect = new VisualEffect();
+            VisualEffect effect = new VisualEffect("dragsnap unique (" + color + ")");
             effect.setAttribute(curve, "fill", color, "white");
             effect.setAttribute(curve, "opacity", "0.5", "1");
             return effect;
