@@ -14,6 +14,7 @@ import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.semanticweb.owlapi.model.IRI;
@@ -22,15 +23,20 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * Created by kowey on 2014-02-03.
+ * Pattern to express that one class subsumes another.
+ * This is represented as one curve enclosing another.
+ * The basic idea to drag a curve out from the pattern until it uniquely
+ * snaps to one of the curves on the canvas. You can speed the process
+ * along by typing in a search box to narrow the possible matching curves.
+ *
+ * You can then select the remaining curve in the same way
  */
 public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @Getter @Setter @RequiredArgsConstructor @ToString
-class Subsumption extends Pattern implements Cloneable,
-        MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
+class Subsumption extends Pattern implements Cloneable {
 
     // ----------------------------------------------------------------
     // Fields
@@ -63,8 +69,18 @@ class Subsumption extends Pattern implements Cloneable,
 
     ButtonBar buttonBar = new ButtonBar();
 
+
+    // which template curves are currently being moused over
+    // we need to track this because mouse-over events are only
+    // propagated to the uppermost curve on the z axis; so if
+    // we have one curve inside of another one, it can be
+    // tricky to mark the inner curve as having been selected
+    // (on second thought, another approach might have been just
+    // to raise the z index on that one?)
     @Getter(AccessLevel.NONE)  @Setter(AccessLevel.NONE)
     private Set<DraggableShape> activeCurves = new HashSet();
+
+    //
     private Optional<Concept> alreadyChosen = Optional.absent();
 
     final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
@@ -76,38 +92,61 @@ class Subsumption extends Pattern implements Cloneable,
     // Handlers
     // ----------------------------------------------------------------
 
-    @RequiredArgsConstructor
-    class RenameHandler implements KeyUpHandler {
-        @Override
-        public void onKeyUp(KeyUpEvent event) {
-        }
-    }
-
-    @RequiredArgsConstructor
-    class DeleteHandler implements ClickHandler {
-        @Override
-        public void onClick(ClickEvent event) {
-        }
-    }
-
-    @Data
-    class CurveActivationHandler implements MouseOverHandler, MouseOutHandler,
+    /**
+     * What happens when we manipulate one of the template curves (for
+     * example, by dragging them out onto the canvas), or their associated
+     * search boxes (for example, by typing into them)
+     */
+    @Getter @Setter
+    class CurveMatchHandler implements MouseOverHandler, MouseOutHandler,
             MouseUpHandler, MouseDownHandler, MouseMoveHandler,
             KeyUpHandler {
 
-        final DraggableShape curve;
-        final String color;
-        final TextBox searchBox;
-        final SearchManager.SearchHandler searchHandler;
+        @NonNull final private DraggableShape curve;
+        @NonNull final private String color;
+        @NonNull final private TextBox searchBox;
+        @NonNull final private String searchColor;
+        @NonNull final private SearchHandler searchHandler;
 
+        // we need to keep track of pre-existing candidates so that
+        // we can remove any visual effects we've applied on them once
+        // they are no longer candidates
         Collection<Concept> candidates = Collections.emptyList();
-
         private boolean dragging = false;
 
+        public CurveMatchHandler(@NonNull DraggableShape curve,
+                                 @NonNull String color,
+                                 @NonNull TextBox searchBox,
+                                 @NonNull String searchColor) {
+            this.curve = curve;
+            this.color = color;
+            this.searchBox = searchBox;
+            this.searchColor = searchColor;
+            this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
+        }
+
+        /**
+         * Forcibly "awaken" the current curve; normally a curve is activated by
+         * hovering over it, but if we start typing things in the search box, it'd
+         * be a good idea to light the curve up a form of feedback
+         */
         public void forceActive() {
             Subsumption.this.activeCurves.clear();
             Subsumption.this.activeCurves.add(curve);
             Subsumption.this.highlightActiveCurves();
+        }
+
+        /**
+         * Snap the curve to its (unique) match if there is one
+         */
+        public void snapIfUniqueMatch() {
+            if (candidates.size() == 1) {
+                Concept match = candidates.iterator().next();
+                alreadyChosen = Optional.of(match);
+                curve.setVisible(false);
+                searchBox.setText(match.getLabel().or("<UNNAMED>"));
+                searchBox.setEnabled(false);
+            }
         }
 
         private Collection<Concept> getSnapCandidates() {
@@ -132,6 +171,30 @@ class Subsumption extends Pattern implements Cloneable,
             return candidates;
         }
 
+        /**
+         * Stay abreast of changes to our snap candidates:
+         * Clear any stale drag-to-snap visual effects from old candidates,
+         * figure out the ones and apply effects accordingly
+         */
+        public void updateSnapCandidates() {
+            Collection<Concept> newCandidates = getSnapCandidates();
+
+            for (Concept oldCandidate : candidates) {
+                oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
+            }
+
+            if (newCandidates.size() == 1) {
+                Concept.Effects effects = newCandidates.iterator().next().getEffects();
+                effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapUnique(color)));
+            } else {
+                for (Concept newCandidate : newCandidates) {
+                    Concept.Effects effects = newCandidate.getEffects();
+                    effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapPartial(color)));
+                }
+            }
+            candidates = newCandidates;
+        }
+
 
         @Override
         public void onMouseOver(MouseOverEvent event) {
@@ -151,43 +214,19 @@ class Subsumption extends Pattern implements Cloneable,
         @Override
         public void onMouseMove(MouseMoveEvent event) {
             if (isDragging()) {
-                GWT.log("[SUBSUMPTION] done seeking " + curve.getElement().getId());
-                Collection<Concept> newCandidates = getSnapCandidates();
-
-                for (Concept oldCandidate : candidates) {
-                    oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
-                }
-
-                if (newCandidates.size() == 1) {
-                    Concept.Effects effects = newCandidates.iterator().next().getEffects();
-                    effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapUnique(color)));
-                } else {
-                    for (Concept newCandidate : newCandidates) {
-                        Concept.Effects effects = newCandidate.getEffects();
-                        effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapPartial(color)));
-                    }
-                }
-                candidates = newCandidates;
+                updateSnapCandidates();
             }
         }
 
         @Override
         public void onMouseDown(MouseDownEvent event) {
-            GWT.log("[SUBSUMPTION] start seeking " + curve.getElement().getId());
             setDragging(true);
         }
 
         @Override
         public void onMouseUp(MouseUpEvent event) {
             setDragging(false);
-            // if we have a unique match, indicate it with a visual snap
-            if (candidates.size() == 1) {
-                Concept match = candidates.iterator().next();
-                alreadyChosen = Optional.of(match);
-                curve.setVisible(false);
-                searchBox.setText(match.getLabel().or("<UNNAMED>"));
-                searchBox.setEnabled(false);
-            }
+            snapIfUniqueMatch();
         }
 
         @Override
@@ -204,6 +243,7 @@ class Subsumption extends Pattern implements Cloneable,
             curve.addDomHandler(this, MouseUpEvent.getType());
             curve.addDomHandler(this, MouseDownEvent.getType());
             curve.addDomHandler(this, MouseMoveEvent.getType());
+            searchHandler.bind();
             searchBox.addDomHandler(this, KeyUpEvent.getType());
         }
     }
@@ -219,34 +259,6 @@ class Subsumption extends Pattern implements Cloneable,
         final Button wDelete = new Button("X");
 
         private void activate() {
-            //searchManager.makeSearchHandler(wSuperset, "green");
-            //.bind();
-            //searchManager.makeSearchHandler(wSubset, "orange").bind();
-
-            /*
-            this.wLabel.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    canvasState.setRenaming(true);
-                }
-            });
-            this.wLabel.addKeyUpHandler(new RenameHandler(wLabel));
-            this.wLabel.setReadOnly(true);
-
-            wDelete.addClickHandler(new DeleteHandler());
-            wResize.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    canvasState.prepareForResizing();
-                }
-            });
-            wFun.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    setMatchStatus(matchStatus.getNext());
-                }
-            });
-            */
         }
 
         private void reposition(int curveWidth, int curveHeight) {
@@ -351,7 +363,6 @@ class Subsumption extends Pattern implements Cloneable,
         this.setHeight((this.height + 10) + "px");
         super.onLoad();
 
-
         wCurveInner.getElement().setId(getCurveIdInner());
         wCurveOuter.getElement().setId(getCurveIdOuter());
 
@@ -364,18 +375,11 @@ class Subsumption extends Pattern implements Cloneable,
         this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
 
-        SearchManager.SearchHandler supersetHandler =
-                searchManager.makeSearchHandler(buttonBar.wSuperset, COLOR_SUPERSET_SEARCH);
-        SearchManager.SearchHandler subsetHandler =
-                searchManager.makeSearchHandler(buttonBar.wSubset, COLOR_SUBSET_SEARCH);
-
-
-        new CurveActivationHandler(wCurveOuter, COLOR_SUPERSET, buttonBar.wSuperset, supersetHandler).bind();
-        new CurveActivationHandler(wCurveInner, COLOR_SUBSET, buttonBar.wSubset, subsetHandler).bind();
-        supersetHandler.bind();
-        subsetHandler.bind();
+        new CurveMatchHandler(wCurveOuter, COLOR_SUPERSET,
+                buttonBar.wSuperset, COLOR_SUPERSET_SEARCH).bind();
+        new CurveMatchHandler(wCurveInner, COLOR_SUBSET,
+                buttonBar.wSubset, COLOR_SUBSET_SEARCH).bind();
     }
-
 
     public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
                                  final int counter) {
@@ -391,54 +395,7 @@ class Subsumption extends Pattern implements Cloneable,
         return copy;
     }
 
-    public void mouseOverHighlight() {
-    }
-
-    @Override
-    public void onMouseOver(MouseOverEvent event) {
-
-    }
-
-    @Override
-    public void onMouseOut(MouseOutEvent event) {
-
-    }
-
-
-
-    @Override
-    public void onMouseUp(MouseUpEvent event) {
-        this.isMoving = false;
-    }
-
-    @Override
-    public void onMouseDown(MouseDownEvent event) {
-        this.isMoving = true;
-    }
-
-    @Override
-    public void onMouseMove(MouseMoveEvent event) {
-        if (this.isMoving) {
-            this.onMouseOut(null);
-        }
-    }
-
-    /**
-     * Remove and unregister this concept
-     */
-    public void delete() {
-        removeFromParent();
-    }
-
     public void switchToInstanceMode() {
-
-
-        addDomHandler(this, MouseOverEvent.getType());
-        addDomHandler(this, MouseOutEvent.getType());
-        addDomHandler(this, MouseUpEvent.getType());
-        addDomHandler(this, MouseDownEvent.getType());
-        addDomHandler(this, MouseMoveEvent.getType());
-        mouseOverHighlight();
     }
 
     /**
