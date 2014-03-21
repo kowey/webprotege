@@ -23,7 +23,6 @@ import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.lang.Math;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -35,7 +34,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @Getter @Setter @RequiredArgsConstructor @ToString
-class Concept extends Pattern implements Cloneable,
+class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
     @Getter private String idPrefix = "concept";
@@ -163,7 +162,7 @@ class Concept extends Pattern implements Cloneable,
             if (iri.isPresent()) {
                 conceptManager.deleteClass(iri.get());
             }
-            Concept.this.delete();
+            Curve.this.delete();
         }
     }
 
@@ -205,10 +204,10 @@ class Concept extends Pattern implements Cloneable,
         public void startResizing(MouseEvent event) {
             isAboutToResize = false;
             isResizing = true;
-            final Element elm = Concept.this.getElement();
+            final Element elm = Curve.this.getElement();
             resizePointX = event.getRelativeX(elm);
             resizePointY = event.getRelativeY(elm);
-            Concept.this.wCurve.addStyleName("resizing");
+            Curve.this.wCurve.addStyleName("resizing");
             GWT.log("Started resizing at " + resizePointX + " and " + resizePointY);
         }
 
@@ -223,7 +222,7 @@ class Concept extends Pattern implements Cloneable,
          */
         public ResizeScale resizingScale(MouseEvent event) {
             if (isResizing) {
-                final Element elm = Concept.this.getElement();
+                final Element elm = Curve.this.getElement();
                 final int currentX = event.getRelativeX(elm);
                 final int currentY = event.getRelativeY(elm);
                 final float scaleX = (resizePointX > 0) ? (currentX / (float)resizePointX) : 1;
@@ -239,13 +238,13 @@ class Concept extends Pattern implements Cloneable,
         public void stopResizing() {
             isResizing = false;
             makeDraggable();
-            Concept.this.wCurve.removeStyleName("resizing");
+            Curve.this.wCurve.removeStyleName("resizing");
         }
     }
 
 
 
-    private Concept thisConcept() {
+    private Curve thisConcept() {
         return this;
     }
 
@@ -292,7 +291,7 @@ class Concept extends Pattern implements Cloneable,
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Concept.this.width, Concept.this.height);
+            reposition(Curve.this.width, Curve.this.height);
             activate();
         }
     }
@@ -321,9 +320,9 @@ class Concept extends Pattern implements Cloneable,
     }
 
 
-    public Concept copyTemplate(@NonNull final AbsolutePanel container,
+    public Curve copyTemplate(@NonNull final AbsolutePanel container,
                                 final int counter) {
-        Concept copy  = new Concept(idPrefix + counter, conceptManager, searchManager);
+        Curve copy  = new Curve(idPrefix + counter, conceptManager, searchManager);
         copy.setLabel(this.getLabel());
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);

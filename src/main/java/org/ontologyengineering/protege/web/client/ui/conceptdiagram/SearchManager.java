@@ -2,7 +2,7 @@ package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Optional;
 import com.google.gwt.user.client.ui.TextBox;
-import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
+import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 
 import java.awt.geom.Rectangle2D;
@@ -18,7 +18,7 @@ public interface SearchManager {
     public interface SearchHandler {
         public void bind();
         public String getColor();
-        public Optional<Collection<Concept>> getMatching();
+        public Optional<Collection<Curve>> getMatching();
         public void reset();
         public void update();
     }
@@ -42,6 +42,6 @@ public interface SearchManager {
      * @param dragged
      * @return possible matches in preference order
      */
-    public List<Concept> getSnapCandidates(DraggableShape dragged);
+    public List<Curve> getSnapCandidates(DraggableShape dragged);
 
 }
