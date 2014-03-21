@@ -81,7 +81,7 @@ class Subsumption extends Pattern implements Cloneable {
     private Set<DraggableShape> activeCurves = new HashSet();
 
     //
-    private Optional<Concept> alreadyChosen = Optional.absent();
+    private Optional<Curve> alreadyChosen = Optional.absent();
 
     final DraggableShape wCurveOuter = new DraggableRect(this.width, this.height, this.rounding);
     final DraggableShape wCurveInner = new DraggableRect(this.width / 2, this.height / 2, this.rounding);
@@ -116,7 +116,7 @@ class Subsumption extends Pattern implements Cloneable {
         // we need to keep track of pre-existing candidates so that
         // we can remove any visual effects we've applied on them once
         // they are no longer candidates
-        Collection<Concept> candidates = Collections.emptyList();
+        Collection<Curve> candidates = Collections.emptyList();
         private boolean dragging = false;
 
         public CurveMatchHandler(@NonNull DraggableShape curve,
@@ -132,7 +132,7 @@ class Subsumption extends Pattern implements Cloneable {
             this.homeY = Subsumption.this.parentPanel.getWidgetTop(curve);
         }
 
-        public Optional<Collection<Concept>> getMatching() {
+        public Optional<Collection<Curve>> getMatching() {
             return Optional.of(candidates);
         }
 
@@ -152,7 +152,7 @@ class Subsumption extends Pattern implements Cloneable {
          */
         public void snapIfUniqueMatch() {
             if (candidates.size() == 1) {
-                Concept match = candidates.iterator().next();
+                Curve match = candidates.iterator().next();
                 alreadyChosen = Optional.of(match);
                 curve.setVisible(false);
                 searchBox.setText(match.getLabel().or("<UNNAMED>"));
@@ -160,8 +160,8 @@ class Subsumption extends Pattern implements Cloneable {
             }
         }
 
-        private Collection<Concept> getSnapCandidates() {
-            Collection<Concept> candidates = searchManager.getSnapCandidates(curve);
+        private Collection<Curve> getSnapCandidates() {
+            Collection<Curve> candidates = searchManager.getSnapCandidates(curve);
             // avoid chosing a shape that was already chosen for the other role,
             // ie. superset if we are subset or vice-versa
             if (alreadyChosen.isPresent()) {
@@ -170,12 +170,12 @@ class Subsumption extends Pattern implements Cloneable {
             // narrow the matching to things which have been preselected in the search
             // box (if applicable)
             if (searchHandler.getMatching().isPresent()) {
-                final Collection<Concept> searchBoxMatching = searchHandler.getMatching().get();
+                final Collection<Curve> searchBoxMatching = searchHandler.getMatching().get();
 
-                candidates = Collections2.filter(candidates, new Predicate<Concept>() {
+                candidates = Collections2.filter(candidates, new Predicate<Curve>() {
                     @Override
-                    public boolean apply(@NonNull Concept concept) {
-                        return searchBoxMatching.contains(concept);
+                    public boolean apply(@NonNull Curve curve) {
+                        return searchBoxMatching.contains(curve);
                     }
                 });
             }
@@ -188,18 +188,18 @@ class Subsumption extends Pattern implements Cloneable {
          * figure out the ones and apply effects accordingly
          */
         public void update() {
-            Collection<Concept> newCandidates = getSnapCandidates();
+            Collection<Curve> newCandidates = getSnapCandidates();
 
-            for (Concept oldCandidate : candidates) {
+            for (Curve oldCandidate : candidates) {
                 oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
             }
 
             if (newCandidates.size() == 1) {
-                Concept.Effects effects = newCandidates.iterator().next().getEffects();
+                Curve.Effects effects = newCandidates.iterator().next().getEffects();
                 effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapUnique(color)));
             } else {
-                for (Concept newCandidate : newCandidates) {
-                    Concept.Effects effects = newCandidate.getEffects();
+                for (Curve newCandidate : newCandidates) {
+                    Curve.Effects effects = newCandidate.getEffects();
                     effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapPartial(color)));
                 }
             }

@@ -39,7 +39,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.ontologyengineering.protege.web.client.ConceptManager;
-import org.ontologyengineering.protege.web.client.ui.pattern.Concept;
+import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
@@ -55,10 +55,10 @@ import java.util.List;
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager, SearchManager {
 
     private boolean registeredEventHandlers = false;
-    final private Map<IRI, Concept> namedCurves = new HashMap();
+    final private Map<IRI, Curve> namedCurves = new HashMap();
     private Collection<EntityData> selection = Collections.emptyList();
     @Getter private Optional<DraggableShape> snapSeeker = Optional.absent();
-    final private ListMultimap<DraggableShape, Concept> snapCandidates = ArrayListMultimap.create();
+    final private ListMultimap<DraggableShape, Curve> snapCandidates = ArrayListMultimap.create();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
@@ -70,7 +70,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         final List<Pattern> templates =
                 Arrays.<Pattern>asList(
-                new Concept("concept-template", this, this),
+                new Curve("curve-template", this, this),
                 new Subsumption("subsume-template", this, vPanel));
 
         final int yGap = 20;
@@ -153,12 +153,12 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @NonNull private final TextBox textbox;
         @NonNull private final String color;
 
-        @NonNull private Collection<Concept> matching = Collections.emptyList();
-        @NonNull private Collection<Concept> nonMatching = Collections.emptyList();
+        @NonNull private Collection<Curve> matching = Collections.emptyList();
+        @NonNull private Collection<Curve> nonMatching = Collections.emptyList();
 
         @NonNull boolean hasSearch = false;
 
-        public Optional<Collection<Concept>> getMatching() {
+        public Optional<Collection<Curve>> getMatching() {
             if (hasSearch) {
                 return Optional.of(matching);
             } else {
@@ -174,10 +174,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void update() {
             final String text = textbox.getText().trim();
             setHasSearch(!text.isEmpty());
-            ImmutableListMultimap<Boolean, Concept> partitionedMap =
-                    Multimaps.index(namedCurves.values(), new Function<Concept, Boolean>() {
+            ImmutableListMultimap<Boolean, Curve> partitionedMap =
+                    Multimaps.index(namedCurves.values(), new Function<Curve, Boolean>() {
                         @Override
-                        public Boolean apply(Concept input) {
+                        public Boolean apply(Curve input) {
                             if (input.getLabel().isPresent() && !text.isEmpty()) {
                                 String clabel = input.getLabel().get();
                                 return clabel.contains(text);
@@ -190,16 +190,16 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             matching = partitionedMap.get(true);
             nonMatching = partitionedMap.get(false);
 
-            for (Concept concept : nonMatching) {
-                concept.setMatchStatus(this, MatchStatus.NO_MATCH);
+            for (Curve curve : nonMatching) {
+                curve.setMatchStatus(this, MatchStatus.NO_MATCH);
             }
             if (matching.size() > 1) {
-                for (Concept concept : matching) {
-                    concept.setMatchStatus(this, MatchStatus.PARTIAL_MATCH);
+                for (Curve curve : matching) {
+                    curve.setMatchStatus(this, MatchStatus.PARTIAL_MATCH);
                 }
             } else {
-                for (Concept concept : matching) {
-                    concept.setMatchStatus(this, MatchStatus.UNIQUE_MATCH);
+                for (Curve curve : matching) {
+                    curve.setMatchStatus(this, MatchStatus.UNIQUE_MATCH);
                 }
             }
         }
@@ -226,11 +226,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         return new SearchHandlerImpl(textbox, color);
     }
 
-    public List<Concept> getSnapCandidates(DraggableShape dragged) {
-        List<Concept> matches = new LinkedList<Concept>();
+    public List<Curve> getSnapCandidates(DraggableShape dragged) {
+        List<Curve> matches = new LinkedList<Curve>();
         Rectangle dbox = dragged.getAbsoluteBBox();
         GWT.log("[CM] getSnapCandidates for " + dbox);
-        for (Concept candidate : namedCurves.values()) {
+        for (Curve candidate : namedCurves.values()) {
             Rectangle cbox = candidate.getWCurve().getAbsoluteBBox();
             if (dbox.intersects(cbox)) {
                 matches.add(candidate);
@@ -294,14 +294,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void handleParentRemovedEvent(ClassHierarchyParentRemovedEvent event) {
         GWT.log("[CM] handling parent remove " + event.getParent() + ", child: " + event.getChild());
         IRI toRename = event.getChild().getIRI();
-        Concept curve = namedCurves.get(toRename);
+        Curve curve = namedCurves.get(toRename);
         if (curve != null) {
             curve.delete();
         }
     }
 
     /**
-     * Called to update the concept label
+     * Called to update the curve label
      * @param event The event that describes the browser text change that happened.
      */
     protected void onEntityBrowserTextChanged(BrowserTextChangedEvent event) {
@@ -311,7 +311,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         GWT.log("[CM rename] received BrowserTextChangedEvent event " + event +
                 " | " + toRename + " to " + newName +
                 " | " + event.getSource());
-        Concept curve = namedCurves.get(toRename);
+        Curve curve = namedCurves.get(toRename);
         if (curve != null) {
             if (!curve.getLabel().equals(newName)) {
                 curve.setLabel(newName);
@@ -330,18 +330,18 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         setSelection(Collections.singleton(entityData));
     }
 
-    public void createClass(@NonNull final Concept concept,
+    public void createClass(@NonNull final Curve curve,
                             @NonNull final String name) {
         DispatchServiceManager.get().execute(
                 new CreateClassAction(getProjectId(), name, DataFactory.getOWLThing()),
-                getCreateClassAsyncHandler(concept));
+                getCreateClassAsyncHandler(curve));
     }
 
-    public void checkClassName(@NonNull final Concept concept) {
-        GWT.log("[CM] Want to know class name for " + concept + " | " + concept.getId());
-        if (concept.getIri().isPresent()) {
-            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), concept.getIri().get().toString(),
-                    new GetTriplesHandler(concept));
+    public void checkClassName(@NonNull final Curve curve) {
+        GWT.log("[CM] Want to know class name for " + curve + " | " + curve.getId());
+        if (curve.getIri().isPresent()) {
+            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), curve.getIri().get().toString(),
+                    new GetTriplesHandler(curve));
         }
      }
 
@@ -414,23 +414,23 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     public void onCreateClass(@NonNull final IRI iri,
-                              @NonNull final Concept concept) {
-        namedCurves.put(iri, concept);
+                              @NonNull final Curve curve) {
+        namedCurves.put(iri, curve);
     }
 
     /*
      * ************ Remote procedure calls *****************
      */
 
-    protected AbstractAsyncHandler<CreateClassResult> getCreateClassAsyncHandler(Concept concept) {
-        return new CreateClassHandler(this, concept);
+    protected AbstractAsyncHandler<CreateClassResult> getCreateClassAsyncHandler(Curve curve) {
+        return new CreateClassHandler(this, curve);
     }
 
     @RequiredArgsConstructor
     class CreateClassHandler extends AbstractAsyncHandler<CreateClassResult> {
 
         final ConceptDiagramPortlet portlet;
-        final Concept concept;
+        final Curve curve;
 
         @Override
         public void handleFailure(final Throwable caught) {
@@ -442,8 +442,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void handleSuccess(final CreateClassResult result) {
             IRI iri = result.getObject().getIRI();
             GWT.log("[CM] created object: " + iri);
-            concept.setIri(Optional.of(iri));
-            portlet.onCreateClass(iri, concept);
+            curve.setIri(Optional.of(iri));
+            portlet.onCreateClass(iri, curve);
         }
     }
 
@@ -479,7 +479,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     @RequiredArgsConstructor
     class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
-        private final Concept concept;
+        private final Curve curve;
 
         @Override
         public void handleFailure(Throwable caught) {
