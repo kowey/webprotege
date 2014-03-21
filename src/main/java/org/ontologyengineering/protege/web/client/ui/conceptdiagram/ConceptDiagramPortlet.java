@@ -2,16 +2,24 @@ package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextBox;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityAction;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityResult;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
@@ -34,22 +42,18 @@ import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.ontologyengineering.protege.web.client.ConceptManager;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
-
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
 import java.util.*;
-import java.util.List;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager, SearchManager {
@@ -57,11 +61,59 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private boolean registeredEventHandlers = false;
     final private Map<IRI, Curve> namedCurves = new HashMap();
     private Collection<EntityData> selection = Collections.emptyList();
-    @Getter private Optional<DraggableShape> snapSeeker = Optional.absent();
-    final private ListMultimap<DraggableShape, Curve> snapCandidates = ArrayListMultimap.create();
 
     public ConceptDiagramPortlet(Project project) {
         super(project);
+    }
+
+    /*
+     * ************ Initialisation *****************
+     */
+
+    @Override
+    public void initialize() {
+        setTitle("ConceptDiagram");
+        this.add(createMainPanel());
+        registerEventHandlers();
+        reload();
+    }
+
+    @Override
+    public void reload() {
+        if (_currentEntity == null) {
+            return;
+        }
+    }
+
+    public AbsolutePanel createMainPanel() {
+        final AbsolutePanel vPanel = new AbsolutePanel();
+        vPanel.getElement().getStyle().setProperty("height", "100%");
+        vPanel.getElement().getStyle().setProperty("width", "100%");
+        final Button btn = new Button("Start");
+        final TextBox searchBox = new TextBox();
+        final Label searchBoxCaption = new Label("search:");
+
+        vPanel.add(btn);
+        vPanel.add(searchBoxCaption);
+        vPanel.add(searchBox);
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                try {
+                    initTemplates(vPanel);
+                } catch (Exception e) {
+                    GWT.log("Template initialisation error:", e);
+                }
+            }
+        });
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                btn.removeFromParent();
+            }
+        });
+        makeSearchHandler(searchBox, "orange").bind();
+        return vPanel;
     }
 
     // draw the pattern templates
@@ -87,14 +139,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     @Override
-    public void initialize() {
-        setTitle("ConceptDiagram");
-        this.add(createMainPanel());
-        registerEventHandlers();
-        reload();
-    }
-
-    @Override
     public void setPortletConfiguration(PortletConfiguration portletConfiguration) {
         super.setPortletConfiguration(portletConfiguration);
     }
@@ -105,11 +149,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
         GWT.log("Registering event handlers for ConceptDiagramPortlet " + this);
         registeredEventHandlers = true;
-        ///////////////////////////////////////////////////////////////////////////
-        //
-        // Registration of event handlers that we are interested in
-        //
-        ///////////////////////////////////////////////////////////////////////////
 
         addProjectEventHandler(BrowserTextChangedEvent.TYPE, new BrowserTextChangedHandler() {
             @Override
@@ -128,21 +167,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         });
     }
-
-    @RequiredArgsConstructor
-    class CreateDiagramHandler implements ClickHandler {
-
-        private final AbsolutePanel vPanel;
-        private final ConceptManager conceptManager;
-
-        @Override
-        public void onClick(ClickEvent clickEvent) {
-            try {
-                initTemplates(vPanel);
-            } catch (Exception e) {
-                GWT.log("buh?", e);
-            }
-        }}
 
     /*
      * ************ Searching and snapping *****************
@@ -241,36 +265,17 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     /*
-     * ************ Initialisation *****************
+     * ************ Curve selection *****************
      */
 
-    public AbsolutePanel createMainPanel() {
-        AbsolutePanel vPanel = new AbsolutePanel();
-        vPanel.getElement().getStyle().setProperty("height", "100%");
-        vPanel.getElement().getStyle().setProperty("width", "100%");
-        final Button btn = new Button("Start");
-        final TextBox searchBox = new TextBox();
-        final Label searchBoxCaption = new Label("search:");
-
-        vPanel.add(btn);
-        vPanel.add(searchBoxCaption);
-        vPanel.add(searchBox);
-        btn.addClickHandler(new CreateDiagramHandler(vPanel, this));
-        btn.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                btn.removeFromParent();
-            }
-        });
-        makeSearchHandler(searchBox, "orange").bind();
-        return vPanel;
-    }
-
-    @Override
-    public void reload() {
-        if (_currentEntity == null) {
-            return;
-        }
+    public void selectClass(@NonNull final IRI iri) {
+        // FIXME: bit of cargo culting, not sure why it has to be a SubclassEntityData
+        // in particular and not just any old EntityData, but selection doesn't
+        // propagate otherwise
+        final EntityData entityData =
+                new SubclassEntityData(iri.toString(), "", Collections.<EntityData>emptySet(), 0);
+        entityData.setValueType(ValueType.Cls);
+        setSelection(Collections.singleton(entityData));
     }
 
     public Collection<EntityData> getSelection() {
@@ -285,6 +290,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         notifySelectionListeners(new SelectionEvent(ConceptDiagramPortlet.this));
     }
 
+    /*
+     * ************ [Passive] Curve (re)naming, deletion *****************
+     * handling curve rename/delete events from the outside world
+     * *******************************************************************
+     */
 
     /**
      * Called upon (external) concept deletion
@@ -320,15 +330,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     }
 
-    public void selectClass(@NonNull final IRI iri) {
-        // FIXME: bit of cargo culting, not sure why it has to be a SubclassEntityData
-        // in particular and not just any old EntityData, but selection doesn't
-        // propagate otherwise
-        final EntityData entityData =
-            new SubclassEntityData(iri.toString(), "", Collections.<EntityData>emptySet(), 0);
-        entityData.setValueType(ValueType.Cls);
-        setSelection(Collections.singleton(entityData));
-    }
+    /*
+     * ************ [Active] curve (re)naming, deletion **************
+     */
 
     public void createClass(@NonNull final Curve curve,
                             @NonNull final String name) {
@@ -464,6 +468,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
+    // we are keeping this around in the event that we want to change the IRI
+    // of a curve, something we currently do not touch (2014-03-21)
     class RenameClassHandler extends AbstractAsyncHandler<Void> {
         @Override
         public void handleFailure(final Throwable caught) {
@@ -494,12 +500,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
 
     }
-
-    public static native void gwtjsPlumbConnect(JavaScriptObject pairs) /*-{
-            $wnd.gwtjsconnect(pairs);
-
-        }-*/;
-
 
 }
 
