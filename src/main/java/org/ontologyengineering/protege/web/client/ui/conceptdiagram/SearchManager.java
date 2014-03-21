@@ -5,10 +5,8 @@ import com.google.gwt.user.client.ui.TextBox;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 
-import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by eykk10 on 3/12/14.

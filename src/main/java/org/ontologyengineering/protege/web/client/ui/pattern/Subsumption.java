@@ -3,8 +3,6 @@ package org.ontologyengineering.protege.web.client.ui.pattern;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterables;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.ui.*;
@@ -19,7 +17,6 @@ import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.semanticweb.owlapi.model.IRI;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
