@@ -76,7 +76,7 @@ public class DispatchServiceManager {
             ResultCache resultCache = getResultCache(projectId);
             Optional<R> result = resultCache.getCachedResult(action);
             if(result.isPresent()) {
-                GWT.log("[DISPATCH] Using cached result (" + action + ")");
+//                GWT.log("[DISPATCH] Using cached result (" + action + ")");
                 callback.onSuccess(result.get());
                 return;
             }
@@ -110,9 +110,9 @@ public class DispatchServiceManager {
 
         @Override
         public void onSuccess(DispatchServiceResultContainer result) {
-            if (hasEvents(result.getResult())) {
-                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess START");
-            }
+//            if (hasEvents(result.getResult())) {
+//                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess START");
+//            }
             // TODO: Fix
             if(action instanceof HasProjectId) {
                 ResultCache resultCache = getResultCache(((HasProjectId) action).getProjectId());
@@ -120,14 +120,14 @@ public class DispatchServiceManager {
             }
             cacheRenderables(result.getResult());
             dispatchEvents(result.getResult());
-            if (result.getResult().getClass() != GetProjectEventsResult.class) {
-                GWT.log("[DISPATCH EYK] about to delegate: " + result.getResult());
-            }
+//            if (result.getResult().getClass() != GetProjectEventsResult.class) {
+//                GWT.log("[DISPATCH EYK] about to delegate: " + result.getResult());
+//            }
             delegate.onSuccess(result.getResult());
-            if (hasEvents(result.getResult())) {
-                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess END");
-                GWT.log("[DISPATCH EYK]");
-            }
+//            if (hasEvents(result.getResult())) {
+//                GWT.log("[DISPATCH EYK] ---------------------------------- onSuccess END");
+//                GWT.log("[DISPATCH EYK]");
+//            }
         }
 
     }
@@ -158,9 +158,9 @@ public class DispatchServiceManager {
             // TODO: FIX - Should be dispatched by the project event manager otherwise we will get events from the
             // TODO: more than once!
 
-            for(Event<?> event : events) {
-                GWT.log("[DISPATCH] Dispatching event (" + event /*.toDebugString()*/ + ")");
-            }
+//            for(Event<?> event : events) {
+//                GWT.log("[DISPATCH] Dispatching event (" + event /*.toDebugString()*/ + ")");
+//            }
             EventBusManager.getManager().postEvents(events);
         }
     }

@@ -90,13 +90,13 @@ public class EventPollingManager {
             GWT.log("[Event Polling Manager] Updated events.  Next tag is " + nextTag);
         }
         if (!eventList.isEmpty()) {
-            GWT.log("[Event Polling Manager] Dispatching events from polling manager...");
-            for(Event<?> event : eventList.getEvents()) {
-                GWT.log("[Event Polling Manager] Event: " + event.toString());
-            }
+//            GWT.log("[Event Polling Manager] Dispatching events from polling manager...");
+//            for(Event<?> event : eventList.getEvents()) {
+//                GWT.log("[Event Polling Manager] Event: " + event.toString());
+//            }
             EventBusManager.getManager().postEvents(eventList.getEvents());
-            GWT.log("[Event Polling Manager EYK] ------------------------ DONE");
-            GWT.log("");
+//            GWT.log("[Event Polling Manager EYK] ------------------------ DONE");
+//            GWT.log("");
         }
     }
 
