@@ -279,13 +279,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     public Collection<EntityData> getSelection() {
-        GWT.log("[CM] get selection");
         return this.selection;
     }
 
     @Override
     public void setSelection(final Collection<EntityData> selection) {
-        GWT.log("[CM] set selection " + selection);
         this.selection = selection;
         notifySelectionListeners(new SelectionEvent(ConceptDiagramPortlet.this));
     }
