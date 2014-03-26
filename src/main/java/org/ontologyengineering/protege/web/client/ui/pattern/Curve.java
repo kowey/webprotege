@@ -369,7 +369,7 @@ class Curve extends Pattern implements Cloneable,
             }
         } else {
             if (this.iri.isPresent()) {
-                this.conceptManager.renameClass(this.iri.get(), before.get(), after.get());
+                this.conceptManager.renameCurveOnly(this, after.get());
             }
         }
     }

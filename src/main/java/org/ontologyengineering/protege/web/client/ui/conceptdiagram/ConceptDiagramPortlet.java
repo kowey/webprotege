@@ -2,6 +2,7 @@ package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -15,6 +16,7 @@ import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
+import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
@@ -57,9 +59,10 @@ import java.util.*;
 
 
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements ConceptManager, SearchManager {
+    static final String DEFAULT_ENTITY_NAME_PREFIX = "http://ontologyengineering.org/uri#";
 
     private boolean registeredEventHandlers = false;
-    final private Map<IRI, Curve> namedCurves = new HashMap();
+    final private Multimap<IRI, Curve> namedCurves = HashMultimap.create();
     private Collection<EntityData> selection = Collections.emptyList();
 
     public ConceptDiagramPortlet(Project project) {
@@ -302,8 +305,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void handleParentRemovedEvent(ClassHierarchyParentRemovedEvent event) {
         GWT.log("[CM] handling parent remove " + event.getParent() + ", child: " + event.getChild());
         IRI toRename = event.getChild().getIRI();
-        Curve curve = namedCurves.get(toRename);
-        if (curve != null) {
+        for (Curve curve : namedCurves.get(toRename)) {
             curve.delete();
         }
     }
@@ -319,13 +321,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         GWT.log("[CM rename] received BrowserTextChangedEvent event " + event +
                 " | " + toRename + " to " + newName +
                 " | " + event.getSource());
-        Curve curve = namedCurves.get(toRename);
-        if (curve != null) {
+        for (Curve curve : namedCurves.get(toRename)) {
             if (!curve.getLabel().equals(newName)) {
                 curve.setLabel(newName);
             }
         }
-
     }
 
     /*
@@ -334,13 +334,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     public void createClass(@NonNull final Curve curve,
                             @NonNull final String name) {
+        GWT.log("[CM] Asked to give the curve " + curve.getId() + " the name " + name);
         DispatchServiceManager.get().execute(
                 new CreateClassAction(getProjectId(), name, DataFactory.getOWLThing()),
-                getCreateClassAsyncHandler(curve));
+                getCreateClassAsyncHandler(curve, name));
     }
 
     public void checkClassName(@NonNull final Curve curve) {
-        GWT.log("[CM] Want to know class name for " + curve + " | " + curve.getId());
+        GWT.log("[CM] Asked to check class name for " + curve.getId() + " | " + curve.getId());
         if (curve.getIri().isPresent()) {
             OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), curve.getIri().get().toString(),
                     new GetTriplesHandler(curve));
@@ -386,6 +387,31 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         return new LabelledFrame(name, annoFrame);
     }
 
+
+    public void renameCurveOnly(@NonNull final Curve curve,
+                                @NonNull final String newName) {
+
+        final IRI newIri = IRI.create(DEFAULT_ENTITY_NAME_PREFIX, newName);
+        if (curve.getIri().isPresent()) {
+            final IRI oldIri = curve.getIri().get();
+            final Collection<Curve> sameName = namedCurves.get(oldIri);
+            if (sameName.size() == 1) {
+                GWT.log("[CM] Need a full on rename");
+                renameClass(oldIri, oldIri.getFragment(), newName);
+            } else if (namedCurves.containsKey(newIri)) {
+                GWT.log("[CM] Renaming to existing IRI; just a quick job");
+                curve.setIri(Optional.of(newIri));
+                curve.setLabel(Optional.of(newName));
+                namedCurves.remove(oldIri,curve);
+                namedCurves.put(newIri, curve);
+            } else {
+                GWT.log("[CM] Renaming to whole new IRI, bit like creating a class");
+                namedCurves.remove(oldIri,curve);
+                createClass(curve, newName);
+            }
+        }
+    }
+
     public void renameClass(@NonNull final IRI iri,
                             @NonNull final String oldName,
                             @NonNull final String newName) {
@@ -393,6 +419,39 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             return;
         }
         GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
+        changeClassEntityName(iri, IRI.create(DEFAULT_ENTITY_NAME_PREFIX, newName));
+
+    }
+
+    protected void changeClassEntityName(final IRI oldName, final IRI newName) {
+        GWT.log("Should rename class from " + oldName + " to " + newName, null);
+        if (oldName.equals(newName) || newName == null || newName.length() == 0) {
+            return;
+        }
+
+        OntologyServiceManager.getInstance().renameEntity(getProjectId(),
+                oldName.toString(),
+                newName.toString(),
+                Application.get().getUserId(),
+                "Old name: " + oldName + ", New name: " + newName,
+                new RenameClassHandler(oldName, newName, newName.getFragment()));
+    }
+
+    /**
+     * Possible concrete implementation for renaming; change the rdfs:label
+     *
+     * @param iri
+     * @param oldName
+     * @param newName
+     */
+    private void changeClassLabel(@NonNull final IRI iri,
+                                  @NonNull final String oldName,
+                                  @NonNull final String newName) {
+        if (oldName.equals(newName) || newName == null || newName.length() == 0) {
+            return;
+        }
+        GWT.log("[CM] Invoking rename " + iri + " from " + oldName + " to " + newName, null);
+
         LabelledFrame<AnnotationPropertyFrame> oldFrame = createNamingFrame(iri, oldName);
         LabelledFrame<AnnotationPropertyFrame> newFrame = createNamingFrame(iri, newName);
 
@@ -412,7 +471,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     public void onDeleteClass(@NonNull final IRI iri) {
-        namedCurves.remove(iri);
+        namedCurves.removeAll(iri);
     }
 
     public void onCreateClass(@NonNull final IRI iri,
@@ -424,15 +483,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * ************ Remote procedure calls *****************
      */
 
-    protected AbstractAsyncHandler<CreateClassResult> getCreateClassAsyncHandler(Curve curve) {
-        return new CreateClassHandler(this, curve);
+    protected AbstractAsyncHandler<CreateClassResult> getCreateClassAsyncHandler(Curve curve, String name) {
+        return new CreateClassHandler(curve, name);
     }
 
     @RequiredArgsConstructor
     class CreateClassHandler extends AbstractAsyncHandler<CreateClassResult> {
-
-        final ConceptDiagramPortlet portlet;
         final Curve curve;
+        final String desiredName;
 
         @Override
         public void handleFailure(final Throwable caught) {
@@ -442,10 +500,19 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         @Override
         public void handleSuccess(final CreateClassResult result) {
-            IRI iri = result.getObject().getIRI();
-            GWT.log("[CM] created object: " + iri);
-            curve.setIri(Optional.of(iri));
-            portlet.onCreateClass(iri, curve);
+            IRI createdIri = result.getObject().getIRI();
+            GWT.log("[CM] created object: " + createdIri);
+            IRI newIri = IRI.create(DEFAULT_ENTITY_NAME_PREFIX, desiredName);
+            if (createdIri.equals(newIri)) {
+                onCreateClass(newIri, curve);
+            } else {
+                OntologyServiceManager.getInstance().renameEntity(getProjectId(),
+                    createdIri.toString(),
+                    newIri.toString(),
+                    Application.get().getUserId(),
+                    "Rename on create: " + createdIri + ", New name: " + newIri,
+                    new RenameClassOnCreateHandler(curve, newIri));
+            }
         }
     }
 
@@ -466,9 +533,33 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
+    @RequiredArgsConstructor
+    class RenameClassOnCreateHandler extends AbstractAsyncHandler<EntityData> {
+        final private Curve curve;
+        final private IRI iri;
+
+        @Override
+        public void handleFailure(final Throwable caught) {
+            GWT.log("[CM] Error renaming newly created class", caught);
+        }
+
+        @Override
+        public void handleSuccess(final EntityData result) {
+            GWT.log("[CM] Successfully renamed newly-created class");
+            curve.setIri(Optional.of(iri));
+            ConceptDiagramPortlet.this.onCreateClass(iri, curve);
+        }
+
+    }
+
     // we are keeping this around in the event that we want to change the IRI
     // of a curve, something we currently do not touch (2014-03-21)
-    class RenameClassHandler extends AbstractAsyncHandler<Void> {
+    @RequiredArgsConstructor
+    class RenameClassHandler extends AbstractAsyncHandler<EntityData> {
+        final IRI oldIri;
+        final IRI newIri;
+        final String newLabel;
+
         @Override
         public void handleFailure(final Throwable caught) {
             GWT.log("[CM] Error renaming class", caught);
@@ -476,8 +567,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
 
         @Override
-        public void handleSuccess(final Void result) {
+        public void handleSuccess(final EntityData result) {
             GWT.log("[CM] My rename invocation succeeded ", null);
+            Collection<Curve> affectedCurves = namedCurves.get(oldIri);
+            for (Curve curve : affectedCurves) {
+                curve.setIri(Optional.of(newIri));
+                curve.setLabel(Optional.of(newLabel));
+            }
+            namedCurves.removeAll(oldIri);
+            namedCurves.putAll(newIri, affectedCurves);
         }
     }
 

@@ -17,6 +17,16 @@ public interface ConceptManager {
                             final String oldName,
                             final String newName);
 
+    /**
+     * Rename just the current curve; if the curve is the only one representing
+     * its class, rename the whole class
+     *
+     * @param curve
+     * @param newName
+     */
+    public void renameCurveOnly(final Curve curve,
+                                final String newName);
+
     public void checkClassName(final Curve curve);
 
 }
