@@ -33,20 +33,26 @@ public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
-@Getter @Setter @RequiredArgsConstructor @ToString
+@Getter @Setter
+@RequiredArgsConstructor
+@ToString
 class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
-    @Getter private String idPrefix = "concept";
+    @NonNull protected final String id;
+    @Getter private String idPrefix = "curve";
     private int rounding = 20;
 
-
-    @NonNull final String id;
     @NonNull final ConceptManager conceptManager;
     @NonNull final SearchManager searchManager;
 
     @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
     @NonNull Optional<String> label = Optional.absent();
+
+    /**
+     * Note that setIri should probably only be used by the concept manager
+     */
+    @NonNull Optional<IRI> iri = Optional.absent();
 
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     CanvasState canvasState = new CanvasState();
@@ -168,10 +174,7 @@ class Curve extends Pattern implements Cloneable,
 
 
 
-    /**
-     * FIXME: You should probably not use the setter for this method
-     */
-    @Setter @NonNull Optional<IRI> iri = Optional.absent();
+
 
     @Data class ResizeScale {
         private final float x;
@@ -320,14 +323,14 @@ class Curve extends Pattern implements Cloneable,
     }
 
 
-    public Curve copyTemplate(@NonNull final AbsolutePanel container,
-                                final int counter) {
-        Curve copy  = new Curve(idPrefix + counter, conceptManager, searchManager);
+
+    public Curve copyTemplate(@NonNull final AbsolutePanel container) {
+        Curve copy  = new Curve(makeId(), conceptManager, searchManager);
         copy.setLabel(this.getLabel());
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
-        TemplateHandler.addHandler(container, this, copy, counter);
+        TemplateHandler.addHandler(container, this, copy);
         copy.makeDraggable();
         return copy;
     }

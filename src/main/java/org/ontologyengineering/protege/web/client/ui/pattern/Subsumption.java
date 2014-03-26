@@ -417,10 +417,9 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
-                                 final int counter) {
+    public Subsumption copyTemplate(@NonNull final AbsolutePanel container) {
 
-        Subsumption copy  = new Subsumption(idPrefix + counter, searchManager, parentPanel);
+        Subsumption copy  = new Subsumption(makeId(), searchManager, parentPanel);
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");

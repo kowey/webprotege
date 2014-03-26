@@ -16,10 +16,34 @@ import lombok.*;
  * {@see TemplateHandler}
  */
 public abstract
-@Getter @Setter @RequiredArgsConstructor @ToString
+@Getter @Setter @ToString
 class Pattern extends AbsolutePanel {
-    protected int height = 80;
-    protected int width  = 120;
+
+    // used to ensure that all curves created have a unique identifier
+    static private int globalPatternCounter = 0;
+
+    protected int height;
+    protected int width;
+
+    public Pattern() {
+        this(80, 120);
+    }
+
+    public Pattern(@NonNull final int height,
+                   @NonNull final int width) {
+        this.height = height;
+        this.width = width;
+        globalPatternCounter++;
+    }
+
+    /**
+     * Return the current DOM identifier
+     *
+     * Note that every call to the Pattern constructor causes this to change
+     */
+    public String makeId() {
+        return getIdPrefix() + globalPatternCounter;
+    }
 
     /**
      * Return some string that can be used as a prefix to a DOM identifier
@@ -50,11 +74,8 @@ class Pattern extends AbsolutePanel {
      * copy it to a new visible template pattern
      *
      * @param container panel to copy the mould into
-     * @param counter a number that would be used to build the DOM identifier
-     *                for this pattern (should be incremented by
      * @return a brand new template that can be used to instantiate yet another pattern
      */
-    public abstract Pattern copyTemplate(final AbsolutePanel container,
-                                         final int counter);
+    public abstract Pattern copyTemplate(final AbsolutePanel container);
 
 }

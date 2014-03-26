@@ -137,7 +137,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             template.startTemplateMode();
             vPanel.add(template, templateX, currentY);
             currentY += template.getHeight() + yGap;
-            template.copyTemplate(vPanel, 0);
+            template.copyTemplate(vPanel);
         }
     }
 
