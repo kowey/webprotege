@@ -35,12 +35,19 @@ public final class WebProtegeDialog<D> extends DialogBox {
 
     private static final String WEB_PROTEGE_DIALOG_BUTTON = "web-protege-dialog-button";
 
+    // We want dialog boxes to obscure everything else by default
+    // (if they are going to be modal, you ought to be able to see
+    // what they are saying). Right now, the only way I can think of
+    // dealing with this is to pick an arbitrarily "high" number.
+    private static final int WEB_PROTEGE_DIALOG_ZINDEX = 10;
+
     private WebProtegeDialogController<D> controller;
 
     private final FlowPanel mainPanel;
 
     public WebProtegeDialog(WebProtegeDialogController<D> controller) {
         super(AUTO_HIDE, MODAL);
+        getElement().getStyle().setZIndex(WEB_PROTEGE_DIALOG_ZINDEX);
         this.controller = controller;
 
         setGlassEnabled(true);
