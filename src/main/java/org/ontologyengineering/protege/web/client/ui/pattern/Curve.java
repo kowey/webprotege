@@ -353,6 +353,11 @@ class Curve extends Pattern implements Cloneable,
             handleLabelChanges(this.label, this.tempLabel);
             this.label = this.tempLabel;
         }
+        // we can mouse out even if we're still holding the mouse button
+        // down; this leads to some confusion where we start resizing and
+        // then mouse out to another object due to our mouse movements
+        // and when we get back to object
+        this.canvasState.stopResizing();
     }
 
     protected void handleLabelChanges(@NonNull final Optional<String> before,
