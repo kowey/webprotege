@@ -19,7 +19,6 @@ class TemplateHandler implements MouseMoveHandler {
     // no kidding! (this is due to lombok's name mangling)
     private @NonNull final Pattern _template;
     private @NonNull final Pattern copy;
-    private final int counter;
     private HandlerRegistration registration;
 
     private final static int GAP = 5;
@@ -27,8 +26,7 @@ class TemplateHandler implements MouseMoveHandler {
     @Override
     public void onMouseMove(MouseMoveEvent event) {
         if (this.isFarFromTemplate()) {
-            _template.copyTemplate(container,
-                    counter + 1);
+            _template.copyTemplate(container);
             if (registration != null) {
                 registration.removeHandler();
                 copy.switchToInstanceMode();
@@ -38,9 +36,8 @@ class TemplateHandler implements MouseMoveHandler {
 
     public static void addHandler(final AbsolutePanel container,
                                   final Pattern template,
-                                  final Pattern copy,
-                                  final int counter) {
-        TemplateHandler handler = new TemplateHandler(container, template, copy, counter);
+                                  final Pattern copy) {
+        TemplateHandler handler = new TemplateHandler(container, template, copy);
         HandlerRegistration reg =
                 copy.addDomHandler(handler, MouseMoveEvent.getType());
         handler.setRegistration(reg);

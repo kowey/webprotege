@@ -10,7 +10,7 @@ import com.google.gwt.user.client.ui.*;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Panel;
 import lombok.*;
-import org.ontologyengineering.protege.web.client.ConceptManager;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
@@ -33,20 +33,26 @@ public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
-@Getter @Setter @RequiredArgsConstructor @ToString
+@Getter @Setter
+@RequiredArgsConstructor
+@ToString
 class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
-    @Getter private String idPrefix = "concept";
+    @NonNull protected final String id;
+    @Getter private String idPrefix = "curve";
     private int rounding = 20;
 
-
-    @NonNull final String id;
-    @NonNull final ConceptManager conceptManager;
+    @NonNull final CurveRegistry curveRegistry;
     @NonNull final SearchManager searchManager;
 
-    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
     @NonNull Optional<String> label = Optional.absent();
+    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
+
+    /**
+     * Note that setIri should probably only be used by the concept manager
+     */
+    @NonNull Optional<IRI> iri = Optional.absent();
 
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     CanvasState canvasState = new CanvasState();
@@ -56,7 +62,8 @@ class Curve extends Pattern implements Cloneable,
     final private ButtonBar buttonBar = new ButtonBar(wLabel);
     final private Effects effects = new Effects(wCurve, wLabel);
 
-    @Data class Effects extends AttributeLayers {
+    @RequiredArgsConstructor @Getter
+    class Effects extends AttributeLayers {
         @NonNull final private DraggableShape curve;
         @NonNull final private TextBox label;
 
@@ -159,19 +166,13 @@ class Curve extends Pattern implements Cloneable,
     class DeleteHandler implements ClickHandler {
         @Override
         public void onClick(ClickEvent event) {
-            if (iri.isPresent()) {
-                conceptManager.deleteClass(iri.get());
-            }
             Curve.this.delete();
         }
     }
 
 
 
-    /**
-     * FIXME: You should probably not use the setter for this method
-     */
-    @Setter @NonNull Optional<IRI> iri = Optional.absent();
+
 
     @Data class ResizeScale {
         private final float x;
@@ -246,7 +247,8 @@ class Curve extends Pattern implements Cloneable,
         return this.id + "_curve";
     }
 
-    @Data class ButtonBar extends DockPanel {
+    @Getter
+    class ButtonBar extends DockPanel {
         final private TextBox wLabel;
         final Panel wButtons = new HorizontalPanel();
         final Button wDelete = new Button("X");
@@ -313,15 +315,31 @@ class Curve extends Pattern implements Cloneable,
         this.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
     }
 
+    /**
+     * Create a whole new curve, with the given left/top coordinates and dimensions
+     */
+    public Curve createCurve(@NonNull final AbsolutePanel container,
+                             final int relativeX,
+                             final int relativeY) {
+        Curve curve = new Curve(makeId(), curveRegistry, searchManager);
+        int parentRelativeX = relativeX + container.getWidgetLeft(this);
+        int parentRelativeY = relativeY + container.getWidgetTop(this);
+        container.add(curve, parentRelativeX, parentRelativeY);
+        return curve;
+    }
 
-    public Curve copyTemplate(@NonNull final AbsolutePanel container,
-                                final int counter) {
-        Curve copy  = new Curve(idPrefix + counter, conceptManager, searchManager);
-        copy.setLabel(this.getLabel());
+    public Curve copyTemplate(@NonNull final AbsolutePanel container) {
+        Curve copy  = new Curve(makeId(), curveRegistry, searchManager);
+        String text = this.buttonBar.wLabel.getText();
+        if (text.isEmpty()) {
+            copy.setLabel(Optional.<String>absent());
+        } else {
+            copy.setLabel(Optional.of(text));
+        }
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
-        TemplateHandler.addHandler(container, this, copy, counter);
+        TemplateHandler.addHandler(container, this, copy);
         copy.makeDraggable();
         return copy;
     }
@@ -334,7 +352,7 @@ class Curve extends Pattern implements Cloneable,
     public void onMouseOver(MouseOverEvent event) {
         mouseOverHighlight();
         if (this.iri.isPresent()) {
-            this.conceptManager.selectClass(this.iri.get());
+            this.curveRegistry.selectClass(this.iri.get());
         }
         buttonBar.wLabel.setReadOnly(false);
     }
@@ -344,8 +362,9 @@ class Curve extends Pattern implements Cloneable,
         if (! this.canvasState.isRenaming()) {
             this.getElement().setClassName("concept");
             buttonBar.wLabel.setReadOnly(true);
-            handleLabelChanges(this.label, this.tempLabel);
-            this.label = this.tempLabel;
+            if (! this.label.equals(this.tempLabel)) {
+                rename(this.tempLabel);
+            }
         }
         // we can mouse out even if we're still holding the mouse button
         // down; this leads to some confusion where we start resizing and
@@ -354,24 +373,6 @@ class Curve extends Pattern implements Cloneable,
         this.canvasState.stopResizing();
     }
 
-    protected void handleLabelChanges(@NonNull final Optional<String> before,
-                                      @NonNull final Optional<String> after) {
-        if (before == after) {
-            return;
-        } else if (!before.isPresent()) {
-            this.conceptManager.createClass(this, after.get());
-        } else if (!after.isPresent()) {
-            if (this.iri.isPresent()) {
-                this.conceptManager.deleteClass(this.iri.get());
-            } else {
-                GWT.log("ERROR: no IRI set even though delete was triggered");
-            }
-        } else {
-            if (this.iri.isPresent()) {
-                this.conceptManager.renameClass(this.iri.get(), before.get(), after.get());
-            }
-        }
-    }
 
 
 
@@ -405,20 +406,35 @@ class Curve extends Pattern implements Cloneable,
         }
     }
 
-    public void setLabel(@NonNull Optional<String> label) {
-        GWT.log("[CONCEPT] setLabel" + label + "(was " + this.label + "," + this.tempLabel + ")");
-        setTempLabel(label);
+    /**
+     * [visual] Change label text only
+     *
+     * You probably want {@link #rename}
+     *
+     *
+     * @param label
+     */
+    private void setLabel(@NonNull Optional<String> label) {
         this.label = label;
+        setTempLabel(label);
         buttonBar.wLabel.setText(label.or(""));
     }
 
     /**
-     * Remove and unregister this concept
+     * Change the curve label (and reregister accordingly)
+     *
+     * @param name
+     */
+    public void rename(Optional<String> name) {
+        curveRegistry.changeCurveName(this, this.getLabel(), name);
+        setLabel(name);
+    }
+
+    /**
+     * Remove and unregister this curve
      */
     public void delete() {
-        if (iri.isPresent()) {
-            conceptManager.deleteClass(iri.get());
-        }
+        curveRegistry.removeCurveName(this);
         removeFromParent();
     }
 

@@ -269,8 +269,8 @@ class Subsumption extends Pattern implements Cloneable {
     }
 
 
-
-    @Data class ButtonBar extends DockPanel {
+    @Getter
+    class ButtonBar extends DockPanel {
         final private TextBox wSuperset = new TextBox();
         final private TextBox wSubset = new TextBox();
         final private Label wSubsumes = new Label("SUBSUMES");
@@ -312,7 +312,9 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    @Data class Effects extends AttributeLayers {
+    @Getter
+    @RequiredArgsConstructor
+    class Effects extends AttributeLayers {
 
         final Map<DraggableShape,VisualEffect> curveEffects = new HashMap();
 
@@ -417,10 +419,9 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    public Subsumption copyTemplate(@NonNull final AbsolutePanel container,
-                                 final int counter) {
+    public Subsumption copyTemplate(@NonNull final AbsolutePanel container) {
 
-        Subsumption copy  = new Subsumption(idPrefix + counter, searchManager, parentPanel);
+        Subsumption copy  = new Subsumption(makeId(), searchManager, parentPanel);
         container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
