@@ -381,7 +381,6 @@ class Curve extends Pattern implements Cloneable,
     public void onMouseUp(MouseUpEvent event) {
         this.canvasState.setMoving(false);
         this.canvasState.stopResizing();
-        GWT.log(wCurve.getAbsoluteBBox().toString());
         //searchManager.getSearchIndex();
     }
 
