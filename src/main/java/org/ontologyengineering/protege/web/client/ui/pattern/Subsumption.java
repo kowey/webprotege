@@ -337,7 +337,7 @@ class Subsumption extends Pattern implements Cloneable {
                 public void apply(Key key, String value) {
                     final Object obj = key.getObject();
                     final String attr = key.getAttribute();
-                    if (curveEffects.containsKey(obj)) {
+                    if (freeWidgets.contains(obj)) {
                         DraggableShape curve = (DraggableShape)obj;
                         curve.attr(attr, value);
                     }
