@@ -318,7 +318,18 @@ class Curve extends Pattern implements Cloneable,
         this.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
     }
 
-
+    /**
+     * Create a whole new curve, with the given left/top coordinates and dimensions
+     */
+    public Curve createCurve(@NonNull final AbsolutePanel container,
+                             final int relativeX,
+                             final int relativeY) {
+        Curve curve = new Curve(makeId(), conceptManager, searchManager);
+        int parentRelativeX = relativeX + container.getWidgetLeft(this);
+        int parentRelativeY = relativeY + container.getWidgetTop(this);
+        container.add(curve, parentRelativeX, parentRelativeY);
+        return curve;
+    }
 
     public Curve copyTemplate(@NonNull final AbsolutePanel container) {
         Curve copy  = new Curve(makeId(), conceptManager, searchManager);
