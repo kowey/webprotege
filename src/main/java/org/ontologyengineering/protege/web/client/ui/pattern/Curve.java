@@ -62,7 +62,8 @@ class Curve extends Pattern implements Cloneable,
     final private ButtonBar buttonBar = new ButtonBar(wLabel);
     final private Effects effects = new Effects(wCurve, wLabel);
 
-    @Data class Effects extends AttributeLayers {
+    @RequiredArgsConstructor @Getter
+    class Effects extends AttributeLayers {
         @NonNull final private DraggableShape curve;
         @NonNull final private TextBox label;
 
@@ -249,7 +250,8 @@ class Curve extends Pattern implements Cloneable,
         return this.id + "_curve";
     }
 
-    @Data class ButtonBar extends DockPanel {
+    @Getter
+    class ButtonBar extends DockPanel {
         final private TextBox wLabel;
         final Panel wButtons = new HorizontalPanel();
         final Button wDelete = new Button("X");

@@ -29,8 +29,8 @@ class Pattern extends AbsolutePanel {
         this(80, 120);
     }
 
-    public Pattern(@NonNull final int height,
-                   @NonNull final int width) {
+    public Pattern(final int height,
+                   final int width) {
         this.height = height;
         this.width = width;
         globalPatternCounter++;

@@ -269,8 +269,8 @@ class Subsumption extends Pattern implements Cloneable {
     }
 
 
-
-    @Data class ButtonBar extends DockPanel {
+    @Getter
+    class ButtonBar extends DockPanel {
         final private TextBox wSuperset = new TextBox();
         final private TextBox wSubset = new TextBox();
         final private Label wSubsumes = new Label("SUBSUMES");
@@ -312,7 +312,9 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    @Data class Effects extends AttributeLayers {
+    @Getter
+    @RequiredArgsConstructor
+    class Effects extends AttributeLayers {
 
         final Map<DraggableShape,VisualEffect> curveEffects = new HashMap();
 

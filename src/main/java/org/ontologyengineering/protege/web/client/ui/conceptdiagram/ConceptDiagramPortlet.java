@@ -183,7 +183,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @NonNull private Collection<Curve> matching = Collections.emptyList();
         @NonNull private Collection<Curve> nonMatching = Collections.emptyList();
 
-        @NonNull boolean hasSearch = false;
+        boolean hasSearch = false;
 
         public Optional<Collection<Curve>> getMatching() {
             if (hasSearch) {
