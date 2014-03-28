@@ -245,12 +245,6 @@ class Curve extends Pattern implements Cloneable,
         }
     }
 
-
-
-    private Curve thisConcept() {
-        return this;
-    }
-
     public String getCurveId() {
         return this.id + "_curve";
     }
