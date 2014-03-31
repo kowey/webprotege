@@ -107,6 +107,7 @@ class Subsumption extends Pattern implements Cloneable {
 
         endpoints.add(superset);
         endpoints.add(subset);
+        getElement().setClassName("template");
 
         freeWidgets = Arrays.<Widget>asList(wCurveInner, wCurveOuter);
     }
@@ -167,6 +168,7 @@ class Subsumption extends Pattern implements Cloneable {
             curve.addStyleName("snap-to-drag-curve");
             bind();
             reset();
+            makeDraggable("#" + getCurveId());
         }
 
         public String getCurveId() {
@@ -499,33 +501,6 @@ class Subsumption extends Pattern implements Cloneable {
 
         this.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
-    }
-
-    public Subsumption copyTemplate(@NonNull final AbsolutePanel container) {
-
-        Subsumption copy  = new Subsumption(makeId(), registry, searchManager, parentPanel);
-        container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
-        copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
-        copy.getElement().setClassName("template");
-        //TemplateHandler.addHandler(container, this, copy, counter);
-        makeDraggable("#" + copy.superset.getCurveId());
-        makeDraggable("#" + copy.subset.getCurveId());
-
-        return copy;
-    }
-
-    public void switchToInstanceMode() {
-    }
-
-    /**
-     * Note: you should only ever call this once
-     */
-    public void startTemplateMode() {
-        this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
-        for (Widget widget : freeWidgets) {
-            widget.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
-        }
-        this.getElement().setClassName("template");
     }
 
     private native void makeDraggable(String draggableId) /*-{

@@ -52,30 +52,4 @@ class Pattern extends AbsolutePanel {
      * (can be static)
      */
     public abstract String getIdPrefix();
-
-    /**
-     * Instantiate the pattern (needed when it's added to the diagram).
-     * See class description for some background on instance/template mode.
-     *
-     * {@see startTemplateMode}
-     */
-    public abstract void switchToInstanceMode();
-
-    /**
-     * Start a pattern off in its initial state, that of serving as a template.
-     * See class description for some background on the instance/template mode.
-     *
-     * {@see switchToInstanceMode}
-     */
-    public abstract void startTemplateMode();
-
-    /**
-     * Assuming the current pattern is the invisible mould (see class description),
-     * copy it to a new visible template pattern
-     *
-     * @param container panel to copy the mould into
-     * @return a brand new template that can be used to instantiate yet another pattern
-     */
-    public abstract Pattern copyTemplate(final AbsolutePanel container);
-
 }
