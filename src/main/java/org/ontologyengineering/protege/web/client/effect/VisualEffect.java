@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 public class VisualEffect {
 
-    final private String debugName;
+    @NonNull final private String debugName;
 
     final private Map<Key, String> attributes = new HashMap();
     final private Map<Key, String> defaults = new HashMap();
