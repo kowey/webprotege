@@ -27,4 +27,10 @@ public interface CurveRegistry {
      */
     public void removeCurveName(final Curve curve);
 
+    public IRI getImmediateParent(final IRI cls);
+
+    public void moveClass(final IRI cls,
+                          final IRI oldParent,
+                          final IRI newParent);
+
 }

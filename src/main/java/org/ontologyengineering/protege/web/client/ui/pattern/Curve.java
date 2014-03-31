@@ -305,7 +305,7 @@ class Curve extends Pattern implements Cloneable,
      * Resize this concept and reposition its helper widgets
      * accordingly
      */
-    private void setSize(int width, int height) {
+    public void setSize(int width, int height) {
         this.width = width;
         this.height = height;
         wCurve.setSize(width, height);
@@ -322,9 +322,10 @@ class Curve extends Pattern implements Cloneable,
                              final int relativeX,
                              final int relativeY) {
         Curve curve = new Curve(makeId(), curveRegistry, searchManager);
-        int parentRelativeX = relativeX + container.getWidgetLeft(this);
-        int parentRelativeY = relativeY + container.getWidgetTop(this);
-        container.add(curve, parentRelativeX, parentRelativeY);
+        container.add(curve, relativeX, relativeY);
+        curve.switchToInstanceMode();
+        curve.setLabel(this.label);
+        curve.setIri(this.iri);
         return curve;
     }
 
