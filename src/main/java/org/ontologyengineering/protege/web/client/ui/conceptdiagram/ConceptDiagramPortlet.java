@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
+import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
@@ -54,6 +55,7 @@ import java.util.*;
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements CurveRegistry, SearchManager {
     private boolean registeredEventHandlers = false;
 
+    final private HashMap<IRI, IRI> immediateParents = new HashMap();
     final private Multimap<IRI, Curve> namedCurves = HashMultimap.create();
     final private BiMap<IRI, String> names = HashBiMap.create();
 
@@ -120,7 +122,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         final List<Pattern> templates =
                 Arrays.<Pattern>asList(
                 new Curve("curve-template", this, this),
-                new Subsumption("subsume-template", this, vPanel));
+                new Subsumption("subsume-template", this, this, vPanel));
 
         final int yGap = 20;
         final int templateX = 0;
@@ -294,14 +296,22 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     /**
      * Called upon (external) concept deletion
      *
+     * TODO - if we handle this, we can handle Deletion events, but we also
+     * catch move events (and in the current implementation, delete them,
+     * which is not cool)
+     *
      * @param event An event identifying the concept to be removed and its parent
      */
     private void handleParentRemovedEvent(ClassHierarchyParentRemovedEvent event) {
+        /*
         GWT.log("[CM] handling parent remove " + event.getParent() + ", child: " + event.getChild());
+
+
         IRI toRename = event.getChild().getIRI();
         for (Curve curve : namedCurves.get(toRename)) {
             curve.delete();
         }
+        */
     }
 
     /**
@@ -325,6 +335,17 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     /*
      * ************ [Active] curve (re)naming, deletion **************
      */
+
+    /**
+     * Assumed to be owl:Thing if not known
+     */
+    public IRI getImmediateParent(@NonNull IRI iri) {
+        if (immediateParents.containsKey(iri)) {
+            return immediateParents.get(iri);
+        } else {
+            return DataFactory.getOWLThing().getIRI();
+        }
+    }
 
     public void createClass(@NonNull final Curve curve,
                             @NonNull final String name) {
@@ -350,6 +371,17 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 new DeleteClassHandler(iri));
 
         refreshFromServer(500);
+    }
+
+    public void moveClass(@NonNull final IRI cls,
+                          @NonNull final IRI oldParent,
+                          @NonNull final IRI newParent) {
+
+        final String desc = "Moving " + cls + " from " + oldParent + " to " + newParent;
+        OntologyServiceManager.getInstance().moveCls(getProjectId(),
+                cls.toString(), oldParent.toString(), newParent.toString(),
+                false, Application.get().getUserId(), desc,
+                new MoveClassHandler(cls, newParent));
     }
 
     private LabelledFrame<AnnotationPropertyFrame>
@@ -561,6 +593,46 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void handleSuccess(final DeleteEntityResult result) {
             GWT.log("[CM] Delete successfully class ", null);
             onDeleteSuccess(iri);
+        }
+    }
+
+    @RequiredArgsConstructor
+    public class MoveClassHandler extends AbstractAsyncHandler<List<EntityData>> {
+
+        private final IRI cls;
+        private final IRI newParent;
+
+        @Override
+        public void handleFailure(final Throwable caught) {
+            GWT.log("[CM] Error at moving class", caught);
+            MessageBox.showErrorMessage("Class not moved", caught);
+            // TODO: refresh oldParent and newParent
+        }
+
+        @Override
+        public void handleSuccess(final List<EntityData> result) {
+            GWT.log("[CM] Moved successfully class " + cls, null);
+            if (result == null) {
+                //MessageBox.alert("Success", "Class moved successfully.");
+                immediateParents.put(cls, newParent);
+            }
+            else {
+                warnAboutCycles(result);
+            }
+
+        }
+
+        private void warnAboutCycles(List<EntityData> classes) {
+            GWT.log("Cycle warning after moving class " + cls + ": " + classes, null);
+
+            String warningMsg = "<B>WARNING! There is a cycle in the hierarchy: </B><BR><BR>";
+            for (EntityData p : classes) {
+                warningMsg += "&nbsp;&nbsp;&nbsp;&nbsp;" + p.getBrowserText() + "<BR>";
+            }
+            warningMsg += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...";
+            MessageBox.showAlert("Cycles introduced during class move", "Class moved successfully.<BR>" +
+                    "<BR>" +
+                    warningMsg);
         }
     }
 
