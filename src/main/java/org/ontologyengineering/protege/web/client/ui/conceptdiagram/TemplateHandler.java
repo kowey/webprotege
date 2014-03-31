@@ -6,6 +6,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import lombok.Data;
 import lombok.NonNull;
+import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 
 /**
@@ -17,8 +18,8 @@ class TemplateHandler implements MouseMoveHandler {
     private @NonNull final AbsolutePanel container;
     // gwt compiler gets confused if we call this template
     // no kidding! (this is due to lombok's name mangling)
-    private @NonNull final Pattern _template;
-    private @NonNull final Pattern copy;
+    private @NonNull final Curve _template;
+    private @NonNull final Curve copy;
     private HandlerRegistration registration;
 
     private final static int GAP = 5;
@@ -35,8 +36,8 @@ class TemplateHandler implements MouseMoveHandler {
     }
 
     public static void addHandler(final AbsolutePanel container,
-                                  final Pattern template,
-                                  final Pattern copy) {
+                                  final Curve template,
+                                  final Curve copy) {
         TemplateHandler handler = new TemplateHandler(container, template, copy);
         HandlerRegistration reg =
                 copy.addDomHandler(handler, MouseMoveEvent.getType());

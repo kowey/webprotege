@@ -119,9 +119,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void initTemplates(AbsolutePanel vPanel) {
         vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        final List<Pattern> templates =
+        Curve curveTemplate = new Curve("curve-template", this, this);
+
+        final List<Pattern> patterns =
                 Arrays.<Pattern>asList(
-                new Curve("curve-template", this, this),
+                curveTemplate,
                 new Subsumption("subsume-template", this, this, vPanel));
 
         final int yGap = 20;
@@ -129,12 +131,13 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         final int templateY = 3 * yGap;
 
         int currentY = templateY;
-        for (Pattern template : templates) {
-            template.startTemplateMode();
-            vPanel.add(template, templateX, currentY);
-            currentY += template.getHeight() + yGap;
-            template.copyTemplate(vPanel);
+        for (Pattern pattern : patterns) {
+            vPanel.add(pattern, templateX, currentY);
+            currentY += pattern.getOffsetHeight() + yGap;
         }
+        curveTemplate.startTemplateMode();
+        curveTemplate.copyTemplate(vPanel);
+
     }
 
     @Override
