@@ -1,7 +1,10 @@
 package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.gwt.user.client.ui.AbsolutePanel;
+import com.google.gwt.user.client.ui.Widget;
 import lombok.*;
+
+import java.io.Serializable;
 
 /**
  * A grouping of concept diagram objects (eg. curves, arrows, spiders) that
@@ -16,14 +19,14 @@ import lombok.*;
  * {@see TemplateHandler}
  */
 public abstract
-@Getter @Setter @ToString
-class Pattern extends AbsolutePanel {
+@ToString
+class Pattern implements Serializable {
 
     // used to ensure that all curves created have a unique identifier
     static private int globalPatternCounter = 0;
 
-    protected int height;
-    protected int width;
+    @Getter @Setter protected int height;
+    @Getter @Setter protected int width;
 
     public Pattern() {
         this(80, 120);
@@ -52,4 +55,9 @@ class Pattern extends AbsolutePanel {
      * (can be static)
      */
     public abstract String getIdPrefix();
+
+    /**
+     * @return The GWT widget representing this pattern or its instance
+     */
+    public abstract Widget getWidget();
 }

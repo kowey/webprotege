@@ -20,47 +20,56 @@ import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.openrdf.query.algebra.evaluation.function.numeric.Abs;
 import org.semanticweb.owlapi.model.IRI;
 
+import java.io.Serializable;
 import java.lang.Math;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-/**
- * Created by kowey on 2014-02-03.
- */
 public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
-@Getter @Setter
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName="of")
 @ToString
-class Curve extends Pattern implements Cloneable,
+class Curve extends Pattern implements Cloneable, Serializable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
-    @NonNull protected final String id;
+    /**
+     * This constructor is for serialization purposes only and is not meant to be used
+     */
+    private Curve() {}
+
+    /*gwtnofinal*/ @Getter private transient CurvePanel canvasState = new CurvePanel();
+    /*gwtnofinal*/ @Getter @NonNull protected String id;
     @Getter private String idPrefix = "curve";
     private int rounding = 20;
 
-    @NonNull final CurveRegistry curveRegistry;
-    @NonNull final SearchManager searchManager;
+    /*gwtnofinal*/ @NonNull transient CurveRegistry curveRegistry;
+    /*gwtnofinal*/ @NonNull transient SearchManager searchManager;
 
-    @NonNull Optional<String> label = Optional.absent();
-    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
+    /*notreallytransient*/ transient @Getter @NonNull Optional<String> label = Optional.absent();
+    transient @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
 
     /**
      * Note that setIri should probably only be used by the concept manager
      */
-    @NonNull Optional<IRI> iri = Optional.absent();
+    /*notreallytransient*/ transient @Getter @Setter(AccessLevel.PUBLIC) @NonNull Optional<IRI> iri = Optional.absent();
 
-    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
-    CanvasState canvasState = new CanvasState();
+    /*gwtnofinal*/ private transient TextBox wLabel = new TextBox();
+    /*gwtnofinal*/ @Getter private transient DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
+    /*gwtnofinal*/ private transient ButtonBar buttonBar = new ButtonBar(wLabel);
+    /*gwtnofinal*/ @Getter private transient Effects effects = new Effects(wCurve, wLabel);
 
-    final private TextBox wLabel = new TextBox();
-    final private DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
-    final private ButtonBar buttonBar = new ButtonBar(wLabel);
-    final private Effects effects = new Effects(wCurve, wLabel);
+    /**
+     * Should be called near end of constructor or after serialisation
+     * Basically after we know that fields we are interested in have been set
+     */
+    private void postInit() {
+
+    }
 
     @RequiredArgsConstructor @Getter
     class Effects extends AttributeLayers {
@@ -68,8 +77,10 @@ class Curve extends Pattern implements Cloneable,
         @NonNull final private TextBox label;
 
         // here we model the possibility of there being more than one search box
-        final private Map<SearchHandler, VisualEffect> searchEffects = new IdentityHashMap();
-        final private Map<DraggableShape, VisualEffect> dragSnapEffects = new IdentityHashMap();
+        final private Map<SearchHandler, VisualEffect> searchEffects =
+                new IdentityHashMap<SearchHandler, VisualEffect>();
+        final private Map<DraggableShape, VisualEffect> dragSnapEffects =
+                new IdentityHashMap<DraggableShape, VisualEffect>();
 
         @NonNull public VisualEffect searchBoxPartial(String color) {
             VisualEffect effect = new VisualEffect("searchbox partial (" + color + ")");
@@ -183,7 +194,7 @@ class Curve extends Pattern implements Cloneable,
         }
     }
 
-    @Data class CanvasState {
+    @Data class CurvePanel extends AbsolutePanel {
         private boolean isMoving = false;
         private boolean isRenaming = false;
 
@@ -191,6 +202,15 @@ class Curve extends Pattern implements Cloneable,
         @Setter(AccessLevel.NONE) boolean isResizing = false;
         @Setter(AccessLevel.NONE) private int resizePointX = 0;
         @Setter(AccessLevel.NONE) private int resizePointY = 0;
+
+        @Override
+        public void onLoad() {
+            this.getElement().setId(Curve.this.id);
+            wCurve.getElement().setId(getCurveId());
+            this.add(wCurve, 1, 1);
+            Curve.this.setSize(Curve.this.width, Curve.this.height);
+        }
+
 
         /**
          * Signal to this canvas state that we're ready to switch to resize mode.
@@ -205,7 +225,7 @@ class Curve extends Pattern implements Cloneable,
         public void startResizing(MouseEvent event) {
             isAboutToResize = false;
             isResizing = true;
-            final Element elm = Curve.this.getElement();
+            final Element elm = Curve.this.canvasState.getElement();
             resizePointX = event.getRelativeX(elm);
             resizePointY = event.getRelativeY(elm);
             Curve.this.wCurve.addStyleName("resizing");
@@ -223,7 +243,7 @@ class Curve extends Pattern implements Cloneable,
          */
         public ResizeScale resizingScale(MouseEvent event) {
             if (isResizing) {
-                final Element elm = Curve.this.getElement();
+                final Element elm = canvasState.getElement();
                 final int currentX = event.getRelativeX(elm);
                 final int currentY = event.getRelativeY(elm);
                 final float scaleX = (resizePointX > 0) ? (currentX / (float)resizePointX) : 1;
@@ -292,14 +312,23 @@ class Curve extends Pattern implements Cloneable,
         }
     }
 
+    /*
     @Override
     public void onLoad() {
-        this.getElement().setId(this.id);
-        super.onLoad();
+        this.canvasState.getElement().setId(this.id);
         wCurve.getElement().setId(getCurveId());
-        this.add(wCurve, 1, 1);
+        this.canvasState.add(wCurve, 1, 1);
         setSize(this.width, this.height);
+    }*/
+
+    public Widget getWidget() {
+        return canvasState;
     }
+
+    public Element getElement() {
+        return canvasState.getElement();
+    }
+
 
     /**
      * Resize this concept and reposition its helper widgets
@@ -310,9 +339,9 @@ class Curve extends Pattern implements Cloneable,
         this.height = height;
         wCurve.setSize(width, height);
         buttonBar.removeFromParent(); // no-op if not there
-        this.add(buttonBar, width + 5, 0);
+        this.canvasState.add(buttonBar, width + 5, 0);
         buttonBar.reposition(width, height);
-        this.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
+        this.canvasState.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
     }
 
     /**
@@ -322,7 +351,7 @@ class Curve extends Pattern implements Cloneable,
                              final int relativeX,
                              final int relativeY) {
         Curve curve = new Curve(makeId(), curveRegistry, searchManager);
-        container.add(curve, relativeX, relativeY);
+        container.add(curve.canvasState, relativeX, relativeY);
         curve.switchToInstanceMode();
         curve.setLabel(this.label);
         curve.setIri(this.iri);
@@ -337,7 +366,9 @@ class Curve extends Pattern implements Cloneable,
         } else {
             copy.setLabel(Optional.of(text));
         }
-        container.add(copy, container.getWidgetLeft(this), container.getWidgetTop(this));
+        container.add(copy.canvasState,
+                container.getWidgetLeft(this.canvasState),
+                container.getWidgetTop(this.canvasState));
         copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
         copy.getElement().setClassName("template");
         TemplateHandler.addHandler(container, this, copy);
@@ -436,15 +467,15 @@ class Curve extends Pattern implements Cloneable,
      */
     public void delete() {
         curveRegistry.removeCurveName(this);
-        removeFromParent();
+        canvasState.removeFromParent();
     }
 
     public void switchToInstanceMode() {
-        addDomHandler(this, MouseOverEvent.getType());
-        addDomHandler(this, MouseOutEvent.getType());
-        addDomHandler(this, MouseUpEvent.getType());
-        addDomHandler(this, MouseDownEvent.getType());
-        addDomHandler(this, MouseMoveEvent.getType());
+        canvasState.addDomHandler(this, MouseOverEvent.getType());
+        canvasState.addDomHandler(this, MouseOutEvent.getType());
+        canvasState.addDomHandler(this, MouseUpEvent.getType());
+        canvasState.addDomHandler(this, MouseDownEvent.getType());
+        canvasState.addDomHandler(this, MouseMoveEvent.getType());
         mouseOverHighlight();
         setLabel(Optional.<String>absent());
     }
