@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
@@ -55,6 +56,7 @@ class Subsumption extends Pattern implements Cloneable {
     @NonNull final String id;
     @NonNull final CurveRegistry registry;
     @NonNull final SearchManager searchManager;
+    @NonNull final AbsolutePanel panel = new SubsumptionPanel();
     @NonNull final AbsolutePanel parentPanel;
 
     @Getter private String idPrefix = "subsumes";
@@ -210,8 +212,8 @@ class Subsumption extends Pattern implements Cloneable {
                         final Curve chosen = Subsumption.this.alreadyChosen.get();
 
                         Coordinates topleft = new Coordinates(
-                                parentPanel.getWidgetLeft(chosen),
-                                parentPanel.getWidgetTop(chosen));
+                                parentPanel.getWidgetLeft(chosen.getWidget()),
+                                parentPanel.getWidgetTop(chosen.getWidget()));
                         int width = chosen.getWCurve().getOffsetWidth();
                         int height = chosen.getWCurve().getOffsetHeight();
                         switch (firstRole) {
@@ -342,6 +344,35 @@ class Subsumption extends Pattern implements Cloneable {
             searchBox.addDomHandler(this, KeyUpEvent.getType());
         }
     }
+
+    class SubsumptionPanel extends AbsolutePanel {
+
+        @Override
+        public void onLoad() {
+            Subsumption subsumption = Subsumption.this;
+            this.getElement().setId(subsumption.id);
+            this.setWidth((subsumption.width + 120) + "px");
+            this.setHeight((subsumption.height + 10) + "px");
+            super.onLoad();
+
+            for (Endpoint endpoint : endpoints) {
+                parentPanel.add(endpoint.curve);
+                endpoint.onLoad();
+            }
+
+            this.add(buttonBar, width + 5, 0);
+            buttonBar.reposition(width, height);
+        }
+    }
+
+    public Widget getWidget() {
+        return panel;
+    }
+
+    public Element getElement() {
+        return panel.getElement();
+    }
+
 
 
     @Getter
@@ -483,25 +514,11 @@ class Subsumption extends Pattern implements Cloneable {
     }
 
     private Coordinates relativeToParent(Coordinates local) {
-        return new Coordinates(local.x + parentPanel.getWidgetLeft(this),
-                local.y + parentPanel.getWidgetTop(this));
+        return new Coordinates(local.x + parentPanel.getWidgetLeft(this.panel),
+                local.y + parentPanel.getWidgetTop(this.panel));
     }
 
-    @Override
-    public void onLoad() {
-        this.getElement().setId(this.id);
-        this.setWidth((this.width + 120) + "px");
-        this.setHeight((this.height + 10) + "px");
-        super.onLoad();
 
-        for (Endpoint endpoint : endpoints) {
-            parentPanel.add(endpoint.curve);
-            endpoint.onLoad();
-        }
-
-        this.add(buttonBar, width + 5, 0);
-        buttonBar.reposition(width, height);
-    }
 
     private native void makeDraggable(String draggableId) /*-{
         $wnd.make_draggable(draggableId);

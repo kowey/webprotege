@@ -4,6 +4,7 @@ import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
+import com.google.gwt.user.client.ui.Widget;
 import lombok.Data;
 import lombok.NonNull;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
@@ -40,12 +41,14 @@ class TemplateHandler implements MouseMoveHandler {
                                   final Curve copy) {
         TemplateHandler handler = new TemplateHandler(container, template, copy);
         HandlerRegistration reg =
-                copy.addDomHandler(handler, MouseMoveEvent.getType());
+                copy.getWidget().addDomHandler(handler, MouseMoveEvent.getType());
         handler.setRegistration(reg);
     }
 
     private boolean isFarFromTemplate() {
-        return  Math.abs(copy.getAbsoluteLeft() - _template.getAbsoluteLeft()) > GAP ||
-                Math.abs(copy.getAbsoluteTop()  - _template.getAbsoluteTop()) > GAP;
+        Widget copyWidget = copy.getWidget();
+        Widget templateWidget = _template.getWidget();
+        return  Math.abs(copyWidget.getAbsoluteLeft() - templateWidget.getAbsoluteLeft()) > GAP ||
+                Math.abs(copyWidget.getAbsoluteTop()  - templateWidget.getAbsoluteTop()) > GAP;
     }
 }

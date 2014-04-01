@@ -172,7 +172,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void initTemplates(AbsolutePanel vPanel) {
         vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        Curve curveTemplate = new Curve("curve-template", this, this);
+        Curve curveTemplate = Curve.of("curve-template", this, this);
 
         final List<Pattern> patterns =
                 Arrays.<Pattern>asList(
@@ -185,8 +185,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         int currentY = templateY;
         for (Pattern pattern : patterns) {
-            vPanel.add(pattern, templateX, currentY);
-            currentY += pattern.getOffsetHeight() + yGap;
+            vPanel.add(pattern.getWidget(), templateX, currentY);
+            currentY += pattern.getWidget().getOffsetHeight() + yGap;
         }
         curveTemplate.startTemplateMode();
         curveTemplate.copyTemplate(vPanel);
