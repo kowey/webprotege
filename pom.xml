@@ -250,7 +250,6 @@
       <groupId>com.hydro4ge</groupId>
       <artifactId>raphaelgwt</artifactId>
       <version>r42</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
