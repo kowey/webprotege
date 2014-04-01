@@ -28,7 +28,7 @@ import java.util.Map;
 public abstract class DraggableShape extends Raphael
         implements HasMouseDownHandlers, HasMouseUpHandlers, HasMouseMoveHandlers, HasMouseOutHandlers
 {
-    private final Map<String, String> attrs;
+    /*gwtnofinal*/ private Map<String, String> attrs;
 
     private Raphael parent;
     private Shape shape;

@@ -4,12 +4,15 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
+import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public interface ConceptDiagramServiceAsync extends RemoteService {
-    void logHello(Dummy msg, AsyncCallback<Void> callback);
-    void fetchDummy(ProjectId projectId, AsyncCallback<Dummy> callback);
+    void saveCurve(ProjectId projectId, Curve curve, AsyncCallback<Void> callback);
+    void saveDummy(ProjectId projectId, Dummy dummy, AsyncCallback<Void> callback);
+
+    void fetchDummy(ProjectId projectId, AsyncCallback<Curve> callback);
 }

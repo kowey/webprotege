@@ -57,7 +57,7 @@ import java.util.*;
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements CurveRegistry, SearchManager {
     private boolean registeredEventHandlers = false;
 
-    final private HashMap<IRI, IRI> immediateParents = new HashMap();
+    final private HashMap<IRI, IRI> immediateParents = new HashMap<IRI, IRI>();
     final private Multimap<IRI, Curve> namedCurves = HashMultimap.create();
     final private BiMap<IRI, String> names = HashBiMap.create();
 
@@ -102,9 +102,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         buttonBar.add(btn);
         buttonBar.add(btnLoad);
         buttonBar.add(btnSave);
+        buttonBar.add(searchBoxCaption);
+        buttonBar.add(searchBox);
         vPanel.add(buttonBar);
-        vPanel.add(searchBoxCaption);
-        vPanel.add(searchBox);
+
         btn.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
@@ -140,29 +141,35 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void saveDiagram() {
-        ConceptDiagramServiceManager.getInstance().logHello(Dummy.of(getProjectId(), "blah", 32), new AsyncCallback<Void>() {
-            @Override
-            public void onFailure(Throwable caught) {
-                GWT.log("[Concept diagram] logHello failed!");
-            }
+        Collection<Curve> curves = namedCurves.values();
+        if (! curves.isEmpty()) {
+            final Curve curve = curves.iterator().next();
+            final Dummy dummy = Dummy.of(getProjectId(), "yoyoyo", 39);
+            ConceptDiagramServiceManager.getInstance().saveCurve(getProjectId(), curve, new AsyncCallback<Void>() {
+                @Override
+                public void onFailure(Throwable caught) {
+                    GWT.log("[Concept diagram] saveCurve failed!");
+                }
 
-            @Override
-            public void onSuccess(Void result) {
-                GWT.log("[Concept diagram] logHello should have succeeded!");
-            }
-        });
+                @Override
+                public void onSuccess(Void result) {
+                    GWT.log("[Concept diagram] saveCurve " + curve.getIri() + " should have succeeded!");
+                }
+            });
+        }
+
     }
 
     private void loadDiagram() {
-        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<Dummy>() {
+        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<Curve>() {
             @Override
             public void onFailure(Throwable caught) {
                 GWT.log("[Concept diagram] fetchDummy failed!");
             }
 
             @Override
-            public void onSuccess(Dummy result) {
-                GWT.log("[Concept diagram] fetchDummy got" + result);
+            public void onSuccess(Curve result) {
+                GWT.log("[Concept diagram] fetchDummy got" + result.getIri());
             }
         });
     }
@@ -466,7 +473,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                                         pvList.getAnnotationPropertyValues(),
                                         domainsClasses,
                                         rangeTypes);
-        return new LabelledFrame(name, annoFrame);
+        return new LabelledFrame<AnnotationPropertyFrame>(name, annoFrame);
     }
 
 
