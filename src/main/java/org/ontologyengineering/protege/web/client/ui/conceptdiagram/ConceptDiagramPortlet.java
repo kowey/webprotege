@@ -45,6 +45,7 @@ import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
 import org.ontologyengineering.protege.web.client.rpc.Dummy;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
+import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
@@ -145,7 +146,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         if (! curves.isEmpty()) {
             final Curve curve = curves.iterator().next();
             final Dummy dummy = Dummy.of(getProjectId(), "yoyoyo", 39);
-            ConceptDiagramServiceManager.getInstance().saveCurve(getProjectId(), curve, new AsyncCallback<Void>() {
+            ConceptDiagramServiceManager.getInstance().saveCurve(getProjectId(), curve.getCore(), new AsyncCallback<Void>() {
                 @Override
                 public void onFailure(Throwable caught) {
                     GWT.log("[Concept diagram] saveCurve failed!");
@@ -161,14 +162,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void loadDiagram() {
-        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<Curve>() {
+        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<CurveCore>() {
             @Override
             public void onFailure(Throwable caught) {
                 GWT.log("[Concept diagram] fetchDummy failed!");
             }
 
             @Override
-            public void onSuccess(Curve result) {
+            public void onSuccess(CurveCore result) {
                 GWT.log("[Concept diagram] fetchDummy got" + result.getIri());
             }
         });
@@ -179,7 +180,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void initTemplates(AbsolutePanel vPanel) {
         vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        Curve curveTemplate = Curve.of("curve-template", this, this);
+        Curve curveTemplate = new Curve("curve-template", this, this);
 
         final List<Pattern> patterns =
                 Arrays.<Pattern>asList(

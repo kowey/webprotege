@@ -6,7 +6,7 @@ import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.smi.protege.util.Log;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
 import org.ontologyengineering.protege.web.client.rpc.Dummy;
-import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
+import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
 
 import java.io.*;
 
@@ -15,7 +15,7 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
     private static final String DATA_DIRECTORY_NAME = "conceptdiagram-data";
     private static final String DIAGRAM_STATE_FILE_NAME = "conceptdiagram-data.binary";
 
-    public void saveCurve(ProjectId projectId, Curve curve) throws IOException {
+    public void saveCurve(ProjectId projectId, CurveCore curve) throws IOException {
         Log.getLogger().info("{CONCEPT DIAGRAM HELLO} " + counter + ":" + curve.getIri());
         counter++;
 
@@ -39,11 +39,11 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
         oos.close();
     }
 
-    public Curve fetchDummy(ProjectId projectId) throws IOException {
+    public CurveCore fetchDummy(ProjectId projectId) throws IOException {
         final File dataFile = getDataFile(projectId);
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile));
         try {
-            Curve dummy = (Curve) ois.readObject();
+            CurveCore dummy = (CurveCore) ois.readObject();
             return dummy;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

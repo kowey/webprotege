@@ -6,25 +6,20 @@ import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
-
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Panel;
 import lombok.*;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
+import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
+import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
-import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
-import org.ontologyengineering.protege.web.client.effect.VisualEffect;
-import org.openrdf.query.algebra.evaluation.function.numeric.Abs;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.io.Serializable;
-import java.lang.Math;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -32,9 +27,8 @@ public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
-@RequiredArgsConstructor(staticName="of")
 @ToString
-class Curve extends Pattern implements Cloneable, Serializable,
+class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
     /**
@@ -42,24 +36,34 @@ class Curve extends Pattern implements Cloneable, Serializable,
      */
     private Curve() {}
 
+    public Curve(@NonNull final String id,
+                 @NonNull final CurveRegistry curveRegistry,
+                 @NonNull final SearchManager searchManager) {
+        this.curveRegistry = curveRegistry;
+        this.searchManager = searchManager;
+        this.core = new CurveCore(id);
+    }
+
+    /**
+     * Heart of the curve, everything we need to be able to reconstruct this
+     * curve
+     */
+
+
+    @Getter private transient CurveCore core;
+
     /*gwtnofinal*/ @Getter private transient CurvePanel canvasState = new CurvePanel();
-    /*gwtnofinal*/ @Getter @NonNull protected String id;
-    @Getter private String idPrefix = "curve";
-    private int rounding = 20;
+    @Getter private transient String idPrefix = "curve";
 
     /*gwtnofinal*/ @NonNull transient CurveRegistry curveRegistry;
     /*gwtnofinal*/ @NonNull transient SearchManager searchManager;
 
-    /*notreallytransient*/ transient @Getter @NonNull Optional<String> label = Optional.absent();
     transient @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
 
-    /**
-     * Note that setIri should probably only be used by the concept manager
-     */
-    /*notreallytransient*/ transient @Getter @Setter(AccessLevel.PUBLIC) @NonNull Optional<IRI> iri = Optional.absent();
 
     /*gwtnofinal*/ private transient TextBox wLabel = new TextBox();
-    /*gwtnofinal*/ @Getter private transient DraggableShape wCurve = new DraggableRect(this.width, this.height, this.rounding);
+    /*gwtnofinal*/ @Getter private transient DraggableShape wCurve =
+            new DraggableRect(this.width, this.height, this.core.getRounding()); // TODO NPE
     /*gwtnofinal*/ private transient ButtonBar buttonBar = new ButtonBar(wLabel);
     /*gwtnofinal*/ @Getter private transient Effects effects = new Effects(wCurve, wLabel);
 
@@ -69,6 +73,25 @@ class Curve extends Pattern implements Cloneable, Serializable,
      */
     private void postInit() {
 
+    }
+
+    public String getId() {
+        return core.getId();
+    }
+
+    public Optional<String> getLabel() {
+        return core.getLabel();
+    }
+
+    /**
+     * Note that setIri should probably only be used by the concept manager
+     */
+    public void setIri(@NonNull final Optional<IRI> iri) {
+        core.setIri(iri);
+    }
+
+    public Optional<IRI> getIri() {
+        return core.getIri();
     }
 
     @RequiredArgsConstructor @Getter
@@ -194,7 +217,8 @@ class Curve extends Pattern implements Cloneable, Serializable,
         }
     }
 
-    @Data class CurvePanel extends AbsolutePanel {
+    @Getter @Setter
+    @RequiredArgsConstructor class CurvePanel extends AbsolutePanel {
         private boolean isMoving = false;
         private boolean isRenaming = false;
 
@@ -205,7 +229,7 @@ class Curve extends Pattern implements Cloneable, Serializable,
 
         @Override
         public void onLoad() {
-            this.getElement().setId(Curve.this.id);
+            this.getElement().setId(Curve.this.getId());
             wCurve.getElement().setId(getCurveId());
             this.add(wCurve, 1, 1);
             Curve.this.setSize(Curve.this.width, Curve.this.height);
@@ -264,7 +288,7 @@ class Curve extends Pattern implements Cloneable, Serializable,
     }
 
     public String getCurveId() {
-        return this.id + "_curve";
+        return this.getId() + "_curve";
     }
 
     @Getter
@@ -353,8 +377,8 @@ class Curve extends Pattern implements Cloneable, Serializable,
         Curve curve = new Curve(makeId(), curveRegistry, searchManager);
         container.add(curve.canvasState, relativeX, relativeY);
         curve.switchToInstanceMode();
-        curve.setLabel(this.label);
-        curve.setIri(this.iri);
+        curve.setLabel(this.getLabel());
+        curve.setIri(this.getIri());
         return curve;
     }
 
@@ -383,8 +407,8 @@ class Curve extends Pattern implements Cloneable, Serializable,
     @Override
     public void onMouseOver(MouseOverEvent event) {
         mouseOverHighlight();
-        if (this.iri.isPresent()) {
-            this.curveRegistry.selectClass(this.iri.get());
+        if (this.getIri().isPresent()) {
+            this.curveRegistry.selectClass(this.getIri().get());
         }
         buttonBar.wLabel.setReadOnly(false);
     }
@@ -394,7 +418,7 @@ class Curve extends Pattern implements Cloneable, Serializable,
         if (! this.canvasState.isRenaming()) {
             this.getElement().setClassName("concept");
             buttonBar.wLabel.setReadOnly(true);
-            if (! this.label.equals(this.tempLabel)) {
+            if (! this.getLabel().equals(this.tempLabel)) {
                 rename(this.tempLabel);
             }
         }
@@ -447,7 +471,7 @@ class Curve extends Pattern implements Cloneable, Serializable,
      * @param label
      */
     private void setLabel(@NonNull Optional<String> label) {
-        this.label = label;
+        this.core.setLabel(label);
         setTempLabel(label);
         buttonBar.wLabel.setText(label.or(""));
     }

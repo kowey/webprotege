@@ -20,7 +20,7 @@ import java.io.Serializable;
  */
 public abstract
 @ToString
-class Pattern implements Serializable {
+class Pattern {
 
     // used to ensure that all curves created have a unique identifier
     static private int globalPatternCounter = 0;
