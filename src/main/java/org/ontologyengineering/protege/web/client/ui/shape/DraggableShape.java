@@ -26,35 +26,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DraggableShape extends Raphael
-    implements HasMouseDownHandlers, HasMouseUpHandlers, HasMouseMoveHandlers, HasMouseOutHandlers
+        implements HasMouseDownHandlers, HasMouseUpHandlers, HasMouseMoveHandlers, HasMouseOutHandlers
 {
-  private final Map<String, String> attrs;
+    private final Map<String, String> attrs;
 
-  private Raphael parent;
-  private Shape shape;
+    private Raphael parent;
+    private Shape shape;
 
-  class DragEndHandler implements MouseUpHandler {
-    private DraggableShape dshape;
+    class DragEndHandler implements MouseUpHandler {
+        private DraggableShape dshape;
 
-    public DragEndHandler(DraggableShape dshape) {
-      super();
-      this.dshape = dshape;
+        public DragEndHandler(DraggableShape dshape) {
+            super();
+            this.dshape = dshape;
+        }
+
+        @Override
+        public void onMouseUp(MouseUpEvent event) {
+        }
     }
 
-    @Override
-    public void onMouseUp(MouseUpEvent event) {
+    /**
+     * @param parent can be null
+     */
+    public DraggableShape(Raphael parent, int width, int height) {
+        super(width, height);
+        this.parent = parent;
+        this.attrs  = new HashMap<String, String>();
+        this.addMouseUpHandler(new DragEndHandler(this));
     }
-  }
-
-  /**
-   * @param parent can be null
-   */
-  public DraggableShape(Raphael parent, int width, int height) {
-    super(width, height);
-    this.parent = parent;
-    this.attrs  = new HashMap<String, String>();
-    this.addMouseUpHandler(new DragEndHandler(this));
-  }
 
   /* use this version if RootPanel is set to position relative */
   /*
@@ -71,22 +71,22 @@ public abstract class DraggableShape extends Raphael
   }
   */
 
-  // use this version if RootPanel is absolute
-  private int parentRelativeTop(AbsolutePanel p) {
-    return (this.parent == null)
-            ? 0
-            : this.parent.getAbsoluteTop();
-  }
+    // use this version if RootPanel is absolute
+    private int parentRelativeTop(AbsolutePanel p) {
+        return (this.parent == null)
+                ? 0
+                : this.parent.getAbsoluteTop();
+    }
 
-  private int parentRelativeLeft(AbsolutePanel p) {
-    return (this.parent == null)
-            ? 0
-            : this.parent.getAbsoluteLeft();
-  }
+    private int parentRelativeLeft(AbsolutePanel p) {
+        return (this.parent == null)
+                ? 0
+                : this.parent.getAbsoluteLeft();
+    }
 
-  protected abstract Shape createShape();
-  protected abstract int relativeShapeTop(int cx, int cy);
-  protected abstract int relativeShapeLeft(int cx, int cy);
+    protected abstract Shape createShape();
+    protected abstract int relativeShapeTop(int cx, int cy);
+    protected abstract int relativeShapeLeft(int cx, int cy);
 
     /**
      * Bounding box for this shape
@@ -99,49 +99,49 @@ public abstract class DraggableShape extends Raphael
         return new Rectangle(x1, y1, x2, y2);
     }
 
-  /**
-   *
-   * @param p
-   * @param cx
-   * @param cy
-   */
-  public void addToPanel(AbsolutePanel p, int cx, int cy) {
-    int top_x = this.relativeShapeLeft(cx, cy);// + parentRelativeLeft(p);
-    int top_y = this.relativeShapeTop(cx, cy);//  + parentRelativeTop(p);
-    p.add(this, top_x, top_y);
-  }
-
-  @Override
-  public void onLoad() {
-    super.onLoad();
-    this.shape = createShape();
-    for (Map.Entry<String, String> entry : attrs.entrySet()) {
-        this.shape.attr(entry.getKey(), entry.getValue());
+    /**
+     *
+     * @param p
+     * @param cx
+     * @param cy
+     */
+    public void addToPanel(AbsolutePanel p, int cx, int cy) {
+        int top_x = this.relativeShapeLeft(cx, cy);// + parentRelativeLeft(p);
+        int top_y = this.relativeShapeTop(cx, cy);//  + parentRelativeTop(p);
+        p.add(this, top_x, top_y);
     }
-  }
 
-  public void attr(String key, String value) {
-    attrs.put(key, value);
-    if (this.shape != null) {
-      this.shape.attr(key, value);
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.shape = createShape();
+        for (Map.Entry<String, String> entry : attrs.entrySet()) {
+            this.shape.attr(entry.getKey(), entry.getValue());
+        }
     }
-  }
 
-  public HandlerRegistration addMouseDownHandler(MouseDownHandler handler) {
-    return this.addDomHandler(handler, MouseDownEvent.getType());
-  }
+    public void attr(String key, String value) {
+        attrs.put(key, value);
+        if (this.shape != null) {
+            this.shape.attr(key, value);
+        }
+    }
 
-  public HandlerRegistration addMouseUpHandler(MouseUpHandler handler) {
-    return this.addDomHandler(handler, MouseUpEvent.getType());
-  }
+    public HandlerRegistration addMouseDownHandler(MouseDownHandler handler) {
+        return this.addDomHandler(handler, MouseDownEvent.getType());
+    }
 
-  public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
-    return this.addDomHandler(handler, MouseMoveEvent.getType());
-  }
+    public HandlerRegistration addMouseUpHandler(MouseUpHandler handler) {
+        return this.addDomHandler(handler, MouseUpEvent.getType());
+    }
 
-  public HandlerRegistration addMouseOutHandler(MouseOutHandler handler) {
-    return this.addDomHandler(handler, MouseOutEvent.getType());
-  }
+    public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
+        return this.addDomHandler(handler, MouseMoveEvent.getType());
+    }
+
+    public HandlerRegistration addMouseOutHandler(MouseOutHandler handler) {
+        return this.addDomHandler(handler, MouseOutEvent.getType());
+    }
 
 }
 
