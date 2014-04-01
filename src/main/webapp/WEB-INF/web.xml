@@ -81,6 +81,11 @@
 		<servlet-class>edu.stanford.bmir.protege.web.server.filesubmission.FileUploadServlet</servlet-class>
 	</servlet>
 
+  <servlet>
+    <servlet-name>ConceptDiagramService</servlet-name>
+    <servlet-class>org.ontologyengineering.protege.web.server.ConceptDiagramServiceImpl</servlet-class>
+  </servlet>
+
 	<!-- Servlet mappings -->
 
 	<servlet-mapping>
@@ -136,6 +141,10 @@
 		<url-pattern>/webprotege/renderingservice</url-pattern>
 	</servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>ConceptDiagramService</servlet-name>
+    <url-pattern>/webprotege/conceptdiagram</url-pattern>
+  </servlet-mapping>
 
 	<!-- Default page to serve -->
 	

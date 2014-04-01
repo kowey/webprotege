@@ -8,10 +8,8 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.*;
 import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
@@ -42,6 +40,10 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemove
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.ontologyengineering.protege.web.client.ConceptDiagram;
+import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
+import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
+import org.ontologyengineering.protege.web.client.rpc.Dummy;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
@@ -88,11 +90,19 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         final AbsolutePanel vPanel = new AbsolutePanel();
         vPanel.getElement().getStyle().setProperty("height", "100%");
         vPanel.getElement().getStyle().setProperty("width", "100%");
+        final HorizontalPanel buttonBar = new HorizontalPanel();
+
         final Button btn = new Button("Start");
+        final Button btnLoad = new Button("Load");
+        final Button btnSave = new Button("Save");
+
         final TextBox searchBox = new TextBox();
         final Label searchBoxCaption = new Label("search:");
 
-        vPanel.add(btn);
+        buttonBar.add(btn);
+        buttonBar.add(btnLoad);
+        buttonBar.add(btnSave);
+        vPanel.add(buttonBar);
         vPanel.add(searchBoxCaption);
         vPanel.add(searchBox);
         btn.addClickHandler(new ClickHandler() {
@@ -111,9 +121,52 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 btn.removeFromParent();
             }
         });
+
+        btnLoad.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                loadDiagram();
+            }
+        });
+
+        btnSave.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                saveDiagram();
+            }
+        });
         makeSearchHandler(searchBox, "orange").bind();
         return vPanel;
     }
+
+    private void saveDiagram() {
+        ConceptDiagramServiceManager.getInstance().logHello(Dummy.of(getProjectId(), "blah", 32), new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                GWT.log("[Concept diagram] logHello failed!");
+            }
+
+            @Override
+            public void onSuccess(Void result) {
+                GWT.log("[Concept diagram] logHello should have succeeded!");
+            }
+        });
+    }
+
+    private void loadDiagram() {
+        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<Dummy>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                GWT.log("[Concept diagram] fetchDummy failed!");
+            }
+
+            @Override
+            public void onSuccess(Dummy result) {
+                GWT.log("[Concept diagram] fetchDummy got" + result);
+            }
+        });
+    }
+
 
     // draw the pattern templates
     private void initTemplates(AbsolutePanel vPanel) {
