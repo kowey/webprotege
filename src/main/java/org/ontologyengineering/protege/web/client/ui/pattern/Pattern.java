@@ -20,22 +20,12 @@ import java.io.Serializable;
  */
 public abstract
 @ToString
-class Pattern implements Serializable {
+class Pattern {
 
     // used to ensure that all curves created have a unique identifier
     static private int globalPatternCounter = 0;
 
-    @Getter @Setter protected int height;
-    @Getter @Setter protected int width;
-
     public Pattern() {
-        this(80, 120);
-    }
-
-    public Pattern(final int height,
-                   final int width) {
-        this.height = height;
-        this.width = width;
         globalPatternCounter++;
     }
 
