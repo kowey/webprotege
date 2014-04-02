@@ -15,15 +15,18 @@ import java.io.Serializable;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class CurveCore implements Serializable {
+public class CurveCore extends PatternCore implements Serializable {
     private int rounding = 20;
     /*gwtnofinal*/ @NonNull protected String id;
 
     @NonNull Optional<String> label = Optional.absent();
     @NonNull Optional<IRI> iri = Optional.absent();
 
+    public CurveCore(int width, int height, int rounding)
     /**
      * Do not use this constructor; it is for serialization purposes only
      */
-    private CurveCore() {}
+    private CurveCore() {
+        super();
+    }
 }
