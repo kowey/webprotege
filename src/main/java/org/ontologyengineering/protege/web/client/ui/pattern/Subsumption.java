@@ -3,7 +3,6 @@ package org.ontologyengineering.protege.web.client.ui.pattern;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
@@ -12,6 +11,8 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.util.Scale;
+import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
@@ -53,7 +54,15 @@ class Subsumption extends Pattern implements Cloneable {
     // Fields
     // ----------------------------------------------------------------
 
-    @NonNull final String id;
+
+    @RequiredArgsConstructor
+    @Getter
+    class Core extends PatternCore {
+        @NonNull final private String id;
+        private int rounding = 20;
+    }
+
+    @NonNull final Core core;
     @NonNull final CurveRegistry registry;
     @NonNull final SearchManager searchManager;
     @NonNull final AbsolutePanel panel = new SubsumptionPanel();
@@ -66,37 +75,48 @@ class Subsumption extends Pattern implements Cloneable {
     private boolean isRenaming = false;
     private Effects visualEffects = new Effects();
 
-    private int rounding = 20;
 
     // Widgets
 
-    ButtonBar buttonBar = new ButtonBar();
+    ButtonBar buttonBar;
     final private Endpoint superset;
     final private Endpoint subset;
 
-    private Optional<Curve> alreadyChosen = Optional.absent();
-    private Optional<Role> firstSnapped = Optional.absent();
+    private Optional<Curve> alreadyChosen;
+    private Optional<Role> firstSnapped;
 
     // widgets that are not contained in the template frame necessarily
     final Collection<Widget> freeWidgets;
-    final Collection<Endpoint> endpoints = new HashSet<Endpoint>();
+    final Collection<Endpoint> endpoints;
 
-    private final Coordinates supersetTopLeft = new Coordinates(1, 1);
-    private final Coordinates subsetTopLeft = new Coordinates(1 + this.width / 3, 1 + this.height / 3);
+    private final Coordinates supersetTopLeft;
+    private final Coordinates subsetTopLeft;
 
     public Subsumption(@NonNull final String id,
                        @NonNull final CurveRegistry registry,
                        @NonNull final SearchManager searchManager,
                        @NonNull final AbsolutePanel parentPanel) {
-        this.id = id;
+        this.core = new Core(id);
+
+        final int width = this.core.getWidth();
+        final int height = this.core.getHeight();
+
         this.registry = registry;
         this.searchManager = searchManager;
         this.parentPanel = parentPanel;
 
+        this.buttonBar = new ButtonBar();
+        this.alreadyChosen = Optional.absent();
+        this.firstSnapped = Optional.absent();
+        this.endpoints = new HashSet<Endpoint>();
+
+        this.supersetTopLeft = new Coordinates(1, 1);
+        this.subsetTopLeft = new Coordinates(1 + width / 3, 1 + height / 3);
+
         final DraggableShape wCurveOuter =
-                new DraggableRect(this.width, this.height, this.rounding);
+                new DraggableRect(width, height, this.core.rounding);
         final DraggableShape wCurveInner =
-                new DraggableRect(this.width / 2, this.height / 2, this.rounding);
+                new DraggableRect(width / 2, height / 2, this.core.rounding);
 
         superset = new Endpoint(Role.SUPER, "_curve_outer",
                 wCurveOuter, "green",
@@ -174,7 +194,7 @@ class Subsumption extends Pattern implements Cloneable {
         }
 
         public String getCurveId() {
-            return Subsumption.this.id + this.idSuffix;
+            return Subsumption.this.core.id + this.idSuffix;
         }
 
 
@@ -214,22 +234,20 @@ class Subsumption extends Pattern implements Cloneable {
                         Coordinates topleft = new Coordinates(
                                 parentPanel.getWidgetLeft(chosen.getWidget()),
                                 parentPanel.getWidgetTop(chosen.getWidget()));
-                        int width = chosen.getWCurve().getOffsetWidth();
-                        int height = chosen.getWCurve().getOffsetHeight();
+
+                        Scale scale = new Scale(1, 1);
                         switch (firstRole) {
                             case SUB:
-                                width = width + 20;
-                                height = height + 20;
+                                scale = new Scale((float)1.2, (float)1.2);
                                 topleft = new Coordinates(topleft.x - 10 , topleft.y - 10);
                                 break;
                             case SUPER:
-                                width = width - 20;
-                                height = height - 20;
+                                scale = new Scale((float)0.8, (float)0.8);
                                 topleft = new Coordinates(topleft.x + 10, topleft.y + 10);
                                 break;
                         }
                         Curve other = match.createCurve(parentPanel, topleft.x, topleft.y);
-                        other.setSize(width, height);
+                        other.setSize(scale.transform(chosen.getSize()));
                         Subsumption.this.maybeFinish();
                     }
                 }
@@ -350,9 +368,9 @@ class Subsumption extends Pattern implements Cloneable {
         @Override
         public void onLoad() {
             Subsumption subsumption = Subsumption.this;
-            this.getElement().setId(subsumption.id);
-            this.setWidth((subsumption.width + 120) + "px");
-            this.setHeight((subsumption.height + 10) + "px");
+            this.getElement().setId(subsumption.core.getId());
+            this.setWidth((subsumption.core.getWidth() + 120) + "px");
+            this.setHeight((subsumption.core.getHeight() + 10) + "px");
             super.onLoad();
 
             for (Endpoint endpoint : endpoints) {
@@ -360,8 +378,9 @@ class Subsumption extends Pattern implements Cloneable {
                 endpoint.onLoad();
             }
 
-            this.add(buttonBar, width + 5, 0);
-            buttonBar.reposition(width, height);
+            final Size sz = subsumption.core.getSize();
+            this.add(buttonBar, sz.getWidth() + 5, 0);
+            buttonBar.reposition(sz);
         }
     }
 
@@ -395,8 +414,8 @@ class Subsumption extends Pattern implements Cloneable {
             });
         }
 
-        private void reposition(int curveWidth, int curveHeight) {
-            setHeight(curveHeight + 10 + "px");
+        private void reposition(@NonNull final Size sz) {
+            setHeight(sz.getHeight() + 10 + "px");
         }
 
         public ButtonBar() {
@@ -411,7 +430,7 @@ class Subsumption extends Pattern implements Cloneable {
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Subsumption.this.width, Subsumption.this.height);
+            reposition(Subsumption.this.core.getSize());
             activate();
         }
     }

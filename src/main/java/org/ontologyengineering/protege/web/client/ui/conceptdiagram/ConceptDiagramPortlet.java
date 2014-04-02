@@ -127,7 +127,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         btnLoad.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
-                loadDiagram();
+                loadDiagram(vPanel);
             }
         });
 
@@ -161,7 +161,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     }
 
-    private void loadDiagram() {
+    private void loadDiagram(@NonNull final AbsolutePanel panel) {
         ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<CurveCore>() {
             @Override
             public void onFailure(Throwable caught) {
@@ -176,7 +176,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 // transient that we don't want to store.
                 // on the other hand, we probably do want to store curve position
                 final Curve curve = new Curve(result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
-
+                curve.switchToInstanceMode();
+                panel.add(curve.getWidget(), 200, 100);
             }
         });
     }

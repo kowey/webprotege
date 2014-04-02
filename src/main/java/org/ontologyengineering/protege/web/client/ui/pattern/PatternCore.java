@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.ontologyengineering.protege.web.client.ui.Size;
+import org.ontologyengineering.protege.web.client.util.Size;
 
 import java.io.Serializable;
 
@@ -15,8 +15,8 @@ import java.io.Serializable;
 @Setter
 @AllArgsConstructor
 public class PatternCore implements Serializable {
+    protected int width = 120;
     protected int height = 80;
-    protected int width = 20;
 
     /**
      * Do not use this constructor; it is for serialization purposes only

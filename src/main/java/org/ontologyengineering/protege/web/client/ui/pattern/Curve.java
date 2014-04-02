@@ -11,7 +11,8 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
-import org.ontologyengineering.protege.web.client.ui.Size;
+import org.ontologyengineering.protege.web.client.util.Scale;
+import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
@@ -20,7 +21,6 @@ import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.semanticweb.owlapi.model.IRI;
 
-import java.io.Serializable;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -77,6 +77,8 @@ class Curve extends Pattern implements Cloneable,
                 this.core.getHeight(),
                 this.core.getRounding());
         this.effects = new Effects(wCurve, wLabel);
+
+        this.setLabel(core.getLabel());
     }
 
     public String getId() {
@@ -208,23 +210,6 @@ class Curve extends Pattern implements Cloneable,
         }
     }
 
-
-
-
-
-    @Data class ResizeScale {
-        private final float x;
-        private final float y;
-
-        public String toString() {
-            return x + "×" + y;
-        }
-
-        public Size transform(@NonNull final Size sz) {
-            return new Size(Math.round(x * sz.getWidth()), Math.round(y * sz.getHeight()));
-        }
-    }
-
     @Getter @Setter
     @RequiredArgsConstructor class CurvePanel extends AbsolutePanel {
         private boolean isMoving = false;
@@ -273,7 +258,7 @@ class Curve extends Pattern implements Cloneable,
          * @param event
          * @return
          */
-        public ResizeScale resizingScale(MouseEvent event) {
+        public Scale resizingScale(MouseEvent event) {
             if (isResizing) {
                 final Element elm = canvasState.getElement();
                 final int currentX = event.getRelativeX(elm);
@@ -282,9 +267,9 @@ class Curve extends Pattern implements Cloneable,
                 final float scaleY = (resizePointY > 0) ? (currentY / (float)resizePointY) : 1;
                 resizePointX = currentX;
                 resizePointY = currentY;
-                return new ResizeScale(scaleX, scaleY);
+                return new Scale(scaleX, scaleY);
             } else {
-                return new ResizeScale(1,1);
+                return new Scale(1,1);
             }
         }
 
@@ -471,7 +456,7 @@ class Curve extends Pattern implements Cloneable,
         if (canvasState.isMoving()) {
             onMouseOut(null);
         } else if (canvasState.isResizing) {
-            final ResizeScale scale = canvasState.resizingScale(event);
+            final Scale scale = canvasState.resizingScale(event);
             setSize(scale.transform(getSize()));
             GWT.log("Desired scale = " + scale + " would be " + getSize());
         }
@@ -516,6 +501,8 @@ class Curve extends Pattern implements Cloneable,
         canvasState.addDomHandler(this, MouseDownEvent.getType());
         canvasState.addDomHandler(this, MouseMoveEvent.getType());
         mouseOverHighlight();
+        makeDraggable(); // gratuitious in the general but needed
+                         // when creating curves from whole cloth
         setLabel(Optional.<String>absent());
     }
 

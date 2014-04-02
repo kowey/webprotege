@@ -1,4 +1,4 @@
-package org.ontologyengineering.protege.web.client.ui;
+package org.ontologyengineering.protege.web.client.util;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
