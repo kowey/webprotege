@@ -32,9 +32,23 @@ class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
 
     /**
-     * This constructor is for serialization purposes only and is not meant to be used
+     * Heart of the curve, everything we need to be able to reconstruct this
+     * curve
      */
-    private Curve() {}
+    @Getter private transient CurveCore core;
+
+    @Getter final private transient CurvePanel canvasState;
+    @Getter private transient String idPrefix;
+
+    @NonNull final transient CurveRegistry curveRegistry;
+    @NonNull final transient SearchManager searchManager;
+
+    @Setter(AccessLevel.PRIVATE) @NonNull transient Optional<String> tempLabel;
+
+    final private transient TextBox wLabel;
+    @Getter final private transient DraggableShape wCurve;
+    final private transient ButtonBar buttonBar;
+    @Getter final private transient Effects effects;
 
     public Curve(@NonNull final String id,
                  @NonNull final CurveRegistry curveRegistry,
@@ -42,37 +56,17 @@ class Curve extends Pattern implements Cloneable,
         this.curveRegistry = curveRegistry;
         this.searchManager = searchManager;
         this.core = new CurveCore(id);
-    }
 
-    /**
-     * Heart of the curve, everything we need to be able to reconstruct this
-     * curve
-     */
+        this.canvasState = new CurvePanel();
+        this.idPrefix = "curve";
 
+        this.tempLabel = Optional.absent();
 
-    @Getter private transient CurveCore core;
+        this.wLabel = new TextBox();
+        this.buttonBar = new ButtonBar(wLabel);
 
-    /*gwtnofinal*/ @Getter private transient CurvePanel canvasState = new CurvePanel();
-    @Getter private transient String idPrefix = "curve";
-
-    /*gwtnofinal*/ @NonNull transient CurveRegistry curveRegistry;
-    /*gwtnofinal*/ @NonNull transient SearchManager searchManager;
-
-    transient @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel = Optional.absent();
-
-
-    /*gwtnofinal*/ private transient TextBox wLabel = new TextBox();
-    /*gwtnofinal*/ @Getter private transient DraggableShape wCurve =
-            new DraggableRect(this.width, this.height, this.core.getRounding()); // TODO NPE
-    /*gwtnofinal*/ private transient ButtonBar buttonBar = new ButtonBar(wLabel);
-    /*gwtnofinal*/ @Getter private transient Effects effects = new Effects(wCurve, wLabel);
-
-    /**
-     * Should be called near end of constructor or after serialisation
-     * Basically after we know that fields we are interested in have been set
-     */
-    private void postInit() {
-
+        this.wCurve = new DraggableRect(this.width, this.height, this.core.getRounding());
+        this.effects = new Effects(wCurve, wLabel);
     }
 
     public String getId() {
