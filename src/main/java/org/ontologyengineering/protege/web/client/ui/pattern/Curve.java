@@ -53,9 +53,15 @@ class Curve extends Pattern implements Cloneable,
     public Curve(@NonNull final String id,
                  @NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
+        this(new CurveCore(id), curveRegistry, searchManager);
+    }
+
+    public Curve(@NonNull final CurveCore core,
+                 @NonNull final CurveRegistry curveRegistry,
+                 @NonNull final SearchManager searchManager) {
         this.curveRegistry = curveRegistry;
         this.searchManager = searchManager;
-        this.core = new CurveCore(id);
+        this.core = core;
 
         this.canvasState = new CurvePanel();
         this.idPrefix = "curve";
