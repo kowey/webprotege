@@ -11,6 +11,7 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
@@ -71,7 +72,10 @@ class Curve extends Pattern implements Cloneable,
         this.wLabel = new TextBox();
         this.buttonBar = new ButtonBar(wLabel);
 
-        this.wCurve = new DraggableRect(this.width, this.height, this.core.getRounding());
+        this.wCurve = new DraggableRect(
+                this.core.getWidth(),
+                this.core.getHeight(),
+                this.core.getRounding());
         this.effects = new Effects(wCurve, wLabel);
     }
 
@@ -215,6 +219,10 @@ class Curve extends Pattern implements Cloneable,
         public String toString() {
             return x + "×" + y;
         }
+
+        public Size transform(@NonNull final Size sz) {
+            return new Size(Math.round(x * sz.getWidth()), Math.round(y * sz.getHeight()));
+        }
     }
 
     @Getter @Setter
@@ -232,7 +240,7 @@ class Curve extends Pattern implements Cloneable,
             this.getElement().setId(Curve.this.getId());
             wCurve.getElement().setId(getCurveId());
             this.add(wCurve, 1, 1);
-            Curve.this.setSize(Curve.this.width, Curve.this.height);
+            redraw();
         }
 
 
@@ -317,8 +325,8 @@ class Curve extends Pattern implements Cloneable,
             });
         }
 
-        private void reposition(int curveWidth, int curveHeight) {
-            setHeight(curveHeight + 10 + "px");
+        private void reposition(@NonNull final Size sz) {
+            setHeight(sz.getHeight() + 10 + "px");
         }
 
         public ButtonBar(@NonNull final TextBox wLabel) {
@@ -331,7 +339,7 @@ class Curve extends Pattern implements Cloneable,
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Curve.this.width, Curve.this.height);
+            reposition(Curve.this.getSize());
             activate();
         }
     }
@@ -353,19 +361,28 @@ class Curve extends Pattern implements Cloneable,
         return canvasState.getElement();
     }
 
+    private void redraw() {
+        final Size sz = getSize();
+        final int width = sz.getWidth();
+        final int height = sz.getHeight();
+        wCurve.setSize(width, height);
+        buttonBar.removeFromParent(); // no-op if not there
+        this.canvasState.add(buttonBar, width + 5, 0);
+        buttonBar.reposition(sz);
+        this.canvasState.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
+    }
 
     /**
      * Resize this concept and reposition its helper widgets
      * accordingly
      */
-    public void setSize(int width, int height) {
-        this.width = width;
-        this.height = height;
-        wCurve.setSize(width, height);
-        buttonBar.removeFromParent(); // no-op if not there
-        this.canvasState.add(buttonBar, width + 5, 0);
-        buttonBar.reposition(width, height);
-        this.canvasState.setPixelSize(width + buttonBar.getOffsetWidth() + 5, height + 5);
+    public void setSize(final Size sz) {
+        this.core.setSize(sz);
+        redraw();
+    }
+
+    public Size getSize() {
+        return this.core.getSize();
     }
 
     /**
@@ -454,11 +471,9 @@ class Curve extends Pattern implements Cloneable,
         if (canvasState.isMoving()) {
             onMouseOut(null);
         } else if (canvasState.isResizing) {
-            ResizeScale scale = canvasState.resizingScale(event);
-            int newWidth = Math.round(width * scale.getX());
-            int newHeight = Math.round(height * scale.getY());
-            setSize(newWidth, newHeight);
-            GWT.log("Desired scale = " + scale + " would be " + newWidth + "x" + newHeight);
+            final ResizeScale scale = canvasState.resizingScale(event);
+            setSize(scale.transform(getSize()));
+            GWT.log("Desired scale = " + scale + " would be " + getSize());
         }
     }
 

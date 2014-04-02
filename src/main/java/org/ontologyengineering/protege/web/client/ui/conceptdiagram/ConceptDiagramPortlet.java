@@ -171,6 +171,12 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             @Override
             public void onSuccess(CurveCore result) {
                 GWT.log("[Concept diagram] fetchDummy got" + result.getIri());
+                // TODO: think about how global id should really behave
+                // current thinking is that this should be treated as something
+                // transient that we don't want to store.
+                // on the other hand, we probably do want to store curve position
+                final Curve curve = new Curve(result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
+
             }
         });
     }
