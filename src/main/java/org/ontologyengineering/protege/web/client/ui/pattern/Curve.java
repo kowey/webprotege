@@ -11,6 +11,7 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Scale;
 import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
@@ -31,6 +32,8 @@ public
 @ToString
 class Curve extends Pattern implements Cloneable,
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
+
+    @Getter @NonNull final private String id;
 
     /**
      * Heart of the curve, everything we need to be able to reconstruct this
@@ -54,12 +57,14 @@ class Curve extends Pattern implements Cloneable,
     public Curve(@NonNull final String id,
                  @NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
-        this(new CurveCore(id), curveRegistry, searchManager);
+        this(id, new CurveCore(), curveRegistry, searchManager);
     }
 
-    public Curve(@NonNull final CurveCore core,
+    public Curve(@NonNull final String id,
+                 @NonNull final CurveCore core,
                  @NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
+        this.id = id;
         this.curveRegistry = curveRegistry;
         this.searchManager = searchManager;
         this.core = core;
@@ -79,10 +84,6 @@ class Curve extends Pattern implements Cloneable,
         this.effects = new Effects(wCurve, wLabel);
 
         this.setLabel(core.getLabel());
-    }
-
-    public String getId() {
-        return core.getId();
     }
 
     public Optional<String> getLabel() {
@@ -368,6 +369,17 @@ class Curve extends Pattern implements Cloneable,
 
     public Size getSize() {
         return this.core.getSize();
+    }
+
+    /**
+     * Get the top-left coordinates of the curve with respect to the parent
+     * @return
+     */
+    public Position getPosition(@NonNull final AbsolutePanel panel) {
+        Widget widget = getWidget();
+        return new Position(
+                panel.getWidgetLeft(widget),
+                panel.getWidgetTop(widget));
     }
 
     /**

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.ontologyengineering.protege.web.client.util.Position;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.io.Serializable;
@@ -15,28 +16,20 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class CurveCore extends PatternCore implements Serializable {
-    private int rounding;
-    /*gwtnofinal*/ @NonNull protected String id;
+    protected int rounding;
 
+    @NonNull protected Position position;
     @NonNull Optional<String> label = Optional.absent();
     @NonNull Optional<IRI> iri = Optional.absent();
 
-    public CurveCore(final String id) {
-        this(id, 20);
+    public CurveCore() {
+        this(20, new Position(0,0));
     }
 
-    public CurveCore(final String id,
-                     final int rounding) {
+    public CurveCore(final int rounding,
+                     @NonNull final Position position) {
         super();
-        this.id = id;
         this.rounding = rounding;
+        this.position = position;
     }
-    /**
-     * Do not use this constructor; it is for serialization purposes only
-     */
-    private CurveCore() {
-        super();
-    }
-
-
 }

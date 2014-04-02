@@ -11,6 +11,7 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Scale;
 import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
@@ -37,15 +38,6 @@ public
 // because the GWT compiler does not support '$' in variable names
 @ToString
 class Subsumption extends Pattern implements Cloneable {
-
-    @Data class Coordinates {
-        private final int x;
-        private final int y;
-
-        public String toString() {
-            return x + "×" + y;
-        }
-    }
 
     // pertaining to either the superset or to the subset endpoint
     enum Role { SUPER, SUB };
@@ -89,8 +81,8 @@ class Subsumption extends Pattern implements Cloneable {
     final Collection<Widget> freeWidgets;
     final Collection<Endpoint> endpoints;
 
-    private final Coordinates supersetTopLeft;
-    private final Coordinates subsetTopLeft;
+    private final Position supersetTopLeft;
+    private final Position subsetTopLeft;
 
     public Subsumption(@NonNull final String id,
                        @NonNull final CurveRegistry registry,
@@ -110,8 +102,8 @@ class Subsumption extends Pattern implements Cloneable {
         this.firstSnapped = Optional.absent();
         this.endpoints = new HashSet<Endpoint>();
 
-        this.supersetTopLeft = new Coordinates(1, 1);
-        this.subsetTopLeft = new Coordinates(1 + width / 3, 1 + height / 3);
+        this.supersetTopLeft = new Position(1, 1);
+        this.subsetTopLeft = new Position(1 + width / 3, 1 + height / 3);
 
         final DraggableShape wCurveOuter =
                 new DraggableRect(width, height, this.core.rounding);
@@ -158,7 +150,7 @@ class Subsumption extends Pattern implements Cloneable {
         @NonNull final private SearchHandler searchHandler;
 
         // initial x/y coordinates for the curve (relative to parent)
-        final private Coordinates home;
+        final private Position home;
 
         @NonNull Optional<IRI> iri = Optional.absent();
 
@@ -174,7 +166,7 @@ class Subsumption extends Pattern implements Cloneable {
                         @NonNull String color,
                         @NonNull TextBox searchBox,
                         @NonNull String searchColor,
-                        @NonNull Coordinates topLeft) {
+                        @NonNull Position topLeft) {
             this.role = role;
             this.idSuffix = idSuffix;
             this.curve = curve;
@@ -231,7 +223,7 @@ class Subsumption extends Pattern implements Cloneable {
                         final Role firstRole = firstSnapped.get();
                         final Curve chosen = Subsumption.this.alreadyChosen.get();
 
-                        Coordinates topleft = new Coordinates(
+                        Position topleft = new Position(
                                 parentPanel.getWidgetLeft(chosen.getWidget()),
                                 parentPanel.getWidgetTop(chosen.getWidget()));
 
@@ -239,14 +231,14 @@ class Subsumption extends Pattern implements Cloneable {
                         switch (firstRole) {
                             case SUB:
                                 scale = new Scale((float)1.2, (float)1.2);
-                                topleft = new Coordinates(topleft.x - 10 , topleft.y - 10);
+                                topleft = new Position(topleft.getX() - 10 , topleft.getY() - 10);
                                 break;
                             case SUPER:
                                 scale = new Scale((float)0.8, (float)0.8);
-                                topleft = new Coordinates(topleft.x + 10, topleft.y + 10);
+                                topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
                                 break;
                         }
-                        Curve other = match.createCurve(parentPanel, topleft.x, topleft.y);
+                        Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
                         other.setSize(scale.transform(chosen.getSize()));
                         Subsumption.this.maybeFinish();
                     }
@@ -304,8 +296,8 @@ class Subsumption extends Pattern implements Cloneable {
          * Clear the current search and apply visual effects as appropriate
          */
         public void reset() {
-            Coordinates topleft = relativeToParent(home);
-            Subsumption.this.parentPanel.setWidgetPosition(curve, topleft.x, topleft.y);
+            Position topleft = relativeToParent(home);
+            Subsumption.this.parentPanel.setWidgetPosition(curve, topleft.getX(), topleft.getY());
             update();
             iri = Optional.absent();
             Subsumption.this.alreadyChosen = Optional.absent();
@@ -532,9 +524,10 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    private Coordinates relativeToParent(Coordinates local) {
-        return new Coordinates(local.x + parentPanel.getWidgetLeft(this.panel),
-                local.y + parentPanel.getWidgetTop(this.panel));
+    private Position relativeToParent(Position local) {
+        return new Position(
+                local.getX() + parentPanel.getWidgetLeft(this.panel),
+                local.getY() + parentPanel.getWidgetTop(this.panel));
     }
 
 

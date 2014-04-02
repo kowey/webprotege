@@ -175,7 +175,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 // current thinking is that this should be treated as something
                 // transient that we don't want to store.
                 // on the other hand, we probably do want to store curve position
-                final Curve curve = new Curve(result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
+                final Curve curve = new Curve(Curve.makeId(), result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
                 curve.switchToInstanceMode();
                 panel.add(curve.getWidget(), 200, 100);
             }
