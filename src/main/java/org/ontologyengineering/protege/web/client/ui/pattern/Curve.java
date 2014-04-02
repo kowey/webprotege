@@ -35,20 +35,20 @@ class Curve extends Pattern implements Cloneable,
      * Heart of the curve, everything we need to be able to reconstruct this
      * curve
      */
-    @Getter private transient CurveCore core;
+    @Getter private CurveCore core;
 
-    @Getter final private transient CurvePanel canvasState;
-    @Getter private transient String idPrefix;
+    @Getter final private CurvePanel canvasState;
+    @Getter private String idPrefix;
 
-    @NonNull final transient CurveRegistry curveRegistry;
-    @NonNull final transient SearchManager searchManager;
+    @NonNull final CurveRegistry curveRegistry;
+    @NonNull final SearchManager searchManager;
 
-    @Setter(AccessLevel.PRIVATE) @NonNull transient Optional<String> tempLabel;
+    @Setter(AccessLevel.PRIVATE) @NonNull Optional<String> tempLabel;
 
-    final private transient TextBox wLabel;
-    @Getter final private transient DraggableShape wCurve;
-    final private transient ButtonBar buttonBar;
-    @Getter final private transient Effects effects;
+    final private TextBox wLabel;
+    @Getter final private DraggableShape wCurve;
+    final private ButtonBar buttonBar;
+    @Getter final private Effects effects;
 
     public Curve(@NonNull final String id,
                  @NonNull final CurveRegistry curveRegistry,
