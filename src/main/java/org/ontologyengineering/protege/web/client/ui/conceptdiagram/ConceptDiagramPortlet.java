@@ -87,30 +87,52 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         }
     }
 
-    public AbsolutePanel createMainPanel() {
-        final AbsolutePanel vPanel = new AbsolutePanel();
-        vPanel.getElement().getStyle().setProperty("height", "100%");
-        vPanel.getElement().getStyle().setProperty("width", "100%");
+    private Panel createButtonBar(@NonNull final AbsolutePanel mainPanel) {
         final HorizontalPanel buttonBar = new HorizontalPanel();
 
-        final Button btn = new Button("Start");
         final Button btnLoad = new Button("Load");
         final Button btnSave = new Button("Save");
 
         final TextBox searchBox = new TextBox();
         final Label searchBoxCaption = new Label("search:");
 
-        buttonBar.add(btn);
         buttonBar.add(btnLoad);
         buttonBar.add(btnSave);
         buttonBar.add(searchBoxCaption);
         buttonBar.add(searchBox);
-        vPanel.add(buttonBar);
+
+        btnLoad.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                loadDiagram(mainPanel);
+            }
+        });
+
+        btnSave.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                saveDiagram();
+            }
+        });
+        makeSearchHandler(searchBox, "orange").bind();
+
+        return buttonBar;
+    }
+
+    public AbsolutePanel createMainPanel() {
+        final AbsolutePanel vPanel = new AbsolutePanel();
+        vPanel.getElement().getStyle().setProperty("height", "100%");
+        vPanel.getElement().getStyle().setProperty("width", "100%");
+
+        final Button btn = new Button("Start");
+
+        vPanel.add(btn);
 
         btn.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
                 try {
+                    vPanel.add(createButtonBar(vPanel));
                     initTemplates(vPanel);
                 } catch (Exception e) {
                     GWT.log("Template initialisation error:", e);
@@ -124,20 +146,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         });
 
-        btnLoad.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                loadDiagram(vPanel);
-            }
-        });
 
-        btnSave.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                saveDiagram();
-            }
-        });
-        makeSearchHandler(searchBox, "orange").bind();
         return vPanel;
     }
 
