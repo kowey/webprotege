@@ -65,12 +65,12 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>15.0</version>
+      <version>16.0.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-gwt</artifactId>
-      <version>15.0</version>
+      <version>16.0.1</version>
     </dependency>
     <!-- 
 	 We'll need to upgrade to this at some stage
