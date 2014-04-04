@@ -49,6 +49,7 @@ import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
+import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
@@ -154,7 +155,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         Collection<Curve> curves = namedCurves.values();
         if (! curves.isEmpty()) {
             final Curve curve = curves.iterator().next();
-            final Dummy dummy = Dummy.of(getProjectId(), "yoyoyo", 39);
             ConceptDiagramServiceManager.getInstance().saveCurve(getProjectId(), curve.getCore(), new AsyncCallback<Void>() {
                 @Override
                 public void onFailure(Throwable caught) {
@@ -184,9 +184,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 // current thinking is that this should be treated as something
                 // transient that we don't want to store.
                 // on the other hand, we probably do want to store curve position
-                final Curve curve = new Curve(Curve.makeId(), result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
-                curve.switchToInstanceMode();
-                panel.add(curve.getWidget(), 200, 100);
+                final Curve curve = new Curve(result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
+                curve.activate();
+                final Position position = result.getPosition();
+                panel.add(curve.getWidget(), position.getX(), position.getY());
             }
         });
     }
@@ -196,7 +197,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void initTemplates(AbsolutePanel vPanel) {
         vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        Curve curveTemplate = new Curve("curve-template", this, this);
+        Curve curveTemplate = new Curve(this, this);
 
         final List<Pattern> patterns =
                 Arrays.<Pattern>asList(

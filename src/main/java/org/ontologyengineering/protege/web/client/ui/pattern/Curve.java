@@ -42,7 +42,7 @@ class Curve extends Pattern implements Cloneable,
     @Getter private CurveCore core;
 
     @Getter final private CurvePanel canvasState;
-    @Getter private String idPrefix;
+    @Getter private String idPrefix = "curve";
 
     @NonNull final CurveRegistry curveRegistry;
     @NonNull final SearchManager searchManager;
@@ -54,23 +54,21 @@ class Curve extends Pattern implements Cloneable,
     final private ButtonBar buttonBar;
     @Getter final private Effects effects;
 
-    public Curve(@NonNull final String id,
-                 @NonNull final CurveRegistry curveRegistry,
+    public Curve(@NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
-        this(id, new CurveCore(), curveRegistry, searchManager);
+        this(new CurveCore(), curveRegistry, searchManager);
     }
 
-    public Curve(@NonNull final String id,
-                 @NonNull final CurveCore core,
+    public Curve(@NonNull final CurveCore core,
                  @NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
-        this.id = id;
+        super();
+        this.id = makeId();
         this.curveRegistry = curveRegistry;
         this.searchManager = searchManager;
         this.core = core;
 
         this.canvasState = new CurvePanel();
-        this.idPrefix = "curve";
 
         this.tempLabel = Optional.absent();
 
@@ -375,12 +373,14 @@ class Curve extends Pattern implements Cloneable,
      * Get the top-left coordinates of the curve with respect to the parent
      * @return
      */
-    public Position getPosition(@NonNull final AbsolutePanel panel) {
+    public Position getPosition() {
         Widget widget = getWidget();
+        Widget parent = widget.getParent();
         return new Position(
-                panel.getWidgetLeft(widget),
-                panel.getWidgetTop(widget));
+                widget.getAbsoluteLeft() - parent.getAbsoluteLeft(),
+                widget.getAbsoluteTop() - parent.getAbsoluteTop());
     }
+
 
     /**
      * Create a whole new curve, with the given left/top coordinates and dimensions
@@ -388,7 +388,7 @@ class Curve extends Pattern implements Cloneable,
     public Curve createCurve(@NonNull final AbsolutePanel container,
                              final int relativeX,
                              final int relativeY) {
-        Curve curve = new Curve(makeId(), curveRegistry, searchManager);
+        Curve curve = new Curve(curveRegistry, searchManager);
         container.add(curve.canvasState, relativeX, relativeY);
         curve.switchToInstanceMode();
         curve.setLabel(this.getLabel());
@@ -397,7 +397,7 @@ class Curve extends Pattern implements Cloneable,
     }
 
     public Curve copyTemplate(@NonNull final AbsolutePanel container) {
-        Curve copy  = new Curve(makeId(), curveRegistry, searchManager);
+        Curve copy  = new Curve(curveRegistry, searchManager);
         String text = this.buttonBar.wLabel.getText();
         if (text.isEmpty()) {
             copy.setLabel(Optional.<String>absent());
@@ -451,6 +451,7 @@ class Curve extends Pattern implements Cloneable,
     public void onMouseUp(MouseUpEvent event) {
         this.canvasState.setMoving(false);
         this.canvasState.stopResizing();
+        this.core.setPosition(getPosition());
         //searchManager.getSearchIndex();
     }
 
@@ -506,7 +507,10 @@ class Curve extends Pattern implements Cloneable,
         canvasState.removeFromParent();
     }
 
-    public void switchToInstanceMode() {
+    /**
+     * Make this curve respond to user input
+     */
+    public void activate() {
         canvasState.addDomHandler(this, MouseOverEvent.getType());
         canvasState.addDomHandler(this, MouseOutEvent.getType());
         canvasState.addDomHandler(this, MouseUpEvent.getType());
@@ -514,7 +518,18 @@ class Curve extends Pattern implements Cloneable,
         canvasState.addDomHandler(this, MouseMoveEvent.getType());
         mouseOverHighlight();
         makeDraggable(); // gratuitious in the general but needed
-                         // when creating curves from whole cloth
+        // when creating curves from whole cloth
+    }
+
+    /**
+     * You probably want to call {@link #activate} instead (which
+     * this function calls)
+     *
+     * This is intended to be used by the template management
+     * code
+     */
+    public void switchToInstanceMode() {
+        activate();
         setLabel(Optional.<String>absent());
     }
 
