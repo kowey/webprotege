@@ -5,8 +5,7 @@ import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectFileStore;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.smi.protege.util.Log;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
-import org.ontologyengineering.protege.web.client.rpc.Dummy;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Diagram;
 
 import java.io.*;
 
@@ -15,40 +14,33 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
     private static final String DATA_DIRECTORY_NAME = "conceptdiagram-data";
     private static final String DIAGRAM_STATE_FILE_NAME = "conceptdiagram-data.binary";
 
-    public void saveCurve(ProjectId projectId, CurveCore curve) throws IOException {
-        Log.getLogger().info("{CONCEPT DIAGRAM HELLO} " + counter + ":" + curve.getIri());
+    public void saveDiagram(ProjectId projectId,
+                            Diagram diagram) throws IOException {
+        Log.getLogger().info("{CONCEPT DIAGRAM HELLO} " + counter + ":" + diagram);
         counter++;
 
         final File dataFile = getDataFile(projectId);
         Log.getLogger().info("{CONCEPT DIAGRAM...}" + dataFile);
 
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile));
-        oos.writeObject(curve);
+        oos.writeObject(diagram);
         oos.close();
     }
 
-    public void saveDummy(ProjectId projectId, Dummy dummy) throws IOException {
-        Log.getLogger().info("{CONCEPT DIAGRAM HELLO} " + counter + ":" + dummy);
-        counter++;
-
+    public Diagram loadDiagram(ProjectId projectId) throws IOException {
         final File dataFile = getDataFile(projectId);
-        Log.getLogger().info("{CONCEPT DIAGRAM...}" + dataFile);
-
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile));
-        oos.writeObject(dummy);
-        oos.close();
-    }
-
-    public CurveCore fetchDummy(ProjectId projectId) throws IOException {
-        final File dataFile = getDataFile(projectId);
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile));
         try {
-            CurveCore dummy = (CurveCore) ois.readObject();
-            return dummy;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } finally {
-            ois.close();
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile));
+            try {
+                Diagram diagram = (Diagram) ois.readObject();
+                return diagram;
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            } finally {
+                ois.close();
+            }
+        } catch (FileNotFoundException e) {
+            return new Diagram();
         }
     }
 

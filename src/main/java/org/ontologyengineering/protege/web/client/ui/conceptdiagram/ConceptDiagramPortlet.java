@@ -41,9 +41,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ConceptDiagram;
-import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
-import org.ontologyengineering.protege.web.client.rpc.Dummy;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
@@ -59,9 +57,8 @@ import java.util.*;
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements CurveRegistry, SearchManager {
     private boolean registeredEventHandlers = false;
 
-    final private HashMap<IRI, IRI> immediateParents = new HashMap<IRI, IRI>();
-    final private Multimap<IRI, Curve> namedCurves = HashMultimap.create();
-    final private BiMap<IRI, String> names = HashBiMap.create();
+    final private RealDiagram core = new RealDiagram();
+    final private Map<CurveCore, Curve> curves = new IdentityHashMap<CurveCore, Curve>();
 
     private Collection<EntityData> selection = Collections.emptyList();
 
@@ -153,42 +150,41 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void saveDiagram() {
-        Collection<Curve> curves = namedCurves.values();
-        if (! curves.isEmpty()) {
-            final Curve curve = curves.iterator().next();
-            ConceptDiagramServiceManager.getInstance().saveCurve(getProjectId(), curve.getCore(), new AsyncCallback<Void>() {
-                @Override
-                public void onFailure(Throwable caught) {
-                    GWT.log("[Concept diagram] saveCurve failed!");
-                }
-
-                @Override
-                public void onSuccess(Void result) {
-                    GWT.log("[Concept diagram] saveCurve " + curve.getIri() + " should have succeeded!");
-                }
-            });
-        }
-
-    }
-
-    private void loadDiagram(@NonNull final AbsolutePanel panel) {
-        ConceptDiagramServiceManager.getInstance().fetchDummy(getProjectId(), new AsyncCallback<CurveCore>() {
+        ConceptDiagramServiceManager.getInstance().saveDiagram(getProjectId(),
+                new Diagram(this.core),
+                new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable caught) {
-                GWT.log("[Concept diagram] fetchDummy failed!");
+                GWT.log("[Concept diagram] saveDiagram failed!");
             }
 
             @Override
-            public void onSuccess(CurveCore result) {
-                GWT.log("[Concept diagram] fetchDummy got" + result.getIri());
-                // TODO: think about how global id should really behave
-                // current thinking is that this should be treated as something
-                // transient that we don't want to store.
-                // on the other hand, we probably do want to store curve position
-                final Curve curve = new Curve(result, ConceptDiagramPortlet.this, ConceptDiagramPortlet.this);
-                curve.activate();
-                final Position position = result.getPosition();
-                panel.add(curve.getWidget(), position.getX(), position.getY());
+            public void onSuccess(Void result) {
+                GWT.log("[Concept diagram] saveDiagram should have succeeded!");
+            }
+        });
+    }
+
+    private void loadDiagram(@NonNull final AbsolutePanel panel) {
+        ConceptDiagramServiceManager.getInstance().loadDiagram(getProjectId(), new AsyncCallback<Diagram>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                GWT.log("[Concept diagram] loadDiagram failed!" + caught);
+            }
+
+            @Override
+            public void onSuccess(Diagram result) {
+                ConceptDiagramPortlet.this.core.replaceWith(Diagram.unpack(result));
+                for (CurveCore curveCore : core.getCurves()) {
+                    final Curve curve = new Curve(curveCore,
+                            ConceptDiagramPortlet.this,
+                            ConceptDiagramPortlet.this);
+                    curve.activate();
+                    curves.put(curveCore, curve);
+                    final Position position = curveCore.getPosition();
+                    panel.add(curve.getWidget(), position.getX(), position.getY());
+
+                }
             }
         });
     }
@@ -279,8 +275,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void update() {
             final String text = textbox.getText().trim();
             setHasSearch(!text.isEmpty());
+
+            final Collection<Curve> allCurves = new LinkedList<Curve>();
+            for (CurveCore curveCore : core.getCurves()) {
+                allCurves.add(curves.get(curveCore));
+            }
+
             ImmutableListMultimap<Boolean, Curve> partitionedMap =
-                    Multimaps.index(namedCurves.values(), new Function<Curve, Boolean>() {
+                    Multimaps.index(allCurves, new Function<Curve, Boolean>() {
                         @Override
                         public Boolean apply(Curve input) {
                             if (input.getLabel().isPresent() && !text.isEmpty()) {
@@ -335,7 +337,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         List<Curve> matches = new LinkedList<Curve>();
         Rectangle dbox = dragged.getAbsoluteBBox();
         GWT.log("[CM] getSnapCandidates for " + dbox);
-        for (Curve candidate : namedCurves.values()) {
+        for (CurveCore candidateCore : core.getCurves()) {
+            final Curve candidate = curves.get(candidateCore);
             Rectangle cbox = candidate.getWCurve().getAbsoluteBBox();
             if (dbox.intersects(cbox)) {
                 matches.add(candidate);
@@ -407,7 +410,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         GWT.log("[CM rename] received BrowserTextChangedEvent event " + event +
                 " | " + toRename + " to " + newName +
                 " | " + event.getSource());
-        for (Curve curve : namedCurves.get(toRename)) {
+        for (CurveCore curveCore : core.getCurves(toRename)) {
+            final Curve curve = curves.get(curveCore);
             if (!curve.getLabel().equals(newName)) {
                 curve.rename(newName);
             }
@@ -418,32 +422,24 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * ************ [Active] curve (re)naming, deletion **************
      */
 
-    /**
-     * Assumed to be owl:Thing if not known
-     */
-    public IRI getImmediateParent(@NonNull IRI iri) {
-        if (immediateParents.containsKey(iri)) {
-            return immediateParents.get(iri);
-        } else {
-            return DataFactory.getOWLThing().getIRI();
-        }
+    public IRI getImmediateParent(@NonNull final IRI iri) {
+        return core.getImmediateParent(iri);
     }
 
     public void createClass(@NonNull final Curve curve,
                             @NonNull final String name) {
-        GWT.log("[CM] Asked to give the curve " + curve.getId() + " the name " + name);
         DispatchServiceManager.get().execute(
                 new CreateClassAction(getProjectId(), name, DataFactory.getOWLThing()),
-                getCreateClassAsyncHandler(curve, name));
+                new CreateClassHandler(curve, name));
     }
 
-    public void checkClassName(@NonNull final Curve curve) {
-        GWT.log("[CM] Asked to check class name for " + curve.getId() + " | " + curve.getId());
-        if (curve.getIri().isPresent()) {
-            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), curve.getIri().get().toString(),
-                    new GetTriplesHandler(curve));
-        }
-     }
+//    public void checkClassName(@NonNull final Curve curve) {
+//        GWT.log("[CM] Asked to check class name for " + curve.getId() + " | " + curve.getId());
+//        if (curve.getIri().isPresent()) {
+//            OntologyServiceManager.getInstance().getRelatedProperties(getProject().getProjectId(), curve.getIri().get().toString(),
+//                    new GetTriplesHandler(curve));
+//        }
+//     }
 
     public void deleteClass(@NonNull final IRI iri) {
         GWT.log("[CM] Should delete class " + iri.toString());
@@ -503,9 +499,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         if (before == after) {
             return;
         } else if (!before.isPresent()) {
+            curves.put(curve.getCore(), curve);
             assignCurveName(curve, after.get());
         } else if (!after.isPresent()) {
             removeCurveName(curve);
+            curves.remove(curve.getCore());
         } else {
             renameCurveOnly(curve, before.get(), after.get());
         }
@@ -516,15 +514,13 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         GWT.log("[CurveRegistry] removeCurveName " + curve.getLabel().or("NIL"));
         if (curve.getIri().isPresent()) {
             final IRI iri = curve.getIri().get();
-            Collection<Curve> named = namedCurves.get(iri);
+            Collection<CurveCore> named = core.getCurves(iri);
             GWT.log("[CurveRegistry] ...removeCurveName tracking " + named.size());
-            // Preconditions not supported in GWT?
-            //checkState(!named.isEmpty(),
-            //        "Tried to delete a curve we have an IRI, yet don't know about");
             if (named.size() == 1) { // all by myself...
                 deleteClass(iri);
             } else {
-                namedCurves.remove(iri, curve);
+                core.removeCurve(iri, curve.getCore());
+                curves.remove(curve.getCore());
             }
         }
     }
@@ -541,9 +537,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         // Preconditions not GWT-compatible?
         //checkArgument(! curve.getIri().isPresent(),
         //        "curve must not already have a name");
-        boolean nameExists = names.inverse().containsKey(name);
-        if (nameExists) {
-            assignCurveIdentity(curve, names.inverse().get(name), name);
+        if (core.hasName(name)) {
+            assignCurveIdentity(curve, core.getIRI(name), name);
         } else {
             createClass(curve, name);
         }
@@ -559,23 +554,21 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * @param newName
      */
     private void renameCurveOnly(@NonNull final Curve curve,
-                                @NonNull final String oldName,
-                                @NonNull final String newName) {
+                                 @NonNull final String oldName,
+                                 @NonNull final String newName) {
 
-        final IRI oldIri = names.inverse().get(oldName);
-        final IRI newIri = names.inverse().get(newName);
+        final IRI oldIri = core.getIRI(oldName);
+        final IRI newIri = core.getIRI(newName);
 
         if (oldIri == null) {
             return; // TODO: should this be considered Exception-worthy?
         }
 
-        final Collection<Curve> hasOldName = namedCurves.get(oldIri);
-
+        final Collection<CurveCore> hasOldName = core.getCurves(oldIri);
         boolean isAlone = hasOldName.size() == 1;
-        boolean newNameExists = names.inverse().containsKey(newName);
 
-        if (newNameExists) {
-            namedCurves.remove(oldIri, curve);
+        if (core.hasName(newName)) {
+            core.removeCurve(oldIri, curve.getCore());
             assignCurveIdentity(curve, newIri, newName);
             if (isAlone) {
                 deleteClass(oldIri);
@@ -590,8 +583,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void assignCurveIdentity(Curve curve, IRI iri, String name) {
-        GWT.log("[CurveRegistry] assignIdentity " + name + " to curve " + curve.getId() + " [" + iri + "]");
-        namedCurves.put(iri, curve);
+        GWT.log("[CurveRegistry] assignIdentity " + name + " to curve [" + iri + "]");
+        core.addCurve(iri, name, curve.getCore());
         curve.setIri(Optional.of(iri));
     }
 
@@ -617,30 +610,24 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * @param iri
      */
     private void onDeleteSuccess(@NonNull final IRI iri) {
-        namedCurves.removeAll(iri);
-        names.remove(iri);
+        core.removeCurves(iri);
     }
 
     private void onCreateSuccess(@NonNull final IRI iri,
                                  @NonNull final String name,
                                  @NonNull final Curve curve) {
         assignCurveIdentity(curve, iri, name);
-        names.put(iri, name);
     }
 
     private void onRenameSuccess(@NonNull final IRI iri,
                                  @NonNull final String oldName,
                                  @NonNull final String newName) {
-        names.forcePut(iri, newName);
+        core.forceName(iri, newName);
     }
 
     /*
      * ************ Remote procedure calls *****************
      */
-
-    protected AbstractAsyncHandler<CreateClassResult> getCreateClassAsyncHandler(Curve curve, String name) {
-        return new CreateClassHandler(curve, name);
-    }
 
     @RequiredArgsConstructor
     class CreateClassHandler extends AbstractAsyncHandler<CreateClassResult> {
@@ -657,6 +644,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         public void handleSuccess(final CreateClassResult result) {
             IRI createdIri = result.getObject().getIRI();
             GWT.log("[CM] created object: " + createdIri);
+            curves.put(curve.getCore(), curve);
             onCreateSuccess(createdIri, desiredName, curve);
         }
     }
@@ -696,7 +684,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             GWT.log("[CM] Moved successfully class " + cls, null);
             if (result == null) {
                 //MessageBox.alert("Success", "Class moved successfully.");
-                immediateParents.put(cls, newParent);
+                core.setImmediateParent(cls, newParent);
             }
             else {
                 warnAboutCycles(result);
@@ -753,32 +741,30 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void handleSuccess(final EntityData result) {
             GWT.log("[CM] My rename invocation succeeded ", null);
-            Collection<Curve> affectedCurves = namedCurves.get(oldIri);
-            for (Curve curve : affectedCurves) {
+            for (CurveCore curve : core.getCurves(oldIri)) {
                 curve.setIri(Optional.of(newIri));
             }
-            namedCurves.removeAll(oldIri);
-            namedCurves.putAll(newIri, affectedCurves);
+            core.renameIri(oldIri, newIri);
         }
     }
 
-    @RequiredArgsConstructor
-    class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
-        private final Curve curve;
-
-        @Override
-        public void handleFailure(Throwable caught) {
-            GWT.log("Error at retrieving props in domain for " + _currentEntity, caught);
-        }
-
-        @Override
-        public void handleSuccess(List<Triple> triples) {
-            for (Triple triple : triples) {
-                GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
-            }
-        }
-
-    }
+//    @RequiredArgsConstructor
+//    class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
+//        private final Curve curve;
+//
+//        @Override
+//        public void handleFailure(Throwable caught) {
+//            GWT.log("Error at retrieving props in domain for " + _currentEntity, caught);
+//        }
+//
+//        @Override
+//        public void handleSuccess(List<Triple> triples) {
+//            for (Triple triple : triples) {
+//                GWT.log("[CM] triple " + triple.getProperty() + " " + triple.getValue());
+//            }
+//        }
+//
+//    }
 
 }
 

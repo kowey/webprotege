@@ -3,10 +3,7 @@ package org.ontologyengineering.protege.web.client.rpc;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Diagram;
 
 public class ConceptDiagramServiceManager implements ConceptDiagramServiceAsync {
     private static ConceptDiagramServiceAsync proxy;
@@ -24,15 +21,14 @@ public class ConceptDiagramServiceManager implements ConceptDiagramServiceAsync 
 
     }
 
-    public void saveCurve(ProjectId projectId, CurveCore curve, AsyncCallback<Void> callback) {
-        proxy.saveCurve(projectId, curve, callback);
+    public void saveDiagram(ProjectId projectId,
+                            Diagram curve,
+                            AsyncCallback<Void> callback) {
+        proxy.saveDiagram(projectId, curve, callback);
     }
 
-    public void saveDummy(ProjectId projectId, Dummy dummy, AsyncCallback<Void> callback) {
-        proxy.saveDummy(projectId, dummy, callback);
-    }
-
-    public void fetchDummy(ProjectId projectId, AsyncCallback<CurveCore> callback) {
-        proxy.fetchDummy(projectId, callback);
+    public void loadDiagram(ProjectId projectId,
+                            AsyncCallback<Diagram> callback) {
+        proxy.loadDiagram(projectId, callback);
     }
 }
