@@ -135,6 +135,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 try {
                     vPanel.add(createButtonBar(vPanel));
                     initTemplates(vPanel);
+                    loadDiagram(vPanel);
                 } catch (Exception e) {
                     GWT.log("Template initialisation error:", e);
                 }
