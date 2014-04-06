@@ -577,6 +577,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             if (isAlone) {
                 renameClass(oldIri, oldName, newName);
             } else {
+                core.removeCurve(oldIri, curve.getCore());
                 createClass(curve, newName);
             }
         }
