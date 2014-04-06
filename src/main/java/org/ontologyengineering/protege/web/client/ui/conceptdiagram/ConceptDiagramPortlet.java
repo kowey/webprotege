@@ -21,7 +21,6 @@ import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.SubclassEntityData;
-import edu.stanford.bmir.protege.web.client.rpc.data.Triple;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
 import edu.stanford.bmir.protege.web.client.rpc.data.layout.PortletConfiguration;
 import edu.stanford.bmir.protege.web.client.ui.frame.LabelledFrame;
@@ -40,7 +39,6 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemove
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.ontologyengineering.protege.web.client.ConceptDiagram;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
 import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
 import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
@@ -57,7 +55,7 @@ import java.util.*;
 public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements CurveRegistry, SearchManager {
     private boolean registeredEventHandlers = false;
 
-    final private RealDiagram core = new RealDiagram();
+    final private Diagram core = new Diagram();
     final private Map<CurveCore, Curve> curves = new IdentityHashMap<CurveCore, Curve>();
 
     private Collection<EntityData> selection = Collections.emptyList();
@@ -151,7 +149,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
     private void saveDiagram() {
         ConceptDiagramServiceManager.getInstance().saveDiagram(getProjectId(),
-                new Diagram(this.core),
+                new DiagramNub(this.core),
                 new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable caught) {
@@ -166,15 +164,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void loadDiagram(@NonNull final AbsolutePanel panel) {
-        ConceptDiagramServiceManager.getInstance().loadDiagram(getProjectId(), new AsyncCallback<Diagram>() {
+        ConceptDiagramServiceManager.getInstance().loadDiagram(getProjectId(), new AsyncCallback<DiagramNub>() {
             @Override
             public void onFailure(Throwable caught) {
                 GWT.log("[Concept diagram] loadDiagram failed!" + caught);
             }
 
             @Override
-            public void onSuccess(Diagram result) {
-                ConceptDiagramPortlet.this.core.replaceWith(Diagram.unpack(result));
+            public void onSuccess(DiagramNub result) {
+                ConceptDiagramPortlet.this.core.replaceWith(new Diagram(result));
                 for (CurveCore curveCore : core.getCurves()) {
                     final Curve curve = new Curve(curveCore,
                             ConceptDiagramPortlet.this,

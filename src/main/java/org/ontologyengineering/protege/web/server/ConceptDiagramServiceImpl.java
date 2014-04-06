@@ -5,7 +5,7 @@ import edu.stanford.bmir.protege.web.server.owlapi.OWLAPIProjectFileStore;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.smi.protege.util.Log;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramService;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Diagram;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DiagramNub;
 
 import java.io.*;
 
@@ -15,7 +15,7 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
     private static final String DIAGRAM_STATE_FILE_NAME = "conceptdiagram-data.binary";
 
     public void saveDiagram(ProjectId projectId,
-                            Diagram diagram) throws IOException {
+                            DiagramNub diagram) throws IOException {
         Log.getLogger().info("{CONCEPT DIAGRAM HELLO} " + counter + ":" + diagram);
         counter++;
 
@@ -27,12 +27,12 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
         oos.close();
     }
 
-    public Diagram loadDiagram(ProjectId projectId) throws IOException {
+    public DiagramNub loadDiagram(ProjectId projectId) throws IOException {
         final File dataFile = getDataFile(projectId);
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile));
             try {
-                Diagram diagram = (Diagram) ois.readObject();
+                DiagramNub diagram = (DiagramNub) ois.readObject();
                 return diagram;
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -40,7 +40,7 @@ public class ConceptDiagramServiceImpl extends RemoteServiceServlet implements C
                 ois.close();
             }
         } catch (FileNotFoundException e) {
-            return new Diagram();
+            return new DiagramNub();
         }
     }
 

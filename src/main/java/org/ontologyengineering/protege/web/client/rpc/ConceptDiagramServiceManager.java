@@ -3,7 +3,7 @@ package org.ontologyengineering.protege.web.client.rpc;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.Diagram;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DiagramNub;
 
 public class ConceptDiagramServiceManager implements ConceptDiagramServiceAsync {
     private static ConceptDiagramServiceAsync proxy;
@@ -22,13 +22,13 @@ public class ConceptDiagramServiceManager implements ConceptDiagramServiceAsync 
     }
 
     public void saveDiagram(ProjectId projectId,
-                            Diagram curve,
+                            DiagramNub curve,
                             AsyncCallback<Void> callback) {
         proxy.saveDiagram(projectId, curve, callback);
     }
 
     public void loadDiagram(ProjectId projectId,
-                            AsyncCallback<Diagram> callback) {
+                            AsyncCallback<DiagramNub> callback) {
         proxy.loadDiagram(projectId, callback);
     }
 }
