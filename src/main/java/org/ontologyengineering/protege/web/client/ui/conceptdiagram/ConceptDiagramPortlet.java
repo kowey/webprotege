@@ -86,23 +86,14 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private Panel createButtonBar(@NonNull final AbsolutePanel mainPanel) {
         final HorizontalPanel buttonBar = new HorizontalPanel();
 
-        final Button btnLoad = new Button("Load");
         final Button btnSave = new Button("Save");
 
         final TextBox searchBox = new TextBox();
         final Label searchBoxCaption = new Label("search:");
 
-        buttonBar.add(btnLoad);
         buttonBar.add(btnSave);
         buttonBar.add(searchBoxCaption);
         buttonBar.add(searchBox);
-
-        btnLoad.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-                loadDiagram(mainPanel);
-            }
-        });
 
         btnSave.addClickHandler(new ClickHandler() {
             @Override
