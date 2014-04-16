@@ -448,10 +448,6 @@ class Curve extends Pattern implements Cloneable,
         this.canvasState.stopResizing();
     }
 
-
-
-
-
     @Override
     public void onMouseUp(MouseUpEvent event) {
         this.canvasState.setMoving(false);
