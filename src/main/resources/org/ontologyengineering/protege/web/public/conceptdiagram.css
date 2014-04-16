@@ -27,6 +27,14 @@
     z-index: 4;
 }
 
+.snap-to-drag-ghost {
+    z-index: 0; /* we don't want to select this! */
+}
+
+.snap-to-drag-curve {
+    z-index: 4; /* must be higher than concepts */
+}
+
 .snap-to-drag-outer-curve {
     z-index: 4; /* must be higher than concepts */
 }

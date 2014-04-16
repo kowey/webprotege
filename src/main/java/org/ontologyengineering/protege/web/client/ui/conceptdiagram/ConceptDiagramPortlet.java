@@ -40,10 +40,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
-import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
-import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
-import org.ontologyengineering.protege.web.client.ui.pattern.Subsumption;
+import org.ontologyengineering.protege.web.client.ui.pattern.*;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
@@ -188,7 +185,8 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         final List<Pattern> patterns =
                 Arrays.<Pattern>asList(
                 curveTemplate,
-                new Subsumption("subsume-template", this, this, vPanel));
+                new Subsumption("subsume-template", this, this, vPanel),
+                new Property("property-template", this, this, vPanel));
 
         final int yGap = 20;
         final int templateX = 0;
