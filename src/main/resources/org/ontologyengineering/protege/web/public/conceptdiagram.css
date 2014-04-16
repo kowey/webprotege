@@ -27,10 +27,13 @@
     z-index: 4;
 }
 
-.snap-to-drag-curve {
+.snap-to-drag-outer-curve {
     z-index: 4; /* must be higher than concepts */
 }
 
+.snap-to-drag-inner-curve {
+    z-index: 5; /* must be higher than concepts and outer curve */
+}
 
 .debug {
         border: 3px dotted red;

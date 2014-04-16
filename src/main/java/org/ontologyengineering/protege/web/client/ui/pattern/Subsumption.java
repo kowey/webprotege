@@ -179,7 +179,11 @@ class Subsumption extends Pattern implements Cloneable {
 
         public void onLoad() {
             curve.getElement().setId(getCurveId());
-            curve.addStyleName("snap-to-drag-curve");
+            if (this.role == Role.SUB) {
+                curve.addStyleName("snap-to-drag-inner-curve");
+            } else {
+                curve.addStyleName("snap-to-drag-outer-curve");
+            }
             bind();
             reset();
             makeDraggable("#" + getCurveId());
