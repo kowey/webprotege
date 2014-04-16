@@ -37,10 +37,10 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @ToString
-class Subsumption extends Pattern implements Cloneable {
+class Property extends Pattern implements Cloneable {
 
-    // pertaining to either the superset or to the subset endpoint
-    enum Role { SUPER, SUB };
+    // pertaining to either the src or to the subset endpoint
+    enum Role { SOURCE, TARGET };
 
     // ----------------------------------------------------------------
     // Fields
@@ -57,10 +57,10 @@ class Subsumption extends Pattern implements Cloneable {
     @NonNull final Core core;
     @NonNull final CurveRegistry registry;
     @NonNull final SearchManager searchManager;
-    @NonNull final AbsolutePanel panel = new SubsumptionPanel();
+    @NonNull final AbsolutePanel panel = new PropertyPanel();
     @NonNull final AbsolutePanel parentPanel;
 
-    @Getter private String idPrefix = "subsumes";
+    @Getter private String idPrefix = "property";
 
     // State tracking fields
     private boolean isMoving = false;
@@ -71,8 +71,8 @@ class Subsumption extends Pattern implements Cloneable {
     // Widgets
 
     ButtonBar buttonBar;
-    final private Endpoint superset;
-    final private Endpoint subset;
+    final private Endpoint srcPoint;
+    final private Endpoint tgtPoint;
 
     private Optional<Curve> alreadyChosen;
     private Optional<Role> firstSnapped;
@@ -81,14 +81,15 @@ class Subsumption extends Pattern implements Cloneable {
     final Collection<Widget> freeWidgets;
     final Collection<Endpoint> endpoints;
 
-    private final Position supersetTopLeft;
-    private final Position subsetTopLeft;
+    private final Position srcTopLeft;
+    private final Position tgtTopLeft;
 
-    public Subsumption(@NonNull final String id,
-                       @NonNull final CurveRegistry registry,
-                       @NonNull final SearchManager searchManager,
-                       @NonNull final AbsolutePanel parentPanel) {
+    public Property(@NonNull final String id,
+                    @NonNull final CurveRegistry registry,
+                    @NonNull final SearchManager searchManager,
+                    @NonNull final AbsolutePanel parentPanel) {
         this.core = new Core(id);
+        this.core.setSize(new Size(60, 80));
 
         final int width = this.core.getWidth();
         final int height = this.core.getHeight();
@@ -102,28 +103,28 @@ class Subsumption extends Pattern implements Cloneable {
         this.firstSnapped = Optional.absent();
         this.endpoints = new HashSet<Endpoint>();
 
-        this.supersetTopLeft = new Position(1, 1);
-        this.subsetTopLeft = new Position(1 + width / 3, 1 + height / 3);
+        this.srcTopLeft = new Position(1, 1);
+        this.tgtTopLeft = new Position(1 + width + 20, 1);
 
-        final DraggableShape wCurveOuter =
+        final DraggableShape wCurveSource =
                 new DraggableRect(width, height, this.core.rounding);
-        final DraggableShape wCurveInner =
-                new DraggableRect(width / 2, height / 2, this.core.rounding);
+        final DraggableShape wCurveTarget =
+                new DraggableRect(width, height, this.core.rounding);
 
-        superset = new Endpoint(Role.SUPER, "_curve_outer",
-                wCurveOuter, "green",
-                buttonBar.wSuperset, "darkgreen",
-                supersetTopLeft);
-        subset = new Endpoint(Role.SUB, "_curve_inner",
-                wCurveInner, "blue",
-                buttonBar.wSubset, "darkblue",
-                subsetTopLeft);
+        srcPoint = new Endpoint(Role.SOURCE, "_curve_source",
+                wCurveSource, "green",
+                buttonBar.wSource, "darkgreen",
+                srcTopLeft);
+        tgtPoint = new Endpoint(Role.TARGET, "_curve_target",
+                wCurveTarget, "blue",
+                buttonBar.wTarget, "darkblue",
+                tgtTopLeft);
 
-        endpoints.add(superset);
-        endpoints.add(subset);
+        endpoints.add(srcPoint);
+        endpoints.add(tgtPoint);
         getElement().setClassName("template");
 
-        freeWidgets = Arrays.<Widget>asList(wCurveInner, wCurveOuter);
+        freeWidgets = Arrays.<Widget>asList(wCurveTarget, wCurveSource);
     }
 
     // ----------------------------------------------------------------
@@ -179,10 +180,10 @@ class Subsumption extends Pattern implements Cloneable {
 
         public void onLoad() {
             curve.getElement().setId(getCurveId());
-            if (this.role == Role.SUB) {
-                curve.addStyleName("snap-to-drag-inner-curve");
+            if (this.role == Role.TARGET) {
+                curve.addStyleName("snap-to-drag-curve");
             } else {
-                curve.addStyleName("snap-to-drag-outer-curve");
+                curve.addStyleName("snap-to-drag-curve");
             }
             bind();
             reset();
@@ -190,7 +191,7 @@ class Subsumption extends Pattern implements Cloneable {
         }
 
         public String getCurveId() {
-            return Subsumption.this.core.id + this.idSuffix;
+            return Property.this.core.id + this.idSuffix;
         }
 
 
@@ -204,8 +205,8 @@ class Subsumption extends Pattern implements Cloneable {
          * be a good idea to light the curve up a form of feedback
          */
         public void forceActive() {
-            Subsumption.this.visualEffects.clear();
-            Subsumption.this.visualEffects.addActiveCurve(this);
+            Property.this.visualEffects.clear();
+            Property.this.visualEffects.addActiveCurve(this);
         }
 
         /**
@@ -219,13 +220,13 @@ class Subsumption extends Pattern implements Cloneable {
                     searchBox.setText(match.getLabel().or("<UNNAMED>"));
                     searchBox.setEnabled(false);
                     iri = match.getIri();
-                    if (! Subsumption.this.firstSnapped.isPresent()) {
-                        Subsumption.this.alreadyChosen = Optional.of(match);
-                        Subsumption.this.firstSnapped = Optional.of(this.role);
+                    if (! Property.this.firstSnapped.isPresent()) {
+                        Property.this.alreadyChosen = Optional.of(match);
+                        Property.this.firstSnapped = Optional.of(this.role);
                     } else {
-                        final AbsolutePanel parentPanel = Subsumption.this.parentPanel;
+                        final AbsolutePanel parentPanel = Property.this.parentPanel;
                         final Role firstRole = firstSnapped.get();
-                        final Curve chosen = Subsumption.this.alreadyChosen.get();
+                        final Curve chosen = Property.this.alreadyChosen.get();
 
                         Position topleft = new Position(
                                 parentPanel.getWidgetLeft(chosen.getWidget()),
@@ -233,18 +234,18 @@ class Subsumption extends Pattern implements Cloneable {
 
                         Scale scale = new Scale(1, 1);
                         switch (firstRole) {
-                            case SUB:
+                            case TARGET:
                                 scale = new Scale((float)1.2, (float)1.2);
                                 topleft = new Position(topleft.getX() - 10 , topleft.getY() - 10);
                                 break;
-                            case SUPER:
+                            case SOURCE:
                                 scale = new Scale((float)0.8, (float)0.8);
                                 topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
                                 break;
                         }
                         Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
                         other.setSize(scale.transform(chosen.getSize()));
-                        Subsumption.this.maybeFinish();
+                        Property.this.maybeFinish();
                     }
                 }
             }
@@ -253,7 +254,7 @@ class Subsumption extends Pattern implements Cloneable {
         private Collection<Curve> getSnapCandidates() {
             Collection<Curve> candidates = searchManager.getSnapCandidates(curve);
             // avoid chosing a shape that was already chosen for the other role,
-            // ie. superset if we are subset or vice-versa
+            // ie. srcPoint if we are tgtPoint or vice-versa
             if (alreadyChosen.isPresent()) {
                 candidates.remove(alreadyChosen.get());
             }
@@ -301,11 +302,11 @@ class Subsumption extends Pattern implements Cloneable {
          */
         public void reset() {
             Position topleft = relativeToParent(home);
-            Subsumption.this.parentPanel.setWidgetPosition(curve, topleft.getX(), topleft.getY());
+            Property.this.parentPanel.setWidgetPosition(curve, topleft.getX(), topleft.getY());
             update();
             iri = Optional.absent();
-            Subsumption.this.alreadyChosen = Optional.absent();
-            Subsumption.this.firstSnapped = Optional.absent();
+            Property.this.alreadyChosen = Optional.absent();
+            Property.this.firstSnapped = Optional.absent();
             curve.setVisible(true);
             searchBox.setEnabled(true);
             searchHandler.reset();
@@ -313,13 +314,13 @@ class Subsumption extends Pattern implements Cloneable {
 
         @Override
         public void onMouseOver(MouseOverEvent event) {
-            Subsumption.this.visualEffects.addActiveCurve(this);
+            Property.this.visualEffects.addActiveCurve(this);
             searchBox.setFocus(true);
         }
 
         @Override
         public void onMouseOut(MouseOutEvent event) {
-            Subsumption.this.visualEffects.removeActiveCurve(this);
+            Property.this.visualEffects.removeActiveCurve(this);
         }
 
         @Override
@@ -359,14 +360,14 @@ class Subsumption extends Pattern implements Cloneable {
         }
     }
 
-    class SubsumptionPanel extends AbsolutePanel {
+    class PropertyPanel extends AbsolutePanel {
 
         @Override
         public void onLoad() {
-            Subsumption subsumption = Subsumption.this;
-            this.getElement().setId(subsumption.core.getId());
-            this.setWidth((subsumption.core.getWidth() + 120) + "px");
-            this.setHeight((subsumption.core.getHeight() + 10) + "px");
+            Property property = Property.this;
+            this.getElement().setId(property.core.getId());
+            this.setWidth(2 * (property.core.getWidth() + 60) + "px");
+            this.setHeight((property.core.getHeight() + 10) + "px");
             super.onLoad();
 
             for (Endpoint endpoint : endpoints) {
@@ -374,8 +375,8 @@ class Subsumption extends Pattern implements Cloneable {
                 endpoint.onLoad();
             }
 
-            final Size sz = subsumption.core.getSize();
-            this.add(buttonBar, sz.getWidth() + 5, 0);
+            final Size sz = property.core.getSize();
+            this.add(buttonBar, 2 * sz.getWidth() + 30, 0);
             buttonBar.reposition(sz);
         }
     }
@@ -392,9 +393,9 @@ class Subsumption extends Pattern implements Cloneable {
 
     @Getter
     class ButtonBar extends DockPanel {
-        final private TextBox wSuperset = new TextBox();
-        final private TextBox wSubset = new TextBox();
-        final private Label wSubsumes = new Label("SUBSUMES");
+        final private TextBox wSource = new TextBox();
+        final private TextBox wTarget = new TextBox();
+        final private Label wSubsumes = new Label("<PROPERTY>");
 
         final Panel wButtons = new HorizontalPanel();
         final Button wReset = new Button("X");
@@ -403,7 +404,7 @@ class Subsumption extends Pattern implements Cloneable {
             wReset.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {
-                    for (SearchHandler handler : Subsumption.this.endpoints) {
+                    for (SearchHandler handler : Property.this.endpoints) {
                         handler.reset();
                     }
                 }
@@ -415,18 +416,18 @@ class Subsumption extends Pattern implements Cloneable {
         }
 
         public ButtonBar() {
-            wSubset.setWidth("6em");
-            wSuperset.setWidth("6em");
+            wTarget.setWidth("6em");
+            wSource.setWidth("6em");
 
-            wButtons.getElement().setClassName("subsumption-button");
+            wButtons.getElement().setClassName("property-button");
             wButtons.add(wReset);
-            add(wSuperset, NORTH);
+            add(wSource, NORTH);
             add(wSubsumes, NORTH);
-            add(wSubset, NORTH);
+            add(wTarget, NORTH);
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Subsumption.this.core.getSize());
+            reposition(Property.this.core.getSize());
             activate();
         }
     }
@@ -441,7 +442,7 @@ class Subsumption extends Pattern implements Cloneable {
         // we need to track this because mouse-over events are only
         // propagated to the uppermost curve on the z axis; so if
         // we have one curve inside of another one, it can be
-        // tricky to mark the inner curve as having been selected
+        // tricky to mark the target curve as having been selected
         // (on second thought, another approach might have been just
         // to raise the z index on that one?)
         @Getter(AccessLevel.NONE)
@@ -451,7 +452,7 @@ class Subsumption extends Pattern implements Cloneable {
         @NonNull
         private VisualEffect activePattern(@NonNull final DraggableShape curve,
                                            @NonNull final String color) {
-            VisualEffect effect = new VisualEffect("subsumption template hover (" + color + ")");
+            VisualEffect effect = new VisualEffect("property template hover (" + color + ")");
             effect.setAttribute(curve, "stroke", color, "black");
             effect.setAttribute(curve, "stroke-width", "3", "1");
             return effect;
@@ -493,10 +494,10 @@ class Subsumption extends Pattern implements Cloneable {
         }
 
         public Optional<Endpoint> getActiveCurve() {
-            if (activeCurves.contains(subset)) {
-                return Optional.of(subset);
-            } else if (activeCurves.contains(superset)) {
-                return Optional.of(superset);
+            if (activeCurves.contains(tgtPoint)) {
+                return Optional.of(tgtPoint);
+            } else if (activeCurves.contains(srcPoint)) {
+                return Optional.of(srcPoint);
             } else {
                 return Optional.absent();
             }
@@ -516,10 +517,10 @@ class Subsumption extends Pattern implements Cloneable {
     }
 
     public void maybeFinish() {
-        if (superset.iri.isPresent() && subset.iri.isPresent()) {
+        if (srcPoint.iri.isPresent() && tgtPoint.iri.isPresent()) {
             // do the actual move
-            IRI cls = subset.iri.get();
-            IRI newParent = superset.iri.get();
+            IRI cls = tgtPoint.iri.get();
+            IRI newParent = srcPoint.iri.get();
             IRI oldParent = registry.getImmediateParent(cls);
             registry.moveClass(cls, oldParent, newParent);
             for (Endpoint endpoint : endpoints) {
