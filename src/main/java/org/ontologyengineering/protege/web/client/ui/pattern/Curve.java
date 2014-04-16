@@ -82,6 +82,7 @@ class Curve extends Pattern implements Cloneable,
         this.effects = new Effects(wCurve, wLabel);
 
         this.setLabel(core.getLabel());
+        this.mouseOutHighlight();
     }
 
     public Optional<String> getLabel() {
@@ -418,6 +419,10 @@ class Curve extends Pattern implements Cloneable,
         this.getElement().setClassName("concept-over");
     }
 
+    public void mouseOutHighlight() {
+        this.getElement().setClassName("concept");
+    }
+
     @Override
     public void onMouseOver(MouseOverEvent event) {
         mouseOverHighlight();
@@ -430,7 +435,7 @@ class Curve extends Pattern implements Cloneable,
     @Override
     public void onMouseOut(MouseOutEvent event) {
         if (! this.canvasState.isRenaming()) {
-            this.getElement().setClassName("concept");
+            mouseOutHighlight();
             buttonBar.wLabel.setReadOnly(true);
             if (! this.getLabel().equals(this.tempLabel)) {
                 rename(this.tempLabel);
@@ -516,7 +521,6 @@ class Curve extends Pattern implements Cloneable,
         canvasState.addDomHandler(this, MouseUpEvent.getType());
         canvasState.addDomHandler(this, MouseDownEvent.getType());
         canvasState.addDomHandler(this, MouseMoveEvent.getType());
-        mouseOverHighlight();
         makeDraggable(); // gratuitious in the general but needed
         // when creating curves from whole cloth
     }
