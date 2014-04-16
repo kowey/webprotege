@@ -104,19 +104,23 @@ class Property extends Pattern implements Cloneable {
         this.endpoints = new HashSet<Endpoint>();
 
         this.srcTopLeft = new Position(1, 1);
-        this.tgtTopLeft = new Position(1 + width + 20, 1);
+        this.tgtTopLeft = new Position(1 + width + 40, 1);
 
         final DraggableShape wCurveSource =
                 new DraggableRect(width, height, this.core.rounding);
         final DraggableShape wCurveTarget =
                 new DraggableRect(width, height, this.core.rounding);
+        final DraggableShape wGhostSource =
+                new DraggableRect(width, height, this.core.rounding);
+        final DraggableShape wGhostTarget =
+                new DraggableRect(width, height, this.core.rounding);
 
         srcPoint = new Endpoint(Role.SOURCE, "_curve_source",
-                wCurveSource, "green",
+                wCurveSource, wGhostSource, "green",
                 buttonBar.wSource, "darkgreen",
                 srcTopLeft);
         tgtPoint = new Endpoint(Role.TARGET, "_curve_target",
-                wCurveTarget, "blue",
+                wCurveTarget, wGhostTarget, "blue",
                 buttonBar.wTarget, "darkblue",
                 tgtTopLeft);
 
@@ -145,6 +149,11 @@ class Property extends Pattern implements Cloneable {
         @NonNull final private Role role;
         @NonNull final private String idSuffix;
         @NonNull final private DraggableShape curve;
+        // not meant to be selectable, just provides a visual
+        // hint to the existence of this object
+        @NonNull final private DraggableShape ghost;
+
+
         @NonNull final private String color;
         @NonNull final private TextBox searchBox;
         @NonNull final private String searchColor;
@@ -164,6 +173,7 @@ class Property extends Pattern implements Cloneable {
         public Endpoint(@NonNull Role role,
                         @NonNull String idSuffix,
                         @NonNull DraggableShape curve,
+                        @NonNull DraggableShape ghost,
                         @NonNull String color,
                         @NonNull TextBox searchBox,
                         @NonNull String searchColor,
@@ -171,20 +181,21 @@ class Property extends Pattern implements Cloneable {
             this.role = role;
             this.idSuffix = idSuffix;
             this.curve = curve;
+            this.ghost = ghost;
             this.color = color;
             this.searchBox = searchBox;
             this.searchColor = searchColor;
             this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
             this.home = topLeft;
+
         }
 
         public void onLoad() {
+            panel.add(ghost, home.getX(), home.getY());
+            ghost.getElement().setId(getGhostId());
             curve.getElement().setId(getCurveId());
-            if (this.role == Role.TARGET) {
-                curve.addStyleName("snap-to-drag-curve");
-            } else {
-                curve.addStyleName("snap-to-drag-curve");
-            }
+            ghost.addStyleName("snap-to-drag-ghost");
+            curve.addStyleName("snap-to-drag-curve");
             bind();
             reset();
             makeDraggable("#" + getCurveId());
@@ -194,6 +205,9 @@ class Property extends Pattern implements Cloneable {
             return Property.this.core.id + this.idSuffix;
         }
 
+        public String getGhostId() {
+            return "ghost_" + Property.this.core.id + this.idSuffix;
+        }
 
         public Optional<Collection<Curve>> getMatching() {
             return Optional.of(candidates);
@@ -227,24 +241,14 @@ class Property extends Pattern implements Cloneable {
                         final AbsolutePanel parentPanel = Property.this.parentPanel;
                         final Role firstRole = firstSnapped.get();
                         final Curve chosen = Property.this.alreadyChosen.get();
-
-                        Position topleft = new Position(
-                                parentPanel.getWidgetLeft(chosen.getWidget()),
-                                parentPanel.getWidgetTop(chosen.getWidget()));
-
-                        Scale scale = new Scale(1, 1);
                         switch (firstRole) {
                             case TARGET:
-                                scale = new Scale((float)1.2, (float)1.2);
-                                topleft = new Position(topleft.getX() - 10 , topleft.getY() - 10);
+                                connectPair(chosen.getCurveId(), match.getCurveId());
                                 break;
                             case SOURCE:
-                                scale = new Scale((float)0.8, (float)0.8);
-                                topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
+                                connectPair(match.getCurveId(), chosen.getCurveId());
                                 break;
                         }
-                        Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
-                        other.setSize(scale.transform(chosen.getSize()));
                         Property.this.maybeFinish();
                     }
                 }
@@ -366,8 +370,8 @@ class Property extends Pattern implements Cloneable {
         public void onLoad() {
             Property property = Property.this;
             this.getElement().setId(property.core.getId());
-            this.setWidth(2 * (property.core.getWidth() + 60) + "px");
-            this.setHeight((property.core.getHeight() + 10) + "px");
+            this.setWidth(2 * (property.core.getWidth() + 40) + "px");
+            this.setHeight((property.core.getHeight() + 70) + "px");
             super.onLoad();
 
             for (Endpoint endpoint : endpoints) {
@@ -376,8 +380,9 @@ class Property extends Pattern implements Cloneable {
             }
 
             final Size sz = property.core.getSize();
-            this.add(buttonBar, 2 * sz.getWidth() + 30, 0);
+            this.add(buttonBar, 1, sz.getHeight() + 10);
             buttonBar.reposition(sz);
+            connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId());
         }
     }
 
@@ -531,13 +536,17 @@ class Property extends Pattern implements Cloneable {
 
     private Position relativeToParent(Position local) {
         return new Position(
-                local.getX() + parentPanel.getWidgetLeft(this.panel),
-                local.getY() + parentPanel.getWidgetTop(this.panel));
+                1 + local.getX() + parentPanel.getWidgetLeft(this.panel),
+                1 + local.getY() + parentPanel.getWidgetTop(this.panel));
     }
 
 
 
     private native void makeDraggable(String draggableId) /*-{
         $wnd.make_draggable(draggableId);
+        }-*/;
+
+    private native void connectPair(String source, String target) /*-{
+        $wnd.connect_pair(source,target);
         }-*/;
 }

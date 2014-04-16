@@ -4,7 +4,6 @@ function gwtjsplumbinit() {
          jsPlumb.Defaults.PaintStyle = { strokeStyle:"gray", lineWidth:2 };
          jsPlumb.Defaults.EndpointStyle = { radius:3, fillStyle:"gray" };
          jsPlumb.Defaults.Anchors =  [ "AutoDefault", "AutoDefault" ];
-         jsPlumb.draggable($(".koweybox"));
  }
 
  function gwtjsconnect(pairs) {
@@ -20,6 +19,10 @@ function gwtjsplumbinit() {
         jsPlumb.connect({source:value.source, target:value.target, overlays:overlays});
      });
 
+ }
+
+ function connect_pair(source, target) {
+      gwtjsconnect([{source: source, target: target}]);
  }
 
  function make_draggable(draggableId) {
