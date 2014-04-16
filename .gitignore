@@ -1,7 +1,6 @@
 # local code
 doc/
 nohup.out
-repo/com
 startmongo.sh
 
 # java
