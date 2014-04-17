@@ -370,9 +370,9 @@ class Property extends Pattern implements Cloneable {
         public void onLoad() {
             Property property = Property.this;
             this.getElement().setId(property.core.getId());
-            this.setWidth(2 * (property.core.getWidth() + 40) + "px");
-            this.setHeight((property.core.getHeight() + 70) + "px");
             super.onLoad();
+            this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
+                    Pattern.DEFAULT_TEMPLATE_HEIGHT + 60);
 
             for (Endpoint endpoint : endpoints) {
                 parentPanel.add(endpoint.curve);

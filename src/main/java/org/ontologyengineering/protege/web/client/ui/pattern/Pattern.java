@@ -22,6 +22,10 @@ public abstract
 @ToString
 class Pattern {
 
+    public final static int DEFAULT_TEMPLATE_WIDTH = 200;
+    public final static int DEFAULT_TEMPLATE_HEIGHT = 90;
+
+
     // used to ensure that all curves created have a unique identifier
     static private int globalPatternCounter = 0;
 

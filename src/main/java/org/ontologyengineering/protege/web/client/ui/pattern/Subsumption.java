@@ -365,8 +365,8 @@ class Subsumption extends Pattern implements Cloneable {
         public void onLoad() {
             Subsumption subsumption = Subsumption.this;
             this.getElement().setId(subsumption.core.getId());
-            this.setWidth((subsumption.core.getWidth() + 120) + "px");
-            this.setHeight((subsumption.core.getHeight() + 10) + "px");
+            this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
+                    Pattern.DEFAULT_TEMPLATE_HEIGHT);
             super.onLoad();
 
             for (Endpoint endpoint : endpoints) {

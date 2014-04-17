@@ -541,6 +541,7 @@ class Curve extends Pattern implements Cloneable,
         this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
         this.getElement().setClassName("template");
         buttonBar.wLabel.setReadOnly(true);
+        this.canvasState.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH, Pattern.DEFAULT_TEMPLATE_HEIGHT);
     }
 
     public void setMatchStatus(SearchManager.SearchHandler searchBox,
