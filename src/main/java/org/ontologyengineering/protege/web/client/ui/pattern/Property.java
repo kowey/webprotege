@@ -57,10 +57,6 @@ class Property extends Pattern implements Cloneable {
     @NonNull final AbsolutePanel parentPanel;
 
     @Getter private String idPrefix = "property";
-
-    // State tracking fields
-    private boolean isMoving = false;
-    private boolean isRenaming = false;
     private Effects visualEffects;
 
     // Widgets
