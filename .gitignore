@@ -2,6 +2,7 @@
 doc/
 nohup.out
 startmongo.sh
+**/_remote.repositories
 
 # java
 *.class
