@@ -160,6 +160,7 @@ class Property extends Pattern implements Cloneable {
         protected void resetSnapChoices() {
             Property.this.alreadyChosen = Optional.absent();
             Property.this.firstSnapped = Optional.absent();
+            removeConnectionHint();
         }
 
         protected void withdrawCurve() {
@@ -282,14 +283,13 @@ class Property extends Pattern implements Cloneable {
             for (Endpoint endpoint : endpoints) {
                 parentPanel.add(endpoint.getCurve());
                 parentPanel.add(endpoint.getGhost());
+                visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
                 endpoint.onLoad();
             }
 
             final Size sz = property.core.getSize();
             this.add(buttonBar, 1, sz.getHeight() + 10);
             buttonBar.reposition(sz);
-            visualEffects.addDefaultEffect(visualEffects.ghostPattern(srcPoint.getGhost()));
-            visualEffects.addDefaultEffect(visualEffects.ghostPattern(tgtPoint.getGhost()));
             visualEffects.applyAttributes();
             connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId());
             resetConnectionHint();

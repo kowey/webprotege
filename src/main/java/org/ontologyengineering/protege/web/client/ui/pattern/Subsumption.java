@@ -11,6 +11,8 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.dragsnap.Effects;
+import org.ontologyengineering.protege.web.client.ui.dragsnap.Endpoint;
 import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Scale;
 import org.ontologyengineering.protege.web.client.util.Size;
@@ -65,7 +67,7 @@ class Subsumption extends Pattern implements Cloneable {
     // State tracking fields
     private boolean isMoving = false;
     private boolean isRenaming = false;
-    private Effects visualEffects = new Effects();
+    private Effects visualEffects;
 
 
     // Widgets
@@ -78,11 +80,7 @@ class Subsumption extends Pattern implements Cloneable {
     private Optional<Role> firstSnapped;
 
     // widgets that are not contained in the template frame necessarily
-    final Collection<Widget> freeWidgets;
     final Collection<Endpoint> endpoints;
-
-    private final Position supersetTopLeft;
-    private final Position subsetTopLeft;
 
     public Subsumption(@NonNull final String id,
                        @NonNull final CurveRegistry registry,
@@ -102,20 +100,28 @@ class Subsumption extends Pattern implements Cloneable {
         this.firstSnapped = Optional.absent();
         this.endpoints = new HashSet<Endpoint>();
 
-        this.supersetTopLeft = new Position(1, 1);
-        this.subsetTopLeft = new Position(1 + width / 3, 1 + height / 3);
+        final Position supersetTopLeft = new Position(1, 1);
+        final Position subsetTopLeft = new Position(1 + width / 3, 1 + height / 3);
 
         final DraggableShape wCurveOuter =
                 new DraggableRect(width, height, this.core.rounding);
         final DraggableShape wCurveInner =
                 new DraggableRect(width / 2, height / 2, this.core.rounding);
+        final DraggableShape wGhostOuter =
+                new DraggableRect(width, height, this.core.rounding);
+        final DraggableShape wGhostInner =
+                new DraggableRect(width / 2, height / 2, this.core.rounding);
 
-        superset = new Endpoint(Role.SUPER, "_curve_outer",
-                wCurveOuter, "green",
+        this.visualEffects = new SubsumptionEffects(Arrays.<Widget>asList(
+                wCurveInner, wGhostInner,
+                wCurveOuter, wGhostOuter));
+
+        superset = new SubsumptionEndpoint(Role.SUPER, "_curve_outer",
+                wCurveOuter, wGhostOuter, "green",
                 buttonBar.wSuperset, "darkgreen",
                 supersetTopLeft);
-        subset = new Endpoint(Role.SUB, "_curve_inner",
-                wCurveInner, "blue",
+        subset = new SubsumptionEndpoint(Role.SUB, "_curve_inner",
+                wCurveInner, wGhostInner, "blue",
                 buttonBar.wSubset, "darkblue",
                 subsetTopLeft);
 
@@ -123,7 +129,6 @@ class Subsumption extends Pattern implements Cloneable {
         endpoints.add(subset);
         getElement().setClassName("template");
 
-        freeWidgets = Arrays.<Widget>asList(wCurveInner, wCurveOuter);
     }
 
     // ----------------------------------------------------------------
@@ -136,226 +141,82 @@ class Subsumption extends Pattern implements Cloneable {
      * search boxes (for example, by typing into them)
      */
     @Getter @Setter
-    class Endpoint implements SearchHandler,
-            MouseOverHandler, MouseOutHandler,
-            MouseUpHandler, MouseDownHandler, MouseMoveHandler,
-            KeyUpHandler {
-
+    class SubsumptionEndpoint extends Endpoint {
         @NonNull final private Role role;
-        @NonNull final private String idSuffix;
-        @NonNull final private DraggableShape curve;
-        @NonNull final private String color;
-        @NonNull final private TextBox searchBox;
-        @NonNull final private String searchColor;
-        @NonNull final private SearchHandler searchHandler;
 
-        // initial x/y coordinates for the curve (relative to parent)
-        final private Position home;
-
-        @NonNull Optional<IRI> iri = Optional.absent();
-
-        // we need to keep track of pre-existing candidates so that
-        // we can remove any visual effects we've applied on them once
-        // they are no longer candidates
-        Collection<Curve> candidates = Collections.emptyList();
-        private boolean dragging = false;
-
-        public Endpoint(@NonNull Role role,
+        public SubsumptionEndpoint(@NonNull Role role,
                         @NonNull String idSuffix,
                         @NonNull DraggableShape curve,
+                        @NonNull DraggableShape ghost,
                         @NonNull String color,
                         @NonNull TextBox searchBox,
                         @NonNull String searchColor,
                         @NonNull Position topLeft) {
+            super(Subsumption.this.searchManager,
+                  Subsumption.this.visualEffects,
+                  Subsumption.this.core.id + idSuffix,
+                  curve, ghost, color, searchBox, searchColor,
+                  topLeft);
             this.role = role;
-            this.idSuffix = idSuffix;
-            this.curve = curve;
-            this.color = color;
-            this.searchBox = searchBox;
-            this.searchColor = searchColor;
-            this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
-            this.home = topLeft;
         }
 
         public void onLoad() {
-            curve.getElement().setId(getCurveId());
+            super.onLoad();
             if (this.role == Role.SUB) {
-                curve.addStyleName("snap-to-drag-inner-curve");
+                getCurve().addStyleName("snap-to-drag-inner-curve");
             } else {
-                curve.addStyleName("snap-to-drag-outer-curve");
+                getCurve().addStyleName("snap-to-drag-outer-curve");
             }
-            bind();
-            reset();
             makeDraggable("#" + getCurveId());
         }
 
-        public String getCurveId() {
-            return Subsumption.this.core.id + this.idSuffix;
-        }
-
-
-        public Optional<Collection<Curve>> getMatching() {
-            return Optional.of(candidates);
-        }
-
-        /**
-         * Forcibly "awaken" the current curve; normally a curve is activated by
-         * hovering over it, but if we start typing things in the search box, it'd
-         * be a good idea to light the curve up a form of feedback
-         */
-        public void forceActive() {
-            Subsumption.this.visualEffects.clear();
-            Subsumption.this.visualEffects.addActiveCurve(this);
-        }
-
-        /**
-         * Snap the curve to its (unique) match if there is one
-         */
-        public void snapIfUniqueMatch() {
-            if (candidates.size() == 1) {
-                Curve match = candidates.iterator().next();
-                if (match.getIri().isPresent()) {
-                    curve.setVisible(false);
-                    searchBox.setText(match.getLabel().or("<UNNAMED>"));
-                    searchBox.setEnabled(false);
-                    iri = match.getIri();
-                    if (! Subsumption.this.firstSnapped.isPresent()) {
-                        Subsumption.this.alreadyChosen = Optional.of(match);
-                        Subsumption.this.firstSnapped = Optional.of(this.role);
-                    } else {
-                        final AbsolutePanel parentPanel = Subsumption.this.parentPanel;
-                        final Role firstRole = firstSnapped.get();
-                        final Curve chosen = Subsumption.this.alreadyChosen.get();
-
-                        Position topleft = new Position(
-                                parentPanel.getWidgetLeft(chosen.getWidget()),
-                                parentPanel.getWidgetTop(chosen.getWidget()));
-
-                        Scale scale = new Scale(1, 1);
-                        switch (firstRole) {
-                            case SUB:
-                                scale = new Scale((float)1.2, (float)1.2);
-                                topleft = new Position(topleft.getX() - 10 , topleft.getY() - 10);
-                                break;
-                            case SUPER:
-                                scale = new Scale((float)0.8, (float)0.8);
-                                topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
-                                break;
-                        }
-                        Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
-                        other.setSize(scale.transform(chosen.getSize()));
-                        Subsumption.this.maybeFinish();
-                    }
-                }
-            }
-        }
-
-        private Collection<Curve> getSnapCandidates() {
-            Collection<Curve> candidates = searchManager.getSnapCandidates(curve);
-            // avoid chosing a shape that was already chosen for the other role,
-            // ie. superset if we are subset or vice-versa
-            if (alreadyChosen.isPresent()) {
-                candidates.remove(alreadyChosen.get());
-            }
-            // narrow the matching to things which have been preselected in the search
-            // box (if applicable)
-            if (searchHandler.getMatching().isPresent()) {
-                final Collection<Curve> searchBoxMatching = searchHandler.getMatching().get();
-
-                candidates = Collections2.filter(candidates, new Predicate<Curve>() {
-                    @Override
-                    public boolean apply(@NonNull Curve curve) {
-                        return searchBoxMatching.contains(curve);
-                    }
-                });
-            }
-            return candidates;
-        }
-
-        /**
-         * Stay abreast of changes to our snap candidates:
-         * Clear any stale drag-to-snap visual effects from old candidates,
-         * figure out the ones and apply effects accordingly
-         */
-        public void update() {
-            Collection<Curve> newCandidates = getSnapCandidates();
-
-            for (Curve oldCandidate : candidates) {
-                oldCandidate.getEffects().applyDragSnapEffect(curve, Optional.<VisualEffect>absent());
-            }
-
-            if (newCandidates.size() == 1) {
-                Curve.Effects effects = newCandidates.iterator().next().getEffects();
-                effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapUnique(color)));
+        protected void snapToMatch(@NonNull final Curve match) {
+            getCurve().setVisible(false);
+            getSearchBox().setText(match.getLabel().or("<UNNAMED>"));
+            getSearchBox().setEnabled(false);
+            setIri(match.getIri());
+            if (!Subsumption.this.firstSnapped.isPresent()) {
+                Subsumption.this.alreadyChosen = Optional.of(match);
+                Subsumption.this.firstSnapped = Optional.of(this.role);
             } else {
-                for (Curve newCandidate : newCandidates) {
-                    Curve.Effects effects = newCandidate.getEffects();
-                    effects.applyDragSnapEffect(curve, Optional.of(effects.dragSnapPartial(color)));
+                final AbsolutePanel parentPanel = Subsumption.this.parentPanel;
+                final Role firstRole = firstSnapped.get();
+                final Curve chosen = Subsumption.this.alreadyChosen.get();
+
+                Position topleft = new Position(
+                        parentPanel.getWidgetLeft(chosen.getWidget()),
+                        parentPanel.getWidgetTop(chosen.getWidget()));
+
+                Scale scale = new Scale(1, 1);
+                switch (firstRole) {
+                    case SUB:
+                        scale = new Scale((float) 1.2, (float) 1.2);
+                        topleft = new Position(topleft.getX() - 10, topleft.getY() - 10);
+                        break;
+                    case SUPER:
+                        scale = new Scale((float) 0.8, (float) 0.8);
+                        topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
+                        break;
                 }
+                Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
+                other.setSize(scale.transform(chosen.getSize()));
+                Subsumption.this.maybeFinish();
             }
-            candidates = newCandidates;
         }
 
-        /**
-         * Clear the current search and apply visual effects as appropriate
-         */
-        public void reset() {
-            Position topleft = relativeToParent(home);
-            Subsumption.this.parentPanel.setWidgetPosition(curve, topleft.getX(), topleft.getY());
-            update();
-            iri = Optional.absent();
+        protected Collection<Curve> getAlreadyChosen() {
+            return Subsumption.this.alreadyChosen.asSet();
+        }
+
+        protected void resetSnapChoices() {
             Subsumption.this.alreadyChosen = Optional.absent();
             Subsumption.this.firstSnapped = Optional.absent();
-            curve.setVisible(true);
-            searchBox.setEnabled(true);
-            searchHandler.reset();
         }
 
-        @Override
-        public void onMouseOver(MouseOverEvent event) {
-            Subsumption.this.visualEffects.addActiveCurve(this);
-            searchBox.setFocus(true);
-        }
-
-        @Override
-        public void onMouseOut(MouseOutEvent event) {
-            Subsumption.this.visualEffects.removeActiveCurve(this);
-        }
-
-        @Override
-        public void onMouseMove(MouseMoveEvent event) {
-            if (isDragging()) {
-                update();
-            }
-        }
-
-        @Override
-        public void onMouseDown(MouseDownEvent event) {
-            setDragging(true);
-        }
-
-        @Override
-        public void onMouseUp(MouseUpEvent event) {
-            setDragging(false);
-            snapIfUniqueMatch();
-        }
-
-        @Override
-        public void onKeyUp(KeyUpEvent event) {
-            forceActive();
-        }
-
-        /**
-         * Set as the mouse over/out handlers for the given curve
-         */
-        public void bind() {
-            curve.addDomHandler(this, MouseOverEvent.getType());
-            curve.addDomHandler(this, MouseOutEvent.getType());
-            curve.addDomHandler(this, MouseUpEvent.getType());
-            curve.addDomHandler(this, MouseDownEvent.getType());
-            curve.addDomHandler(this, MouseMoveEvent.getType());
-            searchHandler.bind();
-            searchBox.addDomHandler(this, KeyUpEvent.getType());
+        protected void withdrawCurve() {
+            final Position topLeft = relativeToParent(getHome());
+            Subsumption.this.parentPanel.setWidgetPosition(getCurve(), topLeft.getX(), topLeft.getY());
+            Subsumption.this.parentPanel.setWidgetPosition(getGhost(), topLeft.getX(), topLeft.getY());
         }
     }
 
@@ -370,10 +231,12 @@ class Subsumption extends Pattern implements Cloneable {
             super.onLoad();
 
             for (Endpoint endpoint : endpoints) {
-                parentPanel.add(endpoint.curve);
+                parentPanel.add(endpoint.getCurve());
+                parentPanel.add(endpoint.getGhost());
+                visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
                 endpoint.onLoad();
             }
-
+            visualEffects.applyAttributes();
             final Size sz = subsumption.core.getSize();
             this.add(buttonBar, sz.getWidth() + 5, 0);
             buttonBar.reposition(sz);
@@ -432,10 +295,10 @@ class Subsumption extends Pattern implements Cloneable {
     }
 
     @Getter
-    @RequiredArgsConstructor
-    class Effects extends AttributeLayers {
-
-        final Map<DraggableShape, VisualEffect> curveEffects = new HashMap();
+    class SubsumptionEffects extends Effects {
+        public SubsumptionEffects(@NonNull final Collection<Widget> widgets) {
+            super(widgets);
+        }
 
         // which template curves are currently being moused over
         // we need to track this because mouse-over events are only
@@ -447,34 +310,6 @@ class Subsumption extends Pattern implements Cloneable {
         @Getter(AccessLevel.NONE)
         @Setter(AccessLevel.NONE)
         private Set<Endpoint> activeCurves = new HashSet();
-
-        @NonNull
-        private VisualEffect activePattern(@NonNull final DraggableShape curve,
-                                           @NonNull final String color) {
-            VisualEffect effect = new VisualEffect("subsumption template hover (" + color + ")");
-            effect.setAttribute(curve, "stroke", color, "black");
-            effect.setAttribute(curve, "stroke-width", "3", "1");
-            return effect;
-        }
-
-        public void setEffect(@NonNull final DraggableShape curve,
-                              @NonNull final Optional<VisualEffect> newEffect) {
-            setContextEffect(curveEffects, curve, newEffect);
-        }
-
-        private void applyAttributes() {
-            applyAttributes(new Painter() {
-                @Override
-                public void apply(Key key, String value) {
-                    final Object obj = key.getObject();
-                    final String attr = key.getAttribute();
-                    if (freeWidgets.contains(obj)) {
-                        DraggableShape curve = (DraggableShape) obj;
-                        curve.attr(attr, value);
-                    }
-                }
-            });
-        }
 
         public void clear() {
             activeCurves.clear();
@@ -504,22 +339,20 @@ class Subsumption extends Pattern implements Cloneable {
 
         private void highlightActiveCurves() {
             for (Endpoint endpoint : endpoints) {
-                if (getActiveCurve().equals(Optional.of(endpoint))) {
-                    VisualEffect effect = activePattern(endpoint.curve, endpoint.searchColor);
-                    setEffect(endpoint.curve, Optional.of(effect));
-                } else {
-                    setEffect(endpoint.curve, Optional.<VisualEffect>absent());
-                }
+                Optional<VisualEffect> effect = (getActiveCurve().equals(Optional.of(endpoint)))
+                        ? Optional.of(activePattern(endpoint.getCurve(), endpoint.getSearchColor()))
+                        : Optional.<VisualEffect>absent();
+                setEffect(endpoint.getCurve(), effect);
             }
             applyAttributes();
         }
     }
 
     public void maybeFinish() {
-        if (superset.iri.isPresent() && subset.iri.isPresent()) {
+        if (superset.getIri().isPresent() && subset.getIri().isPresent()) {
             // do the actual move
-            IRI cls = subset.iri.get();
-            IRI newParent = superset.iri.get();
+            IRI cls = subset.getIri().get();
+            IRI newParent = superset.getIri().get();
             IRI oldParent = registry.getImmediateParent(cls);
             registry.moveClass(cls, oldParent, newParent);
             for (Endpoint endpoint : endpoints) {
