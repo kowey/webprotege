@@ -100,8 +100,8 @@ class Property extends Pattern implements Cloneable {
         this.firstSnapped = Optional.absent();
         this.endpoints = new HashSet<Endpoint>();
 
-        final Position srcTopLeft = new Position(1, 1);
-        final Position tgtTopLeft = new Position(1 + width + 40, 1);
+        final Position srcTopLeft = new Position(3, 3);
+        final Position tgtTopLeft = new Position(3 + width + 40, 3);
 
         final DraggableShape wCurveSource =
                 new DraggableRect(width, height, this.core.rounding);
