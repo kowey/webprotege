@@ -3,7 +3,6 @@ package org.ontologyengineering.protege.web.client.ui.pattern;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.Element;
@@ -14,7 +13,6 @@ import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
 import org.ontologyengineering.protege.web.client.util.Position;
-import org.ontologyengineering.protege.web.client.util.Scale;
 import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
@@ -91,6 +89,9 @@ class Property extends Pattern implements Cloneable {
 
     // widgets that are not contained in the template frame necessarily
     final Collection<Widget> freeWidgets;
+    // widgets that serve to provide a hint what this template is about
+    final Collection<Widget> ghosts;
+
     final Collection<Endpoint> endpoints;
 
     private final Position srcTopLeft;
@@ -140,7 +141,8 @@ class Property extends Pattern implements Cloneable {
         endpoints.add(tgtPoint);
         getElement().setClassName("template");
 
-        freeWidgets = Arrays.<Widget>asList(wCurveTarget, wCurveSource);
+        freeWidgets = Arrays.<Widget>asList(wCurveSource, wCurveTarget);
+        ghosts = Arrays.<Widget>asList(wGhostSource, wGhostTarget);
     }
 
     // ----------------------------------------------------------------
@@ -164,7 +166,6 @@ class Property extends Pattern implements Cloneable {
         // not meant to be selectable, just provides a visual
         // hint to the existence of this object
         @NonNull final private DraggableShape ghost;
-
 
         @NonNull final private String color;
         @NonNull final private TextBox searchBox;
@@ -411,11 +412,9 @@ class Property extends Pattern implements Cloneable {
             final Size sz = property.core.getSize();
             this.add(buttonBar, 1, sz.getHeight() + 10);
             buttonBar.reposition(sz);
-            // TODO: these default ghost effects aren't doing anything
             visualEffects.addDefaultEffect(visualEffects.ghostPattern(srcPoint.getGhost()));
             visualEffects.addDefaultEffect(visualEffects.ghostPattern(tgtPoint.getGhost()));
             visualEffects.applyAttributes();
-            // TODO: (end)
             connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId());
             resetConnectionHint();
         }
@@ -501,7 +500,7 @@ class Property extends Pattern implements Cloneable {
         @NonNull
         private VisualEffect ghostPattern(@NonNull final DraggableShape curve) {
             VisualEffect effect = new VisualEffect("property template ghost");
-            effect.setAttribute(curve, "stroke", "orange", "orange");
+            effect.setAttribute(curve, "stroke", "gray", "gray");
             effect.setAttribute(curve, "stroke-dasharray", ".", ".");
             return effect;
         }
@@ -518,7 +517,7 @@ class Property extends Pattern implements Cloneable {
                 public void apply(Key key, String value) {
                     final Object obj = key.getObject();
                     final String attr = key.getAttribute();
-                    if (freeWidgets.contains(obj)) {
+                    if (freeWidgets.contains(obj) || ghosts.contains(obj)) {
                         DraggableShape curve = (DraggableShape) obj;
                         curve.attr(attr, value);
                     }
@@ -567,7 +566,6 @@ class Property extends Pattern implements Cloneable {
 
     private void removeConnectionHint() {
         if (this.connectionHint.isPresent()) {
-            GWT.log("[Property] removing connection hint" + this.connectionHint.get());
             disconnect(this.connectionHint.get());
             this.connectionHint = Optional.absent();
         }
@@ -575,7 +573,6 @@ class Property extends Pattern implements Cloneable {
 
     private void resetConnectionHint() {
         removeConnectionHint();
-        GWT.log("[Property] resetting connection hint to " + this.srcPoint.getCurveId() + " => " + this.tgtPoint.getCurveId());
         this.connectionHint = Optional.of(connectPair(
                 this.srcPoint.getCurveId(),
                 this.tgtPoint.getCurveId()));
@@ -584,7 +581,6 @@ class Property extends Pattern implements Cloneable {
 
     private void setConnectionHintSource(@NonNull final String source) {
         removeConnectionHint();
-        GWT.log("[Property] pointing canvas src " + source + " => " + this.tgtPoint.getCurveId());
         this.connectionHint = Optional.of(connectPair(
                 source,
                 this.tgtPoint.getCurveId()));
@@ -592,16 +588,13 @@ class Property extends Pattern implements Cloneable {
 
     private void setConnectionHintTarget(@NonNull final String target) {
         removeConnectionHint();
-        GWT.log("[Property] pointing to canvas tgt " + this.srcPoint.getCurveId() + " => " + target);
         this.connectionHint = Optional.of(connectPair(
                 this.srcPoint.getCurveId(),
                 target));
     }
 
     public void maybeFinish() {
-        GWT.log("[Property] maybeFinish");
         if (srcPoint.iri.isPresent() && tgtPoint.iri.isPresent()) {
-            GWT.log("[Property] actual");
 
             // TODO actually complete
             for (Endpoint endpoint : endpoints) {
