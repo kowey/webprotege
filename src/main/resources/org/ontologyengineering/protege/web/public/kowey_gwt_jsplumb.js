@@ -4,6 +4,7 @@ function gwtjsplumbinit() {
          jsPlumb.Defaults.PaintStyle = { strokeStyle:"gray", lineWidth:2 };
          jsPlumb.Defaults.EndpointStyle = { radius:3, fillStyle:"gray" };
          jsPlumb.Defaults.Anchors =  [ "AutoDefault", "AutoDefault" ];
+         jsPlumb.Defaults.Container = $("body");
  }
 
  function gwtjsconnect(pairs) {
