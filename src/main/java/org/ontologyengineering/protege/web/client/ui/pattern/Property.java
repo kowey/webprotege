@@ -3,6 +3,8 @@ package org.ontologyengineering.protege.web.client.ui.pattern;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
@@ -74,6 +76,16 @@ class Property extends Pattern implements Cloneable {
     final private Endpoint srcPoint;
     final private Endpoint tgtPoint;
 
+    // a visual hint connecting objects in the property template
+    // if you snap to an object, the connection moves.
+    // if you complete a connection this should be reset
+    //
+    // * connection within template
+    // * connection between template/canvas
+    //
+    // this should never be null once onLoad is called
+    private Optional<JavaScriptObject> connectionHint = Optional.absent();
+
     private Optional<Curve> alreadyChosen;
     private Optional<Role> firstSnapped;
 
@@ -89,7 +101,7 @@ class Property extends Pattern implements Cloneable {
                     @NonNull final SearchManager searchManager,
                     @NonNull final AbsolutePanel parentPanel) {
         this.core = new Core(id);
-        this.core.setSize(new Size(60, 80));
+        this.core.setSize(new Size(60, 40));
 
         final int width = this.core.getWidth();
         final int height = this.core.getHeight();
@@ -116,12 +128,12 @@ class Property extends Pattern implements Cloneable {
                 new DraggableRect(width, height, this.core.rounding);
 
         srcPoint = new Endpoint(Role.SOURCE, "_curve_source",
-                wCurveSource, wGhostSource, "green",
-                buttonBar.wSource, "darkgreen",
+                wCurveSource, wGhostSource, "pink",
+                buttonBar.wSource, "red",
                 srcTopLeft);
         tgtPoint = new Endpoint(Role.TARGET, "_curve_target",
-                wCurveTarget, wGhostTarget, "blue",
-                buttonBar.wTarget, "darkblue",
+                wCurveTarget, wGhostTarget, "yellow",
+                buttonBar.wTarget, "orange",
                 tgtTopLeft);
 
         endpoints.add(srcPoint);
@@ -223,6 +235,40 @@ class Property extends Pattern implements Cloneable {
             Property.this.visualEffects.addActiveCurve(this);
         }
 
+        // helper for snapIfUniqueMatch
+        private void snapToMatch(@NonNull final Curve match) {
+            final Property prop = Property.this;
+            curve.setVisible(false);
+            searchBox.setText(match.getLabel().or("<UNNAMED>"));
+            searchBox.setEnabled(false);
+            this.iri = match.getIri();
+            if (! prop.firstSnapped.isPresent()) {
+                prop.alreadyChosen = Optional.of(match);
+                prop.firstSnapped = Optional.of(this.role);
+                switch (this.role) {
+                    case TARGET:
+                        prop.setConnectionHintTarget(match.getCurveId());
+                        break;
+                    case SOURCE:
+                        prop.setConnectionHintSource(match.getCurveId());
+                        break;
+                }
+            } else {
+                final Role firstRole = firstSnapped.get();
+                final Curve chosen = prop.alreadyChosen.get();
+                switch (firstRole) {
+                    case TARGET:
+                        connectPair(match.getCurveId(), chosen.getCurveId());
+                        break;
+                    case SOURCE:
+                        connectPair(chosen.getCurveId(), match.getCurveId());
+                        break;
+                }
+                prop.maybeFinish();
+            }
+        }
+
+
         /**
          * Snap the curve to its (unique) match if there is one
          */
@@ -230,27 +276,7 @@ class Property extends Pattern implements Cloneable {
             if (candidates.size() == 1) {
                 Curve match = candidates.iterator().next();
                 if (match.getIri().isPresent()) {
-                    curve.setVisible(false);
-                    searchBox.setText(match.getLabel().or("<UNNAMED>"));
-                    searchBox.setEnabled(false);
-                    iri = match.getIri();
-                    if (! Property.this.firstSnapped.isPresent()) {
-                        Property.this.alreadyChosen = Optional.of(match);
-                        Property.this.firstSnapped = Optional.of(this.role);
-                    } else {
-                        final AbsolutePanel parentPanel = Property.this.parentPanel;
-                        final Role firstRole = firstSnapped.get();
-                        final Curve chosen = Property.this.alreadyChosen.get();
-                        switch (firstRole) {
-                            case TARGET:
-                                connectPair(chosen.getCurveId(), match.getCurveId());
-                                break;
-                            case SOURCE:
-                                connectPair(match.getCurveId(), chosen.getCurveId());
-                                break;
-                        }
-                        Property.this.maybeFinish();
-                    }
+                    snapToMatch(match);
                 }
             }
         }
@@ -314,6 +340,7 @@ class Property extends Pattern implements Cloneable {
             curve.setVisible(true);
             searchBox.setEnabled(true);
             searchHandler.reset();
+
         }
 
         @Override
@@ -337,6 +364,9 @@ class Property extends Pattern implements Cloneable {
         @Override
         public void onMouseDown(MouseDownEvent event) {
             setDragging(true);
+            if (!Property.this.connectionHint.isPresent()) {
+                Property.this.resetConnectionHint();
+            }
         }
 
         @Override
@@ -365,14 +395,13 @@ class Property extends Pattern implements Cloneable {
     }
 
     class PropertyPanel extends AbsolutePanel {
-
         @Override
         public void onLoad() {
             Property property = Property.this;
             this.getElement().setId(property.core.getId());
             super.onLoad();
             this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
-                    Pattern.DEFAULT_TEMPLATE_HEIGHT + 60);
+                    Pattern.DEFAULT_TEMPLATE_HEIGHT + 40);
 
             for (Endpoint endpoint : endpoints) {
                 parentPanel.add(endpoint.curve);
@@ -382,7 +411,13 @@ class Property extends Pattern implements Cloneable {
             final Size sz = property.core.getSize();
             this.add(buttonBar, 1, sz.getHeight() + 10);
             buttonBar.reposition(sz);
+            // TODO: these default ghost effects aren't doing anything
+            visualEffects.addDefaultEffect(visualEffects.ghostPattern(srcPoint.getGhost()));
+            visualEffects.addDefaultEffect(visualEffects.ghostPattern(tgtPoint.getGhost()));
+            visualEffects.applyAttributes();
+            // TODO: (end)
             connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId());
+            resetConnectionHint();
         }
     }
 
@@ -463,6 +498,15 @@ class Property extends Pattern implements Cloneable {
             return effect;
         }
 
+        @NonNull
+        private VisualEffect ghostPattern(@NonNull final DraggableShape curve) {
+            VisualEffect effect = new VisualEffect("property template ghost");
+            effect.setAttribute(curve, "stroke", "orange", "orange");
+            effect.setAttribute(curve, "stroke-dasharray", ".", ".");
+            return effect;
+        }
+
+
         public void setEffect(@NonNull final DraggableShape curve,
                               @NonNull final Optional<VisualEffect> newEffect) {
             setContextEffect(curveEffects, curve, newEffect);
@@ -521,16 +565,57 @@ class Property extends Pattern implements Cloneable {
         }
     }
 
+    private void removeConnectionHint() {
+        if (this.connectionHint.isPresent()) {
+            GWT.log("[Property] removing connection hint" + this.connectionHint.get());
+            disconnect(this.connectionHint.get());
+            this.connectionHint = Optional.absent();
+        }
+    }
+
+    private void resetConnectionHint() {
+        removeConnectionHint();
+        GWT.log("[Property] resetting connection hint to " + this.srcPoint.getCurveId() + " => " + this.tgtPoint.getCurveId());
+        this.connectionHint = Optional.of(connectPair(
+                this.srcPoint.getCurveId(),
+                this.tgtPoint.getCurveId()));
+        this.repaintEverything();
+    }
+
+    private void setConnectionHintSource(@NonNull final String source) {
+        removeConnectionHint();
+        GWT.log("[Property] pointing canvas src " + source + " => " + this.tgtPoint.getCurveId());
+        this.connectionHint = Optional.of(connectPair(
+                source,
+                this.tgtPoint.getCurveId()));
+    }
+
+    private void setConnectionHintTarget(@NonNull final String target) {
+        removeConnectionHint();
+        GWT.log("[Property] pointing to canvas tgt " + this.srcPoint.getCurveId() + " => " + target);
+        this.connectionHint = Optional.of(connectPair(
+                this.srcPoint.getCurveId(),
+                target));
+    }
+
     public void maybeFinish() {
+        GWT.log("[Property] maybeFinish");
         if (srcPoint.iri.isPresent() && tgtPoint.iri.isPresent()) {
-            // do the actual move
-            IRI cls = tgtPoint.iri.get();
-            IRI newParent = srcPoint.iri.get();
-            IRI oldParent = registry.getImmediateParent(cls);
-            registry.moveClass(cls, oldParent, newParent);
+            GWT.log("[Property] actual");
+
+            // TODO actually complete
             for (Endpoint endpoint : endpoints) {
                 endpoint.reset();
             }
+            // To be restored when the user starts to move the curve again
+            // for some reason jsPlumb connects to the position that the
+            // endpoint was at before being reset, which looks wrong
+            //
+            // Only when you start to move the endpoint around again does the
+            // curve snap back into the right place. So for now, we make do
+            // with removing the curve altogether and putting it back as soon
+            // the user starts to move the endpoints again :-(
+            Property.this.removeConnectionHint();
         }
     }
 
@@ -546,7 +631,15 @@ class Property extends Pattern implements Cloneable {
         $wnd.make_draggable(draggableId);
         }-*/;
 
-    private native void connectPair(String source, String target) /*-{
-        $wnd.connect_pair(source,target);
+    private native JavaScriptObject connectPair(String source, String target) /*-{
+        return $wnd.connect_pair(source,target);
+        }-*/;
+
+    private native void disconnect(JavaScriptObject connection) /*-{
+        $wnd.disconnect(connection);
+        }-*/;
+
+    private native void repaintEverything() /*-{
+        $wnd.repaint_everything();
         }-*/;
 }
