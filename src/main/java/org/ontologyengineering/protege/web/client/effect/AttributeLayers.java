@@ -91,6 +91,21 @@ public class AttributeLayers {
     }
 
     /**
+     * Add an effect to the very bottom of the list (cannot be undone)
+     * We only pay attention to the default settings for each attribute
+     * in the effect.
+     *
+     * You typically only need to do this if you have a default effect
+     * that you want to make visible from the beginning. Otherwise, it's
+     * enough to supply the default value with the usual @{link:#addEffect}
+     *
+     * @param effect
+     */
+    public void addDefaultEffect(@NonNull final VisualEffect effect) {
+        mergeAttributes(effect.getDefaults(), defaultEffect.getAttributes());
+    }
+
+    /**
      * Remove an effect (not necessarily one that is on top)
      *
      * @param effect
