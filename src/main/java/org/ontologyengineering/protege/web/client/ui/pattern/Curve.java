@@ -101,7 +101,7 @@ class Curve extends Pattern implements Cloneable,
     }
 
     @RequiredArgsConstructor @Getter
-    class Effects extends AttributeLayers {
+    public class Effects extends AttributeLayers {
         @NonNull final private DraggableShape curve;
         @NonNull final private TextBox label;
 
