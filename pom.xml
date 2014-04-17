@@ -13,7 +13,7 @@
   <properties>
     <!-- Convenience property to set the GWT version -->
     <gwtVersion>2.5.1</gwtVersion>
-    <springframeworkVersion>3.2.4.RELEASE</springframeworkVersion>
+    <springframeworkVersion>4.0.3.RELEASE</springframeworkVersion>
     <!-- GWT needs at least java 1.5 -->
     <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
