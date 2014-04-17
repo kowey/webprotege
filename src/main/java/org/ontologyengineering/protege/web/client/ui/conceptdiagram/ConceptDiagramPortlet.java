@@ -325,14 +325,12 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     public List<Curve> getSnapCandidates(DraggableShape dragged) {
         List<Curve> matches = new LinkedList<Curve>();
         Rectangle dbox = dragged.getAbsoluteBBox();
-        GWT.log("[CM] getSnapCandidates for " + dbox);
         for (CurveCore candidateCore : core.getCurves()) {
             final Curve candidate = curves.get(candidateCore);
             Rectangle cbox = candidate.getWCurve().getAbsoluteBBox();
             if (dbox.intersects(cbox)) {
                 matches.add(candidate);
             }
-            GWT.log("[CM] candidate " + candidate.getLabel() + cbox + dbox.intersects(cbox));
         }
         return matches;
     }
