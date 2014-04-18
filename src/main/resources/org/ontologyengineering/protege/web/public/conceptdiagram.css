@@ -7,11 +7,13 @@
 .concept .gwt-TextBox-readonly {
     border: none;
     box-shadow: none;
+    background-color: rgba(255,255,255,.5);
 }
 
 .template .gwt-TextBox-readonly {
     border: none;
     box-shadow: none;
+    background-color: rgba(255,255,255,.5);
 }
 
 .concept-button {
