@@ -3,6 +3,7 @@ package org.ontologyengineering.protege.web.client.ui.pattern;
 import com.google.common.base.Optional;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
@@ -49,6 +50,8 @@ class Property extends Pattern implements Cloneable {
         @NonNull final private String id;
         private int rounding = 20;
     }
+
+    static int labelCounter = 0;
 
     @NonNull final Core core;
     @NonNull final CurveRegistry registry;
@@ -101,7 +104,7 @@ class Property extends Pattern implements Cloneable {
         this.endpoints = new HashSet<Endpoint>();
 
         final Position srcTopLeft = new Position(3, 3);
-        final Position tgtTopLeft = new Position(3 + width + 40, 3);
+        final Position tgtTopLeft = new Position(3 + width + 60, 3);
 
         final DraggableShape wCurveSource =
                 new DraggableRect(width, height, this.core.rounding);
@@ -160,6 +163,7 @@ class Property extends Pattern implements Cloneable {
         protected void resetSnapChoices() {
             Property.this.alreadyChosen = Optional.absent();
             Property.this.firstSnapped = Optional.absent();
+            Property.this.buttonBar.getWProperty().setText("");
             removeConnectionHint();
         }
 
@@ -195,25 +199,22 @@ class Property extends Pattern implements Cloneable {
             if (! prop.firstSnapped.isPresent()) {
                 prop.alreadyChosen = Optional.of(match);
                 prop.firstSnapped = Optional.of(this.role);
-                switch (this.role) {
-                    case TARGET:
-                        prop.setConnectionHintTarget(match.getCurveId());
-                        break;
-                    case SOURCE:
-                        prop.setConnectionHintSource(match.getCurveId());
-                        break;
-                }
+                final boolean isSourceFirst = firstSnapped.get().equals(Role.SOURCE);
+                final Optional<String> source = isSourceFirst
+                        ? Optional.of(match.getCurveId()) : Optional.<String>absent();
+                final Optional<String> target = isSourceFirst
+                        ? Optional.<String>absent() : Optional.of(match.getCurveId());
+                addConnectionHint(source, target);
             } else {
-                final Role firstRole = firstSnapped.get();
                 final Curve chosen = prop.alreadyChosen.get();
-                switch (firstRole) {
-                    case TARGET:
-                        connectPair(match.getCurveId(), chosen.getCurveId());
-                        break;
-                    case SOURCE:
-                        connectPair(chosen.getCurveId(), match.getCurveId());
-                        break;
-                }
+                final boolean isSourceFirst = firstSnapped.get().equals(Role.SOURCE);
+
+                final Curve source = isSourceFirst ? chosen : match;
+                final Curve target = isSourceFirst ? match : chosen;
+                // we always expect there to be some element, so non-null
+                final Element hintTextBox = DOM.getElementById(getConnectionHintId());
+                final String hintText = hintTextBox.getAttribute("value");
+                connectPair(source.getCurveId(), target.getCurveId(), makeConnectionId(), hintText);
                 prop.maybeFinish();
             }
         }
@@ -291,8 +292,7 @@ class Property extends Pattern implements Cloneable {
             this.add(buttonBar, 1, sz.getHeight() + 10);
             buttonBar.reposition(sz);
             visualEffects.applyAttributes();
-            connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId());
-            resetConnectionHint();
+            connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId(), null, null);
         }
     }
 
@@ -304,13 +304,23 @@ class Property extends Pattern implements Cloneable {
         return panel.getElement();
     }
 
+    public String getConnectionHintId() {
+        return this.core.id + "_hint";
+    }
 
+    /**
+     * Create and return a brand new connection id
+     */
+    public String makeConnectionId () {
+        this.labelCounter++;
+        return this.core.id + "_conn_" + this.labelCounter;
+    }
 
     @Getter
     class ButtonBar extends DockPanel {
         final private TextBox wSource = new TextBox();
         final private TextBox wTarget = new TextBox();
-        final private Label wSubsumes = new Label("<PROPERTY>");
+        final private TextBox wProperty = new TextBox();
 
         final Panel wButtons = new HorizontalPanel();
         final Button wReset = new Button("X");
@@ -334,10 +344,14 @@ class Property extends Pattern implements Cloneable {
             wTarget.setWidth("6em");
             wSource.setWidth("6em");
 
+            wSource.getElement().setAttribute("placeholder", "source");
+            wTarget.getElement().setAttribute("placeholder", "target");
+            wProperty.getElement().setAttribute("placeholder", "PROPERTY");
+            wProperty.getElement().setAttribute("style", "margin-left: 2em");
             wButtons.getElement().setClassName("property-button");
             wButtons.add(wReset);
             add(wSource, NORTH);
-            add(wSubsumes, NORTH);
+            add(wProperty, NORTH);
             add(wTarget, NORTH);
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
@@ -356,26 +370,23 @@ class Property extends Pattern implements Cloneable {
         }
     }
 
+    /**
+     * Args default to srcPoint and tgtPoint identifiers if not present
+     *
+     * @param source
+     * @param target
+     */
+    private void addConnectionHint(@NonNull final Optional<String> source,
+                                   @NonNull final Optional<String> target) {
+        removeConnectionHint();
+        final String src = source.or(this.srcPoint.getCurveId());
+        final String tgt = target.or(this.tgtPoint.getCurveId());
+        this.connectionHint = Optional.of(connectPair(src, tgt, getConnectionHintId(),
+                buttonBar.getWProperty().getText()));
+    }
+
     private void resetConnectionHint() {
-        removeConnectionHint();
-        this.connectionHint = Optional.of(connectPair(
-                this.srcPoint.getCurveId(),
-                this.tgtPoint.getCurveId()));
-        this.repaintEverything();
-    }
-
-    private void setConnectionHintSource(@NonNull final String source) {
-        removeConnectionHint();
-        this.connectionHint = Optional.of(connectPair(
-                source,
-                this.tgtPoint.getCurveId()));
-    }
-
-    private void setConnectionHintTarget(@NonNull final String target) {
-        removeConnectionHint();
-        this.connectionHint = Optional.of(connectPair(
-                this.srcPoint.getCurveId(),
-                target));
+        addConnectionHint(Optional.<String>absent(), Optional.<String>absent());
     }
 
     public void maybeFinish() {
@@ -410,8 +421,9 @@ class Property extends Pattern implements Cloneable {
         $wnd.make_draggable(draggableId);
         }-*/;
 
-    private native JavaScriptObject connectPair(String source, String target) /*-{
-        return $wnd.connect_pair(source,target);
+    private native JavaScriptObject connectPair(String source, String target,
+                                                String labelId, String labelText) /*-{
+        return $wnd.connect_pair(source,target, labelId, labelText);
         }-*/;
 
     private native void disconnect(JavaScriptObject connection) /*-{

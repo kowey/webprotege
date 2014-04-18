@@ -7,12 +7,22 @@ function gwtjsplumbinit() {
     jsPlumb.Defaults.Container = $("body");
 }
 
-function connect_pair(source, target) {
+// if labelId or labelText are null we do not provide a label
+function connect_pair(source, target, labelId, labelText) {
     gwtjsplumbinit();
     var fillColor = "gray";
     var arrowCommon = { foldback:0.3, fillStyle:fillColor, width:8 };
     // use three-arg spec to create two different arrows with the common values:
     var overlays = [[ "Arrow", { location:1 }, arrowCommon ]];
+    if (labelId != null && labelText != null) {
+        overlays.push( ["Custom", { create:function(component) {
+                                        return $("<input type='text' class='gwt-TextBox' id='" +
+                                                  labelId + "' style='width: 6em;' value='" +
+                                                  labelText + "' placeholder='PROPERTY'></input>"); },
+                                    location:0.7,
+                                    id:"customOverlay" }] );
+    }
+
     return jsPlumb.connect({source:source, target:target, overlays:overlays});
 }
 
