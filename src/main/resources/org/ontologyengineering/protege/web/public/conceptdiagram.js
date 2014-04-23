@@ -27,7 +27,7 @@ function connect_pair(source, target, labelId, labelText) {
                                         return $("<input type='text' class='gwt-TextBox' id='" +
                                                   labelId + "' style='width: 6em;' value='" +
                                                   labelText + "' placeholder='PROPERTY'></input>"); },
-                                    location:0.7,
+                                    location:0.5,
                                     id:"customOverlay" }] );
     }
 
