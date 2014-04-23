@@ -1,8 +1,7 @@
 package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Optional;
-import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
+import org.ontologyengineering.protege.web.client.ui.curve.Curve;
 import org.semanticweb.owlapi.model.IRI;
 
 public interface CurveRegistry {

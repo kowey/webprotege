@@ -10,12 +10,6 @@
     background-color: rgba(255,255,255,.5);
 }
 
-.template .gwt-TextBox-readonly {
-    border: none;
-    box-shadow: none;
-    background-color: rgba(255,255,255,.5);
-}
-
 input._jsPlumb_overlay {
     border: none;
     box-shadow: none;
@@ -41,6 +35,7 @@ input._jsPlumb_overlay:hover {
     z-index: 4;
 }
 
+// TODO: should rename snap-to-drag to dragsnap
 .snap-to-drag-ghost {
     z-index: 0; /* we don't want to select this! */
 }

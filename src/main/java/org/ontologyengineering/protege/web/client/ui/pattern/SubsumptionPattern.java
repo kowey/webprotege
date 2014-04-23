@@ -1,16 +1,12 @@
 package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.gwt.event.dom.client.*;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
-import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
-import org.ontologyengineering.protege.web.client.effect.Key;
-import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.curve.Curve;
+import org.ontologyengineering.protege.web.client.ui.dragsnap.DragSnapEndpoint;
 import org.ontologyengineering.protege.web.client.ui.dragsnap.Effects;
 import org.ontologyengineering.protege.web.client.ui.dragsnap.Endpoint;
 import org.ontologyengineering.protege.web.client.util.Position;
@@ -39,7 +35,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @ToString
-class Subsumption extends Pattern implements Cloneable {
+class SubsumptionPattern extends Pattern {
 
     // pertaining to either the superset or to the subset endpoint
     enum Role { SUPER, SUB };
@@ -48,69 +44,42 @@ class Subsumption extends Pattern implements Cloneable {
     // Fields
     // ----------------------------------------------------------------
 
-
-    @RequiredArgsConstructor
-    @Getter
-    class Core extends PatternCore {
-        @NonNull final private String id;
-        private int rounding = 20;
-    }
-
-    @NonNull final Core core;
-    @NonNull final CurveRegistry registry;
-    @NonNull final SearchManager searchManager;
-    @NonNull final AbsolutePanel panel = new SubsumptionPanel();
-    @NonNull final AbsolutePanel parentPanel;
-
-    @Getter private String idPrefix = "subsumes";
-
-    // State tracking fields
-    private boolean isMoving = false;
-    private boolean isRenaming = false;
     private Effects visualEffects;
 
-
-    // Widgets
-
-    ButtonBar buttonBar;
-    final private Endpoint superset;
-    final private Endpoint subset;
-
+    // State tracking fields
     private Optional<Curve> alreadyChosen;
     private Optional<Role> firstSnapped;
 
+    // Widgets
+    ButtonBar buttonBar;
+    final private DragSnapEndpoint superset;
+    final private DragSnapEndpoint subset;
+
+
     // widgets that are not contained in the template frame necessarily
-    final Collection<Endpoint> endpoints;
+    final Collection<DragSnapEndpoint> endpoints;
 
-    public Subsumption(@NonNull final String id,
-                       @NonNull final CurveRegistry registry,
-                       @NonNull final SearchManager searchManager,
-                       @NonNull final AbsolutePanel parentPanel) {
-        this.core = new Core(id);
-
-        final int width = this.core.getWidth();
-        final int height = this.core.getHeight();
-
-        this.registry = registry;
-        this.searchManager = searchManager;
-        this.parentPanel = parentPanel;
-
+    public SubsumptionPattern(@NonNull final String id,
+                              @NonNull final CurveRegistry registry,
+                              @NonNull final SearchManager searchManager,
+                              @NonNull final AbsolutePanel parentPanel) {
+        super(id, registry, searchManager, parentPanel);
         this.buttonBar = new ButtonBar();
         this.alreadyChosen = Optional.absent();
         this.firstSnapped = Optional.absent();
-        this.endpoints = new HashSet<Endpoint>();
+        this.endpoints = new HashSet<DragSnapEndpoint>();
 
         final Position supersetTopLeft = new Position(1, 1);
         final Position subsetTopLeft = new Position(1 + width / 3, 1 + height / 3);
 
         final DraggableShape wCurveOuter =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
         final DraggableShape wCurveInner =
-                new DraggableRect(width / 2, height / 2, this.core.rounding);
+                new DraggableRect(width / 2, height / 2, rounding);
         final DraggableShape wGhostOuter =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
         final DraggableShape wGhostInner =
-                new DraggableRect(width / 2, height / 2, this.core.rounding);
+                new DraggableRect(width / 2, height / 2, rounding);
 
         this.visualEffects = new SubsumptionEffects(Arrays.<Widget>asList(
                 wCurveInner, wGhostInner,
@@ -127,8 +96,6 @@ class Subsumption extends Pattern implements Cloneable {
 
         endpoints.add(superset);
         endpoints.add(subset);
-        getElement().setClassName("template");
-
     }
 
     // ----------------------------------------------------------------
@@ -141,7 +108,7 @@ class Subsumption extends Pattern implements Cloneable {
      * search boxes (for example, by typing into them)
      */
     @Getter @Setter
-    class SubsumptionEndpoint extends Endpoint {
+    class SubsumptionEndpoint extends DragSnapEndpoint {
         @NonNull final private Role role;
 
         public SubsumptionEndpoint(@NonNull Role role,
@@ -152,9 +119,9 @@ class Subsumption extends Pattern implements Cloneable {
                         @NonNull TextBox searchBox,
                         @NonNull String searchColor,
                         @NonNull Position topLeft) {
-            super(Subsumption.this.searchManager,
-                  Subsumption.this.visualEffects,
-                  Subsumption.this.core.id + idSuffix,
+            super(SubsumptionPattern.this.searchManager,
+                  SubsumptionPattern.this.visualEffects,
+                  SubsumptionPattern.this.getId() + idSuffix,
                   curve, ghost, color, searchBox, searchColor,
                   topLeft);
             this.role = role;
@@ -175,13 +142,13 @@ class Subsumption extends Pattern implements Cloneable {
             getSearchBox().setText(match.getLabel().or("<UNNAMED>"));
             getSearchBox().setEnabled(false);
             setIri(match.getIri());
-            if (!Subsumption.this.firstSnapped.isPresent()) {
-                Subsumption.this.alreadyChosen = Optional.of(match);
-                Subsumption.this.firstSnapped = Optional.of(this.role);
+            if (!SubsumptionPattern.this.firstSnapped.isPresent()) {
+                SubsumptionPattern.this.alreadyChosen = Optional.of(match);
+                SubsumptionPattern.this.firstSnapped = Optional.of(this.role);
             } else {
-                final AbsolutePanel parentPanel = Subsumption.this.parentPanel;
+                final AbsolutePanel parentPanel = SubsumptionPattern.this.getParentPanel();
                 final Role firstRole = firstSnapped.get();
-                final Curve chosen = Subsumption.this.alreadyChosen.get();
+                final Curve chosen = SubsumptionPattern.this.alreadyChosen.get();
 
                 Position topleft = new Position(
                         parentPanel.getWidgetLeft(chosen.getWidget()),
@@ -200,58 +167,43 @@ class Subsumption extends Pattern implements Cloneable {
                 }
                 Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
                 other.setSize(scale.transform(chosen.getSize()));
-                Subsumption.this.maybeFinish();
+                SubsumptionPattern.this.maybeFinish();
             }
         }
 
         protected Collection<Curve> getAlreadyChosen() {
-            return Subsumption.this.alreadyChosen.asSet();
+            return SubsumptionPattern.this.alreadyChosen.asSet();
         }
 
         protected void resetSnapChoices() {
-            Subsumption.this.alreadyChosen = Optional.absent();
-            Subsumption.this.firstSnapped = Optional.absent();
+            SubsumptionPattern.this.alreadyChosen = Optional.absent();
+            SubsumptionPattern.this.firstSnapped = Optional.absent();
         }
 
         protected void withdrawCurve() {
             final Position topLeft = relativeToParent(getHome());
-            Subsumption.this.parentPanel.setWidgetPosition(getCurve(), topLeft.getX(), topLeft.getY());
-            Subsumption.this.parentPanel.setWidgetPosition(getGhost(), topLeft.getX(), topLeft.getY());
+            getParentPanel().setWidgetPosition(getCurve(), topLeft.getX(), topLeft.getY());
+            getParentPanel().setWidgetPosition(getGhost(), topLeft.getX(), topLeft.getY());
         }
     }
 
-    class SubsumptionPanel extends AbsolutePanel {
+    @Override
+    public void onLoad() {
+        this.getElement().setId(getId());
+        this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
+                Pattern.DEFAULT_TEMPLATE_HEIGHT);
+        super.onLoad();
 
-        @Override
-        public void onLoad() {
-            Subsumption subsumption = Subsumption.this;
-            this.getElement().setId(subsumption.core.getId());
-            this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
-                    Pattern.DEFAULT_TEMPLATE_HEIGHT);
-            super.onLoad();
-
-            for (Endpoint endpoint : endpoints) {
-                parentPanel.add(endpoint.getCurve());
-                parentPanel.add(endpoint.getGhost());
-                visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
-                endpoint.onLoad();
-            }
-            visualEffects.applyAttributes();
-            final Size sz = subsumption.core.getSize();
-            this.add(buttonBar, sz.getWidth() + 5, 0);
-            buttonBar.reposition(sz);
+        for (DragSnapEndpoint endpoint : endpoints) {
+            getParentPanel().add(endpoint.getCurve());
+            getParentPanel().add(endpoint.getGhost());
+            visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
+            endpoint.onLoad();
         }
+        visualEffects.applyAttributes();
+        this.add(buttonBar, getSize().getWidth() + 5, 0);
+        buttonBar.reposition(getSize());
     }
-
-    public Widget getWidget() {
-        return panel;
-    }
-
-    public Element getElement() {
-        return panel.getElement();
-    }
-
-
 
     @Getter
     class ButtonBar extends DockPanel {
@@ -266,7 +218,7 @@ class Subsumption extends Pattern implements Cloneable {
             wReset.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {
-                    for (SearchHandler handler : Subsumption.this.endpoints) {
+                    for (SearchHandler handler : SubsumptionPattern.this.endpoints) {
                         handler.reset();
                     }
                 }
@@ -289,7 +241,7 @@ class Subsumption extends Pattern implements Cloneable {
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Subsumption.this.core.getSize());
+            reposition(SubsumptionPattern.this.getSize());
             activate();
         }
     }
@@ -327,7 +279,7 @@ class Subsumption extends Pattern implements Cloneable {
             highlightActiveCurves();
         }
 
-        public Optional<Endpoint> getActiveCurve() {
+        public Optional<DragSnapEndpoint> getActiveCurve() {
             if (activeCurves.contains(subset)) {
                 return Optional.of(subset);
             } else if (activeCurves.contains(superset)) {
@@ -338,7 +290,7 @@ class Subsumption extends Pattern implements Cloneable {
         }
 
         private void highlightActiveCurves() {
-            for (Endpoint endpoint : endpoints) {
+            for (DragSnapEndpoint endpoint : endpoints) {
                 Optional<VisualEffect> effect = (getActiveCurve().equals(Optional.of(endpoint)))
                         ? Optional.of(activePattern(endpoint.getCurve(), endpoint.getSearchColor()))
                         : Optional.<VisualEffect>absent();
@@ -353,23 +305,11 @@ class Subsumption extends Pattern implements Cloneable {
             // do the actual move
             IRI cls = subset.getIri().get();
             IRI newParent = superset.getIri().get();
-            IRI oldParent = registry.getImmediateParent(cls);
-            registry.moveClass(cls, oldParent, newParent);
+            IRI oldParent = getCurveRegistry().getImmediateParent(cls);
+            getCurveRegistry().moveClass(cls, oldParent, newParent);
             for (Endpoint endpoint : endpoints) {
                 endpoint.reset();
             }
         }
     }
-
-    private Position relativeToParent(Position local) {
-        return new Position(
-                local.getX() + parentPanel.getWidgetLeft(this.panel),
-                local.getY() + parentPanel.getWidgetTop(this.panel));
-    }
-
-
-
-    private native void makeDraggable(String draggableId) /*-{
-        $wnd.make_draggable(draggableId);
-        }-*/;
 }
