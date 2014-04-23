@@ -429,8 +429,4 @@ class Property extends Pattern implements Cloneable {
     private native void disconnect(JavaScriptObject connection) /*-{
         $wnd.disconnect(connection);
         }-*/;
-
-    private native void repaintEverything() /*-{
-        $wnd.repaint_everything();
-        }-*/;
 }

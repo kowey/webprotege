@@ -37,12 +37,6 @@ function disconnect(conn) {
     jsPlumb.detach(conn); // this seems to raise an exception
 }
 
-function repaint_everything() {
-    jsPlumb.recalculateOffsets($("body"));
-    jsPlumb.repaintEverything();
-}
-
-
 function make_draggable(draggableId) {
     jsPlumb.draggable($(draggableId));
 }
