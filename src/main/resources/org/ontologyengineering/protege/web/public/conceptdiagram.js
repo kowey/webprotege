@@ -6,14 +6,15 @@
  * Author: Eric Kow
  */
 
-function conceptdiagram_init() {
+function conceptdiagram_init(containerId) {
     jsPlumb.Defaults.Connector = [ "Bezier", { curviness:25 } ];
     jsPlumb.Defaults.DragOptions = { cursor: "pointer", zIndex:2000 };
     jsPlumb.Defaults.PaintStyle = { strokeStyle:"gray", lineWidth:2 };
     jsPlumb.Defaults.EndpointStyle = { radius:3, fillStyle:"gray" };
     jsPlumb.Defaults.Anchors =  [ "AutoDefault", "AutoDefault" ];
-    jsPlumb.Defaults.Container = $("body");
+    jsPlumb.Defaults.Container = $(containerId);
 }
+
 
 // if labelId or labelText are null we do not provide a label
 function connect_pair(source, target, labelId, labelText) {
