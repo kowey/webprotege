@@ -1,7 +1,7 @@
 package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import lombok.Getter;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
+import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.io.Serializable;

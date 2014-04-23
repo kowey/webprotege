@@ -1,10 +1,14 @@
 package org.ontologyengineering.protege.web.client.ui.pattern;
 
 import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Widget;
-import lombok.*;
-
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
+import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
+import org.ontologyengineering.protege.web.client.util.Position;
+import org.ontologyengineering.protege.web.client.util.Size;
 
 /**
  * A grouping of concept diagram objects (eg. curves, arrows, spiders) that
@@ -19,39 +23,48 @@ import java.io.Serializable;
  * {@see TemplateHandler}
  */
 public abstract
-@ToString
-class Pattern {
+@ToString @Getter @Setter
+class Pattern extends AbsolutePanel {
 
     public final static int DEFAULT_TEMPLATE_WIDTH = 200;
     public final static int DEFAULT_TEMPLATE_HEIGHT = 90;
 
+    @NonNull final private String id;
+    @NonNull final CurveRegistry curveRegistry;
+    @NonNull final SearchManager searchManager;
+    @NonNull final private AbsolutePanel parentPanel;
 
-    // used to ensure that all curves created have a unique identifier
-    static private int globalPatternCounter = 0;
+    protected int width = 120;
+    protected int height = 80;
+    protected int rounding = 20;
 
-    public Pattern() {
-        globalPatternCounter++;
+    public Pattern(@NonNull final String id,
+                   @NonNull final CurveRegistry curveRegistry,
+                   @NonNull final SearchManager searchManager,
+                   @NonNull final AbsolutePanel parentPanel) {
+        this.id = id;
+        this.curveRegistry = curveRegistry;
+        this.searchManager = searchManager;
+        this.parentPanel = parentPanel;
+        getElement().setClassName("template");
     }
 
-    /**
-     * Return the current DOM identifier
-     *
-     * Note that every call to the Pattern constructor causes this to change
-     */
-    public String makeId() {
-        return getIdPrefix() + globalPatternCounter;
+    public Size getSize() {
+        return new Size(width, height);
     }
 
-    /**
-     * Return some string that can be used as a prefix to a DOM identifier
-     * for objects within this pattern.
-     *
-     * (can be static)
-     */
-    public abstract String getIdPrefix();
+    public void setSize(@NonNull final Size sz) {
+        this.width = sz.getWidth();
+        this.height = sz.getHeight();
+    }
 
-    /**
-     * @return The GWT widget representing this pattern or its instance
-     */
-    public abstract Widget getWidget();
+    protected Position relativeToParent(Position local) {
+        return new Position(
+                1 + local.getX() + parentPanel.getWidgetLeft(this),
+                1 + local.getY() + parentPanel.getWidgetTop(this));
+    }
+
+    protected native void makeDraggable(String draggableId) /*-{
+        $wnd.make_draggable(draggableId);
+        }-*/;
 }

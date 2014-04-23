@@ -2,7 +2,7 @@ package org.ontologyengineering.protege.web.client.ui.conceptdiagram;
 
 import com.google.common.base.Optional;
 import com.google.gwt.user.client.ui.TextBox;
-import org.ontologyengineering.protege.web.client.ui.pattern.Curve;
+import org.ontologyengineering.protege.web.client.ui.curve.Curve;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 
 import java.util.Collection;

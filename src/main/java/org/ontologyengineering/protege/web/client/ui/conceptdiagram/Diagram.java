@@ -7,7 +7,7 @@ import com.google.common.collect.Multimap;
 import edu.stanford.bmir.protege.web.shared.DataFactory;
 import lombok.Getter;
 import lombok.NonNull;
-import org.ontologyengineering.protege.web.client.ui.pattern.CurveCore;
+import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
 import org.semanticweb.owlapi.model.IRI;
 
 import java.util.Collection;

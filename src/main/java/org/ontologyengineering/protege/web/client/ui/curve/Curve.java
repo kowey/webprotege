@@ -1,4 +1,4 @@
-package org.ontologyengineering.protege.web.client.ui.pattern;
+package org.ontologyengineering.protege.web.client.ui.curve;
 
 import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
@@ -11,13 +11,13 @@ import org.ontologyengineering.protege.web.client.effect.AttributeLayers;
 import org.ontologyengineering.protege.web.client.effect.Key;
 import org.ontologyengineering.protege.web.client.effect.Painter;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.pattern.Pattern;
 import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Scale;
 import org.ontologyengineering.protege.web.client.util.Size;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.CurveRegistry;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
-import org.ontologyengineering.protege.web.client.ui.conceptdiagram.TemplateHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.semanticweb.owlapi.model.IRI;
@@ -30,8 +30,11 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @ToString
-class Curve extends Pattern implements Cloneable,
+class Curve implements
         MouseOverHandler, MouseOutHandler, MouseUpHandler, MouseDownHandler, MouseMoveHandler {
+
+    // relative to its inner box
+    private final static Position curveOffset = new Position(1, 1);
 
     @Getter @NonNull final private String id;
 
@@ -54,6 +57,9 @@ class Curve extends Pattern implements Cloneable,
     final private ButtonBar buttonBar;
     @Getter final private Effects effects;
 
+    // used to ensure that all curves created have a unique identifier
+    static private int idCounter = 0;
+
     public Curve(@NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
         this(new CurveCore(), curveRegistry, searchManager);
@@ -63,7 +69,8 @@ class Curve extends Pattern implements Cloneable,
                  @NonNull final CurveRegistry curveRegistry,
                  @NonNull final SearchManager searchManager) {
         super();
-        this.id = makeId();
+        idCounter++;
+        this.id = getIdPrefix() + idCounter;
         this.curveRegistry = curveRegistry;
         this.searchManager = searchManager;
         this.core = core;
@@ -224,7 +231,7 @@ class Curve extends Pattern implements Cloneable,
         public void onLoad() {
             this.getElement().setId(Curve.this.getId());
             wCurve.getElement().setId(getCurveId());
-            this.add(wCurve, 1, 1);
+            this.add(wCurve, curveOffset.getX(), curveOffset.getY());
             redraw();
         }
 
@@ -382,6 +389,18 @@ class Curve extends Pattern implements Cloneable,
                 widget.getAbsoluteTop() - parent.getAbsoluteTop());
     }
 
+    /**
+     * Given the position of the curve itself, return the position of the
+     * surrounding panel (that contains the various widgets, labels, etc)
+     *
+     * Basically the curve is going to be offset down and to the right a
+     * bit, and we want to reverse this offset by inching left/up
+     */
+    public static Position curveToPanelPosition(@NonNull final Position curvePosition) {
+        return curvePosition.subtract(curveOffset);
+    }
+
+
 
     /**
      * Create a whole new curve, with the given left/top coordinates and dimensions
@@ -395,24 +414,6 @@ class Curve extends Pattern implements Cloneable,
         curve.setLabel(this.getLabel());
         curve.setIri(this.getIri());
         return curve;
-    }
-
-    public Curve copyTemplate(@NonNull final AbsolutePanel container) {
-        Curve copy  = new Curve(curveRegistry, searchManager);
-        String text = this.buttonBar.wLabel.getText();
-        if (text.isEmpty()) {
-            copy.setLabel(Optional.<String>absent());
-        } else {
-            copy.setLabel(Optional.of(text));
-        }
-        container.add(copy.canvasState,
-                container.getWidgetLeft(this.canvasState),
-                container.getWidgetTop(this.canvasState));
-        copy.getElement().getStyle().setVisibility(Style.Visibility.VISIBLE);
-        copy.getElement().setClassName("template");
-        TemplateHandler.addHandler(container, this, copy);
-        copy.makeDraggable();
-        return copy;
     }
 
     public void mouseOverHighlight() {
@@ -531,17 +532,6 @@ class Curve extends Pattern implements Cloneable,
     public void switchToInstanceMode() {
         activate();
         setLabel(Optional.<String>absent());
-    }
-
-    /**
-     * Note: you should only ever call this once
-     */
-    public void startTemplateMode() {
-        this.setLabel(Optional.of("CLASS"));
-        this.getElement().getStyle().setVisibility(Style.Visibility.HIDDEN);
-        this.getElement().setClassName("template");
-        buttonBar.wLabel.setReadOnly(true);
-        this.canvasState.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH, Pattern.DEFAULT_TEMPLATE_HEIGHT);
     }
 
     public void setMatchStatus(SearchManager.SearchHandler searchBox,

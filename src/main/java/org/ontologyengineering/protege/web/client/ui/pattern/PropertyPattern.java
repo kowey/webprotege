@@ -8,6 +8,8 @@ import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
 import lombok.*;
 import org.ontologyengineering.protege.web.client.effect.VisualEffect;
+import org.ontologyengineering.protege.web.client.ui.curve.Curve;
+import org.ontologyengineering.protege.web.client.ui.dragsnap.DragSnapEndpoint;
 import org.ontologyengineering.protege.web.client.ui.dragsnap.Effects;
 import org.ontologyengineering.protege.web.client.ui.dragsnap.Endpoint;
 import org.ontologyengineering.protege.web.client.util.Position;
@@ -34,7 +36,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @ToString
-class Property extends Pattern implements Cloneable {
+class PropertyPattern extends Pattern implements Cloneable {
 
     // pertaining to either the src or to the subset endpoint
     enum Role { SOURCE, TARGET };
@@ -43,30 +45,16 @@ class Property extends Pattern implements Cloneable {
     // Fields
     // ----------------------------------------------------------------
 
-
-    @RequiredArgsConstructor
-    @Getter
-    class Core extends PatternCore {
-        @NonNull final private String id;
-        private int rounding = 20;
-    }
-
     static int labelCounter = 0;
 
-    @NonNull final Core core;
-    @NonNull final CurveRegistry registry;
-    @NonNull final SearchManager searchManager;
-    @NonNull final AbsolutePanel panel = new PropertyPanel();
-    @NonNull final AbsolutePanel parentPanel;
 
-    @Getter private String idPrefix = "property";
     private Effects visualEffects;
 
     // Widgets
 
     ButtonBar buttonBar;
-    final private Endpoint srcPoint;
-    final private Endpoint tgtPoint;
+    final private DragSnapEndpoint srcPoint;
+    final private DragSnapEndpoint tgtPoint;
 
     // a visual hint connecting objects in the property template
     // if you snap to an object, the connection moves.
@@ -80,40 +68,36 @@ class Property extends Pattern implements Cloneable {
 
     private Optional<Curve> alreadyChosen;
     private Optional<Role> firstSnapped;
-    final Collection<Endpoint> endpoints;
+    final Collection<DragSnapEndpoint> endpoints;
 
 
 
-    public Property(@NonNull final String id,
-                    @NonNull final CurveRegistry registry,
-                    @NonNull final SearchManager searchManager,
-                    @NonNull final AbsolutePanel parentPanel) {
-        this.core = new Core(id);
-        this.core.setSize(new Size(60, 40));
+    public PropertyPattern(@NonNull final String id,
+                           @NonNull final CurveRegistry registry,
+                           @NonNull final SearchManager searchManager,
+                           @NonNull final AbsolutePanel parentPanel) {
+        super(id, registry, searchManager, parentPanel);
+        this.setSize(new Size(60, 40));
 
-        final int width = this.core.getWidth();
-        final int height = this.core.getHeight();
-
-        this.registry = registry;
-        this.searchManager = searchManager;
-        this.parentPanel = parentPanel;
+        final int width = this.getWidth();
+        final int height = this.getHeight();
 
         this.buttonBar = new ButtonBar();
         this.alreadyChosen = Optional.absent();
         this.firstSnapped = Optional.absent();
-        this.endpoints = new HashSet<Endpoint>();
+        this.endpoints = new HashSet<DragSnapEndpoint>();
 
         final Position srcTopLeft = new Position(3, 3);
         final Position tgtTopLeft = new Position(3 + width + 60, 3);
 
         final DraggableShape wCurveSource =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
         final DraggableShape wCurveTarget =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
         final DraggableShape wGhostSource =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
         final DraggableShape wGhostTarget =
-                new DraggableRect(width, height, this.core.rounding);
+                new DraggableRect(width, height, rounding);
 
         visualEffects = new PropertyEffects(Arrays.<Widget>asList(
                 wCurveSource, wCurveTarget,
@@ -130,14 +114,13 @@ class Property extends Pattern implements Cloneable {
 
         endpoints.add(srcPoint);
         endpoints.add(tgtPoint);
-        getElement().setClassName("template");
     }
 
     // ----------------------------------------------------------------
     // Handlers
     // ----------------------------------------------------------------
 
-    class PropertyEndpoint extends Endpoint {
+    class PropertyEndpoint extends DragSnapEndpoint {
         final private Role role;
 
         public PropertyEndpoint(@NonNull Role role,
@@ -148,29 +131,29 @@ class Property extends Pattern implements Cloneable {
                                 @NonNull TextBox searchBox,
                                 @NonNull String searchColor,
                                 @NonNull Position topLeft) {
-            super(Property.this.searchManager,
-                  Property.this.visualEffects,
-                  Property.this.core.id + idSuffix,
+            super(PropertyPattern.this.searchManager,
+                  PropertyPattern.this.visualEffects,
+                  PropertyPattern.this.getId() + idSuffix,
                   curve, ghost, color, searchBox, searchColor,
                   topLeft);
             this.role = role;
         }
 
         protected Collection<Curve> getAlreadyChosen() {
-            return Property.this.alreadyChosen.asSet();
+            return PropertyPattern.this.alreadyChosen.asSet();
         }
 
         protected void resetSnapChoices() {
-            Property.this.alreadyChosen = Optional.absent();
-            Property.this.firstSnapped = Optional.absent();
-            Property.this.buttonBar.getWProperty().setText("");
+            PropertyPattern.this.alreadyChosen = Optional.absent();
+            PropertyPattern.this.firstSnapped = Optional.absent();
+            PropertyPattern.this.buttonBar.getWProperty().setText("");
             removeConnectionHint();
         }
 
         protected void withdrawCurve() {
             final Position topLeft = relativeToParent(getHome());
-            Property.this.parentPanel.setWidgetPosition(getCurve(), topLeft.getX(), topLeft.getY());
-            Property.this.parentPanel.setWidgetPosition(getGhost(), topLeft.getX(), topLeft.getY());
+            getParentPanel().setWidgetPosition(getCurve(), topLeft.getX(), topLeft.getY());
+            getParentPanel().setWidgetPosition(getGhost(), topLeft.getX(), topLeft.getY());
         }
 
         @Override
@@ -184,14 +167,14 @@ class Property extends Pattern implements Cloneable {
         @Override
         public void onMouseDown(MouseDownEvent event) {
             super.onMouseDown(event);
-            if (!Property.this.connectionHint.isPresent()) {
-                Property.this.resetConnectionHint();
+            if (!PropertyPattern.this.connectionHint.isPresent()) {
+                PropertyPattern.this.resetConnectionHint();
             }
         }
 
         // helper for snapIfUniqueMatch
         protected void snapToMatch(@NonNull final Curve match) {
-            final Property prop = Property.this;
+            final PropertyPattern prop = PropertyPattern.this;
             getCurve().setVisible(false);
             getSearchBox().setText(match.getLabel().or("<UNNAMED>"));
             getSearchBox().setEnabled(false);
@@ -251,7 +234,7 @@ class Property extends Pattern implements Cloneable {
             highlightActiveCurves();
         }
 
-        public Optional<Endpoint> getActiveCurve() {
+        public Optional<DragSnapEndpoint> getActiveCurve() {
             if (activeCurves.contains(tgtPoint)) {
                 return Optional.of(tgtPoint);
             } else if (activeCurves.contains(srcPoint)) {
@@ -262,7 +245,7 @@ class Property extends Pattern implements Cloneable {
         }
 
         public void highlightActiveCurves() {
-            for (Endpoint endpoint : endpoints) {
+            for (DragSnapEndpoint endpoint : endpoints) {
                 Optional<VisualEffect> effect = (getActiveCurve().equals(Optional.of(endpoint)))
                         ? Optional.of(activePattern(endpoint.getCurve(), endpoint.getSearchColor()))
                         : Optional.<VisualEffect>absent();
@@ -272,40 +255,29 @@ class Property extends Pattern implements Cloneable {
         }
     }
 
-    class PropertyPanel extends AbsolutePanel {
-        @Override
-        public void onLoad() {
-            Property property = Property.this;
-            this.getElement().setId(property.core.getId());
-            super.onLoad();
-            this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
-                    Pattern.DEFAULT_TEMPLATE_HEIGHT + 40);
+    @Override
+    public void onLoad() {
+        this.getElement().setId(getId());
+        super.onLoad();
+        this.setPixelSize(Pattern.DEFAULT_TEMPLATE_WIDTH,
+                Pattern.DEFAULT_TEMPLATE_HEIGHT + 40);
 
-            for (Endpoint endpoint : endpoints) {
-                parentPanel.add(endpoint.getCurve());
-                parentPanel.add(endpoint.getGhost());
-                visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
-                endpoint.onLoad();
-            }
-
-            final Size sz = property.core.getSize();
-            this.add(buttonBar, 1, sz.getHeight() + 10);
-            buttonBar.reposition(sz);
-            visualEffects.applyAttributes();
-            connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId(), null, null);
+        for (DragSnapEndpoint endpoint : endpoints) {
+            getParentPanel().add(endpoint.getCurve());
+            getParentPanel().add(endpoint.getGhost());
+            visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
+            endpoint.onLoad();
         }
-    }
 
-    public Widget getWidget() {
-        return panel;
-    }
-
-    public Element getElement() {
-        return panel.getElement();
+        final Size sz = getSize();
+        this.add(buttonBar, 1, sz.getHeight() + 10);
+        buttonBar.reposition(sz);
+        visualEffects.applyAttributes();
+        connectPair(srcPoint.getGhostId(), tgtPoint.getGhostId(), null, null);
     }
 
     public String getConnectionHintId() {
-        return this.core.id + "_hint";
+        return this.getId() + "_hint";
     }
 
     /**
@@ -313,7 +285,7 @@ class Property extends Pattern implements Cloneable {
      */
     public String makeConnectionId () {
         this.labelCounter++;
-        return this.core.id + "_conn_" + this.labelCounter;
+        return this.getId() + "_conn_" + this.labelCounter;
     }
 
     @Getter
@@ -329,7 +301,7 @@ class Property extends Pattern implements Cloneable {
             wReset.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {
-                    for (SearchHandler handler : Property.this.endpoints) {
+                    for (SearchHandler handler : PropertyPattern.this.endpoints) {
                         handler.reset();
                     }
                 }
@@ -356,7 +328,7 @@ class Property extends Pattern implements Cloneable {
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(Property.this.core.getSize());
+            reposition(PropertyPattern.this.getSize());
             activate();
         }
     }
@@ -405,21 +377,11 @@ class Property extends Pattern implements Cloneable {
             // curve snap back into the right place. So for now, we make do
             // with removing the curve altogether and putting it back as soon
             // the user starts to move the endpoints again :-(
-            Property.this.removeConnectionHint();
+            PropertyPattern.this.removeConnectionHint();
         }
     }
 
-    private Position relativeToParent(Position local) {
-        return new Position(
-                1 + local.getX() + parentPanel.getWidgetLeft(this.panel),
-                1 + local.getY() + parentPanel.getWidgetTop(this.panel));
-    }
 
-
-
-    private native void makeDraggable(String draggableId) /*-{
-        $wnd.make_draggable(draggableId);
-        }-*/;
 
     private native JavaScriptObject connectPair(String source, String target,
                                                 String labelId, String labelText) /*-{

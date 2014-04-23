@@ -40,6 +40,8 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
+import org.ontologyengineering.protege.web.client.ui.curve.Curve;
+import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.*;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.util.Position;
@@ -181,13 +183,11 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     private void initTemplates(AbsolutePanel vPanel) {
         vPanel.add(new Label("Drag one of these templates out to instantiate it"));
 
-        Curve curveTemplate = new Curve(this, this);
-
         final List<Pattern> patterns =
                 Arrays.<Pattern>asList(
-                curveTemplate,
-                new Subsumption("subsume-template", this, this, vPanel),
-                new Property("property-template", this, this, vPanel));
+                new CurvePattern("curve-template", this, this, vPanel),
+                new SubsumptionPattern("subsume-template", this, this, vPanel),
+                new PropertyPattern("property-template", this, this, vPanel));
 
         final int yGap = 20;
         final int templateX = 0;
@@ -195,11 +195,13 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         int currentY = templateY;
         for (Pattern pattern : patterns) {
-            vPanel.add(pattern.getWidget(), templateX, currentY);
-            currentY += pattern.getWidget().getOffsetHeight() + yGap;
+            vPanel.add(pattern, templateX, currentY);
+            currentY += pattern.getOffsetHeight() + yGap;
         }
+        /*
         curveTemplate.startTemplateMode();
         curveTemplate.copyTemplate(vPanel);
+        */
 
     }
 
