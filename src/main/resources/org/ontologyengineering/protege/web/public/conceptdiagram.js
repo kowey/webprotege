@@ -1,3 +1,11 @@
+/**
+ * Native JavaScript support functions for the conceptdiagram WebProtege plugin.
+ * These are fairly project-specific config/helper wrappers around jsplumb,
+ * things which seemed easier to express without JSNI.
+ *
+ * Author: Eric Kow
+ */
+
 function gwtjsplumbinit() {
     jsPlumb.Defaults.Connector = [ "Bezier", { curviness:25 } ];
     jsPlumb.Defaults.DragOptions = { cursor: "pointer", zIndex:2000 };

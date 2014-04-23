@@ -26,7 +26,7 @@
     <script src="jquery-1.10.2.min.js"/>
     <script src="jquery-ui-1.10.4.min.js"/>
     <script src="jquery.jsPlumb-1.5.5-min.js"/>
-    <script src='kowey_gwt_jsplumb.js' />
+    <script src='conceptdiagram.js' />
     <stylesheet src="conceptdiagram.css"/>
 
 	<inherits name='com.googlecode.gwt.crypto.Crypto'/>
