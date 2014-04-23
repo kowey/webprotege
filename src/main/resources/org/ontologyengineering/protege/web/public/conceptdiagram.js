@@ -6,7 +6,7 @@
  * Author: Eric Kow
  */
 
-function gwtjsplumbinit() {
+function conceptdiagram_init() {
     jsPlumb.Defaults.Connector = [ "Bezier", { curviness:25 } ];
     jsPlumb.Defaults.DragOptions = { cursor: "pointer", zIndex:2000 };
     jsPlumb.Defaults.PaintStyle = { strokeStyle:"gray", lineWidth:2 };
@@ -17,7 +17,6 @@ function gwtjsplumbinit() {
 
 // if labelId or labelText are null we do not provide a label
 function connect_pair(source, target, labelId, labelText) {
-    gwtjsplumbinit();
     var fillColor = "gray";
     var arrowCommon = { foldback:0.3, fillStyle:fillColor, width:8 };
     // use three-arg spec to create two different arrows with the common values:

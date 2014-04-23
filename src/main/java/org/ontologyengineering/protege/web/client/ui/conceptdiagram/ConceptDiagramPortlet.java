@@ -116,6 +116,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             @Override
             public void onClick(ClickEvent clickEvent) {
                 try {
+                    initJavascript();
                     vPanel.add(createButtonBar(vPanel));
                     initTemplates(vPanel);
                     loadDiagram(vPanel);
@@ -751,6 +752,15 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 //        }
 //
 //    }
+
+    /*
+     * ************ JavaScript bits *****************
+     */
+
+    private native void initJavascript() /*-{
+        $wnd.conceptdiagram_init();
+        }-*/;
+
 
 }
 
