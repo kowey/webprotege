@@ -165,7 +165,8 @@ class SubsumptionPattern extends Pattern {
                         topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
                         break;
                 }
-                Curve other = match.createCurve(parentPanel, topleft.getX(), topleft.getY());
+                Curve other = match.copyCurve();
+                other.placeCurve(parentPanel, topleft);
                 other.setSize(scale.transform(chosen.getSize()));
                 SubsumptionPattern.this.maybeFinish();
             }
