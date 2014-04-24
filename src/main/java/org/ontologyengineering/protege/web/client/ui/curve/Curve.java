@@ -411,15 +411,23 @@ class Curve implements
     /**
      * Create a whole new curve, with the given left/top coordinates and dimensions
      */
-    public Curve createCurve(@NonNull final AbsolutePanel container,
-                             final int relativeX,
-                             final int relativeY) {
+    public Curve copyCurve() {
         Curve curve = new Curve(curveRegistry, searchManager);
-        container.add(curve.canvasState, relativeX, relativeY);
-        curve.activate();
         curve.setLabel(this.getLabel());
         curve.setIri(this.getIri());
         return curve;
+    }
+
+    /**
+     * Place a newly-created curve in its parent container and activate it.
+     *
+     * @param container
+     * @param topLeft
+     */
+    public void placeCurve(@NonNull final AbsolutePanel container,
+                           @NonNull final Position topLeft) {
+        container.add(this.canvasState, topLeft.getX(), topLeft.getY());
+        activate();
     }
 
     public void mouseOverHighlight() {
