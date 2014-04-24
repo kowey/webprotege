@@ -1,7 +1,27 @@
+.debug {
+    border: 3px dotted red;
+}
+
+.template {
+    border: 2px dotted grey;
+    position: absolute;
+    z-index:2;
+}
+
+/* ----------------------------------------------------------------- *
+ * curves                                                            *
+ * ----------------------------------------------------------------- */
+
 .concept {
-        border: 2px transparent /*solid orange*/;
-        position: absolute;
-        z-index:3;
+    border: 2px transparent /*solid orange*/;
+    position: absolute;
+    z-index:3;
+}
+
+.concept-over {
+    border: 2px dashed blue;
+    position: absolute;
+    z-index:2;
 }
 
 .concept .gwt-TextBox-readonly {
@@ -10,19 +30,7 @@
     background-color: rgba(255,255,255,.5);
 }
 
-input._jsPlumb_overlay {
-    border: none;
-    box-shadow: none;
-    background-color: rgba(255,255,255,.5);
-}
-
-
-input._jsPlumb_overlay:hover {
-    border: 2px inset;
-}
-
-
-.concept-button {
+.concept .concept-button {
     visibility: hidden;
 }
 
@@ -35,7 +43,24 @@ input._jsPlumb_overlay:hover {
     z-index: 4;
 }
 
-// TODO: should rename dragsnap to dragsnap
+/* ----------------------------------------------------------------- *
+ * arrows                                                            *
+ * ----------------------------------------------------------------- */
+
+input._jsPlumb_overlay {
+    border: none;
+    box-shadow: none;
+    background-color: rgba(255,255,255,.5);
+}
+
+input._jsPlumb_overlay:hover {
+    border: 2px inset;
+}
+
+/* ----------------------------------------------------------------- *
+ * drag snap mechanism                                               *
+ * ----------------------------------------------------------------- */
+
 .dragsnap-ghost {
     z-index: 0; /* we don't want to select this! */
 }
@@ -50,20 +75,4 @@ input._jsPlumb_overlay:hover {
 
 .dragsnap-inner-curve {
     z-index: 5; /* must be higher than concepts and outer curve */
-}
-
-.debug {
-        border: 3px dotted red;
-}
-
-.concept-over {
-        border: 2px dashed blue;
-        position: absolute;
-        z-index:2;
-}
-
-.template {
-        border: 2px dotted grey;
-        position: absolute;
-        z-index:2;
 }
