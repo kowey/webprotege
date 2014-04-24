@@ -282,7 +282,6 @@ class Curve implements
 
         public void stopResizing() {
             if (isResizing) {
-                GWT.log("[Curve] STOP resizing");
                 isResizing = false;
                 makeDraggable();
                 Curve.this.wCurve.removeStyleName("resizing");
