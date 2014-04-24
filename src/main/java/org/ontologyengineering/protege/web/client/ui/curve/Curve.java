@@ -87,6 +87,7 @@ class Curve implements
                 this.core.getHeight(),
                 this.core.getRounding());
         this.effects = new Effects(wCurve, wLabel);
+        this.effects.initialize();
 
         this.setLabel(core.getLabel());
         this.mouseOutHighlight();
@@ -118,10 +119,15 @@ class Curve implements
         final private Map<DraggableShape, VisualEffect> dragSnapEffects =
                 new IdentityHashMap<DraggableShape, VisualEffect>();
 
+        final String DEFAULT_CURVE_FILL_COLOR = "white";
+        final String DEFAULT_CURVE_STROKE_COLOR = "black";
+        final String DEFAULT_CURVE_FILL_OPACITY = "0";
+        final String DEFAULT_CURVE_STROKE_OPACITY = "1";
+
         @NonNull public VisualEffect searchBoxPartial(String color) {
             VisualEffect effect = new VisualEffect("searchbox partial (" + color + ")");
             effect.setAttribute(label, "color", color, "black");
-            effect.setAttribute(curve, "stroke", color, "black");
+            effect.setAttribute(curve, "stroke", color, DEFAULT_CURVE_STROKE_COLOR);
             effect.setAttribute(curve, "stroke-width", "2", "1");
             effect.setAttribute(curve, "stroke-dasharray", "-", "");
             return effect;
@@ -131,7 +137,7 @@ class Curve implements
             VisualEffect effect = new VisualEffect("searchbox unique (" + color + ")");
             effect.setAttribute(label, "color", color, "black");
             effect.setAttribute(label, "fontWeight", "bold", "normal");
-            effect.setAttribute(curve, "stroke", color, "black");
+            effect.setAttribute(curve, "stroke", color, DEFAULT_CURVE_STROKE_COLOR);
             effect.setAttribute(curve, "stroke-width", "5", "1");
             effect.setAttribute(curve, "stroke-dasharray", "- . .", "");
             return effect;
@@ -139,18 +145,32 @@ class Curve implements
 
         @NonNull public VisualEffect dragSnapPartial(String color) {
             VisualEffect effect = new VisualEffect("dragsnap partial (" + color + ")");
-            effect.setAttribute(curve, "fill", color, "white");
-            effect.setAttribute(curve, "opacity", "0.25", "1");
+            effect.setAttribute(curve, "fill", color, DEFAULT_CURVE_FILL_COLOR);
+            effect.setAttribute(curve, "fill-opacity", "0.25", DEFAULT_CURVE_FILL_OPACITY);
             return effect;
         }
 
         @NonNull public VisualEffect dragSnapUnique(String color) {
             VisualEffect effect = new VisualEffect("dragsnap unique (" + color + ")");
-            effect.setAttribute(curve, "fill", color, "white");
-            effect.setAttribute(curve, "opacity", "0.5", "1");
+            effect.setAttribute(curve, "fill", color, DEFAULT_CURVE_FILL_COLOR);
+            effect.setAttribute(curve, "fill-opacity", "0.5", DEFAULT_CURVE_FILL_OPACITY);
             return effect;
         }
 
+        @NonNull public void initialize() {
+            VisualEffect effect = new VisualEffect("curve defaults");
+            effect.setAttribute(curve, "fill", "", DEFAULT_CURVE_FILL_COLOR);
+            effect.setAttribute(curve, "fill-opacity", "", DEFAULT_CURVE_FILL_OPACITY);
+            effect.setAttribute(curve, "stroke-opacity", "", DEFAULT_CURVE_STROKE_OPACITY);
+            addDefaultEffect(effect);
+            applyAttributes(new Painter() {
+                @Override
+                public void apply(Key key, String value) {
+                    final String attr = key.getAttribute();
+                    curve.attr(attr, value);
+                }
+            });
+        }
 
         public void applySearchBoxEffect(SearchHandler searchBox,
                                          Optional<VisualEffect> newEffect) {
