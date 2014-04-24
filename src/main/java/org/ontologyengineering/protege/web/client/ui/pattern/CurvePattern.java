@@ -54,8 +54,8 @@ class CurvePattern extends Pattern {
         public void onLoad() {
             super.onLoad();
             curve.getElement().setId(getCurveId());
-            curve.addStyleName("snap-to-drag-curve");
-            ghost.addStyleName("snap-to-drag-ghost");
+            curve.addStyleName("dragsnap-curve");
+            ghost.addStyleName("dragsnap-ghost");
             makeDraggable("#" + getCurveId());
         }
 

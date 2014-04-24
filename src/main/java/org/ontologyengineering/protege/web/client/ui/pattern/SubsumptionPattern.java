@@ -130,9 +130,9 @@ class SubsumptionPattern extends Pattern {
         public void onLoad() {
             super.onLoad();
             if (this.role == Role.SUB) {
-                getCurve().addStyleName("snap-to-drag-inner-curve");
+                getCurve().addStyleName("dragsnap-inner-curve");
             } else {
-                getCurve().addStyleName("snap-to-drag-outer-curve");
+                getCurve().addStyleName("dragsnap-outer-curve");
             }
             makeDraggable("#" + getCurveId());
         }
