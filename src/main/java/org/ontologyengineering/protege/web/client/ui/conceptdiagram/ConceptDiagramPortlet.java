@@ -168,11 +168,10 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                     final Curve curve = new Curve(curveCore,
                             ConceptDiagramPortlet.this,
                             ConceptDiagramPortlet.this);
-                    curve.activate();
                     curves.put(curveCore, curve);
                     final Position position = curveCore.getPosition();
                     panel.add(curve.getWidget(), position.getX(), position.getY());
-
+                    curve.activate();
                 }
             }
         });
