@@ -16,12 +16,14 @@
     border: 2px transparent /*solid orange*/;
     position: absolute;
     z-index:3;
+    background-color: rgba(255,255,255,0);
 }
 
 .concept-over {
     border: 2px dashed blue;
     position: absolute;
     z-index:2;
+    background-color: rgba(255,255,255,.25);
 }
 
 .concept .gwt-TextBox-readonly {
