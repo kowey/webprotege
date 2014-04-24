@@ -155,8 +155,8 @@ class PropertyPattern extends Pattern implements Cloneable {
 
         @Override
         public void onLoad() {
-            getGhost().addStyleName("snap-to-drag-ghost");
-            getCurve().addStyleName("snap-to-drag-curve");
+            getGhost().addStyleName("dragsnap-ghost");
+            getCurve().addStyleName("dragsnap-curve");
             super.onLoad();
             makeDraggable("#" + getCurveId());
         }
