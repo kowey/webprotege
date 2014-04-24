@@ -42,7 +42,7 @@
 
 /* concept that is being resized; must be higher to grab the mouse events */
 .resizing {
-    z-index: 4;
+    z-index: 10000;
 }
 
 /* ----------------------------------------------------------------- *
@@ -68,13 +68,13 @@ input._jsPlumb_overlay:hover {
 }
 
 .dragsnap-curve {
-    z-index: 4; /* must be higher than concepts */
+    z-index: 10000; /* must be higher than concepts */
 }
 
 .dragsnap-outer-curve {
-    z-index: 4; /* must be higher than concepts */
+    z-index: 10000; /* must be higher than concepts */
 }
 
 .dragsnap-inner-curve {
-    z-index: 5; /* must be higher than concepts and outer curve */
+    z-index: 10001; /* must be higher than concepts and outer curve */
 }
