@@ -23,13 +23,10 @@ import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import java.util.*;
 
 /**
- * Pattern to express that one class subsumes another.
- * This is represented as one curve enclosing another.
- * The basic idea to drag a curve out from the pattern until it uniquely
- * snaps to one of the curves on the canvas. You can speed the process
- * along by typing in a search box to narrow the possible matching curves.
- *
- * You can then select the remaining curve in the same way
+ * Pattern to express that two classes are related by some property.
+ * We indicate this with a labeled arrow between the two classes.
+ * See the concept diagram manual for implied restrictions on the
+ * domain and range.
  */
 public
 // We would just use @Data but @EqualsAndHashCode is incompatible with GWT
