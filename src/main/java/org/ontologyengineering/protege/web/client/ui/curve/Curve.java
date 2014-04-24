@@ -281,9 +281,16 @@ class Curve implements
         }
 
         public void stopResizing() {
-            isResizing = false;
-            makeDraggable();
-            Curve.this.wCurve.removeStyleName("resizing");
+            if (isResizing) {
+                GWT.log("[Curve] STOP resizing");
+                isResizing = false;
+                makeDraggable();
+                Curve.this.wCurve.removeStyleName("resizing");
+            }
+        }
+
+        public boolean isAcceptable(@NonNull final Size sz) {
+            return sz.getWidth() > 50 && sz.getHeight() > 50;
         }
     }
 
@@ -472,8 +479,11 @@ class Curve implements
             onMouseOut(null);
         } else if (canvasState.isResizing) {
             final Scale scale = canvasState.resizingScale(event);
-            setSize(scale.transform(getSize()));
-            GWT.log("Desired scale = " + scale + " would be " + getSize());
+            final Size sz = scale.transform(getSize());
+            GWT.log("Desired scale = " + scale + " would be " + sz);
+            if (canvasState.isAcceptable(sz)) {
+                setSize(sz);
+            }
         }
     }
 
