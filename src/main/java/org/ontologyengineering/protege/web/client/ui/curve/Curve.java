@@ -417,7 +417,7 @@ class Curve implements
                              final int relativeY) {
         Curve curve = new Curve(curveRegistry, searchManager);
         container.add(curve.canvasState, relativeX, relativeY);
-        curve.switchToInstanceMode();
+        curve.activate();
         curve.setLabel(this.getLabel());
         curve.setIri(this.getIri());
         return curve;
@@ -530,18 +530,6 @@ class Curve implements
         canvasState.addDomHandler(this, MouseMoveEvent.getType());
         makeDraggable(); // gratuitious in the general but needed
         // when creating curves from whole cloth
-    }
-
-    /**
-     * You probably want to call {@link #activate} instead (which
-     * this function calls)
-     *
-     * This is intended to be used by the template management
-     * code
-     */
-    public void switchToInstanceMode() {
-        activate();
-        setLabel(Optional.<String>absent());
     }
 
     public void setMatchStatus(SearchManager.SearchHandler searchBox,
