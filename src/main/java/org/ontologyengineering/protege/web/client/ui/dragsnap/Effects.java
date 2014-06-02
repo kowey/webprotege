@@ -24,7 +24,8 @@ abstract public class Effects extends AttributeLayers {
     protected VisualEffect activePattern(@NonNull final DraggableShape curve,
                                          @NonNull final String color) {
         VisualEffect effect = new VisualEffect("property template hover (" + color + ")");
-        effect.setAttribute(curve, "stroke", color, "black");
+        effect.setAttribute(curve, "stroke", color, "gray");
+        effect.setAttribute(curve, "stroke-dasharray", ".", ".");
         effect.setAttribute(curve, "stroke-width", "3", "1");
         return effect;
     }
