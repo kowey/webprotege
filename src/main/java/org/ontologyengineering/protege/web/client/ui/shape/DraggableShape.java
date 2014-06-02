@@ -19,15 +19,16 @@ package org.ontologyengineering.protege.web.client.ui.shape;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.AbsolutePanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.hydro4ge.raphaelgwt.client.Raphael;
+import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class DraggableShape extends Raphael
-        implements HasMouseDownHandlers, HasMouseUpHandlers, HasMouseMoveHandlers, HasMouseOutHandlers
-{
+        implements HasMouseDownHandlers, HasMouseUpHandlers, HasMouseMoveHandlers, HasMouseOutHandlers {
     /*gwtnofinal*/ private Map<String, String> attrs;
 
     private Raphael parent;
@@ -52,7 +53,7 @@ public abstract class DraggableShape extends Raphael
     public DraggableShape(Raphael parent, int width, int height) {
         super(width, height);
         this.parent = parent;
-        this.attrs  = new HashMap<String, String>();
+        this.attrs = new HashMap<String, String>();
         this.addMouseUpHandler(new DragEndHandler(this));
     }
 
@@ -97,6 +98,15 @@ public abstract class DraggableShape extends Raphael
         int y1 = getAbsoluteTop();
         int y2 = y1 + getOffsetHeight();
         return new Rectangle(x1, y1, x2, y2);
+    }
+
+    /**
+     * Coordinates for this shape, relative to its container
+     * (assumed to be some sort of AbsolutePanel; see {@link #addToPanel})
+     */
+    public Position getRelativeTopLeft() {
+        final AbsolutePanel container = (AbsolutePanel)getParent();
+        return new Position(container.getWidgetLeft(this), container.getWidgetTop(this));
     }
 
     /**
