@@ -44,7 +44,6 @@ import org.ontologyengineering.protege.web.client.ui.curve.Curve;
 import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.*;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
-import org.ontologyengineering.protege.web.client.util.Position;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
@@ -184,7 +183,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 Arrays.<Pattern>asList(
                 new CurvePattern("curve-template", this, this, vPanel),
                 new SubsumptionPattern("subsume-template", this, this, vPanel),
-                new PropertyPattern("property-template", this, this, vPanel));
+                new AllValuesFromPattern("property-template", this, this, vPanel));
 
         final int yGap = 20;
         final int templateX = 0;
