@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import lombok.Getter;
 import lombok.NonNull;
@@ -66,6 +67,12 @@ abstract public class DragSnapEndpoint extends Endpoint implements SearchManager
         this.searchHandler = searchManager.makeSearchHandler(searchBox, searchColor);
     }
 
+    @Override
+    public void onLoad(@NonNull final AbsolutePanel container) {
+        super.onLoad(container);
+        effects.addDefaultEffect(effects.ghostPattern(ghost));
+    }
+
     public Optional<Collection<Curve>> getMatching() {
         return Optional.of(candidates);
     }
@@ -80,7 +87,7 @@ abstract public class DragSnapEndpoint extends Endpoint implements SearchManager
         effects.addActiveCurve(this);
     }
 
-    abstract protected void snapToMatch(@NonNull final Curve match);
+    abstract protected void snapToMatch(final Curve match);
 
     /**
      * Return curves that have already been chosen in this dragSnap interaction

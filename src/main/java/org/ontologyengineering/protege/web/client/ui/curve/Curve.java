@@ -450,6 +450,32 @@ class Curve implements
         activate();
     }
 
+    /**
+     * Reposition and resize this curve so that it surrounds the other curve.
+     */
+    public void placeOutside(@NonNull final AbsolutePanel container,
+                             @NonNull final Curve other) {
+        final Position anonTopLeft = new Position(
+                container.getWidgetLeft(other.getWidget()) - 10,
+                container.getWidgetTop(other.getWidget()) - 10);
+        final Scale anonScale = new Scale((float) 1.2, (float) 1.2);
+        placeCurve(container, anonTopLeft);
+        setSize(anonScale.transform(other.getSize()));
+    }
+
+    /**
+     * Reposition and resize this curve so that it is surrounded by the other curve
+     */
+    public void placeInside(@NonNull final AbsolutePanel container,
+                            @NonNull final Curve other) {
+        final Position anonTopLeft = new Position(
+                container.getWidgetLeft(other.getWidget()) + 10,
+                container.getWidgetTop(other.getWidget()) + 10);
+        final Scale anonScale = new Scale((float) 0.8, (float) 0.8);
+        placeCurve(container, anonTopLeft);
+        setSize(anonScale.transform(other.getSize()));
+    }
+
     public void mouseOverHighlight() {
         this.getElement().setClassName("concept-over");
     }

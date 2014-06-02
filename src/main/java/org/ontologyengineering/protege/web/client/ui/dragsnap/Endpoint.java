@@ -1,5 +1,6 @@
 package org.ontologyengineering.protege.web.client.ui.dragsnap;
 
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import lombok.Getter;
 import lombok.NonNull;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
@@ -34,7 +35,9 @@ public abstract class Endpoint {
         this.idSuffix = idSuffix;
     }
 
-    public void onLoad() {
+    public void onLoad(@NonNull AbsolutePanel container) {
+        container.add(curve);
+        container.add(ghost);
         ghost.getElement().setId(getGhostId());
         curve.getElement().setId(getCurveId());
         bind();
@@ -53,6 +56,7 @@ public abstract class Endpoint {
 
     /**
      * Bring the curve back into its template
+     * (this is also used for curve initialisation)
      */
     abstract protected void withdrawCurve();
 

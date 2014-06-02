@@ -58,6 +58,25 @@ class Pattern extends AbsolutePanel {
         this.height = sz.getHeight();
     }
 
+    /**
+     * Translates coordinates that are relative to the pattern box
+     * into coordinates that are relative to the parent of the pattern box,
+     * in effect moving them out a layer.
+     *
+     * For context, you can think in terms of 4 relevant boxes
+     * nested inside of each other:
+     *
+     * <ul>
+     *     <li>outermost - absolute coordinates</li>
+     *     <li>(some layers of nesting)</li>
+     *     <li>parent - parent of the pattern box</li>
+     *     <li>pattern box - this class</li>
+     *     <li>curve inside pattern box (local)</li>
+     * </ul>
+     *
+     * @param local
+     * @return
+     */
     protected Position relativeToParent(Position local) {
         return new Position(
                 1 + local.getX() + parentPanel.getWidgetLeft(this),

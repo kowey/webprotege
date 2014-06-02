@@ -127,8 +127,8 @@ class SubsumptionPattern extends Pattern {
             this.role = role;
         }
 
-        public void onLoad() {
-            super.onLoad();
+        public void onLoad(@NonNull AbsolutePanel container) {
+            super.onLoad(container);
             if (this.role == Role.SUB) {
                 getCurve().addStyleName("dragsnap-inner-curve");
             } else {
@@ -149,25 +149,16 @@ class SubsumptionPattern extends Pattern {
                 final AbsolutePanel parentPanel = SubsumptionPattern.this.getParentPanel();
                 final Role firstRole = firstSnapped.get();
                 final Curve chosen = SubsumptionPattern.this.alreadyChosen.get();
+                final Curve other = match.copyCurve();
 
-                Position topleft = new Position(
-                        parentPanel.getWidgetLeft(chosen.getWidget()),
-                        parentPanel.getWidgetTop(chosen.getWidget()));
-
-                Scale scale = new Scale(1, 1);
                 switch (firstRole) {
                     case SUB:
-                        scale = new Scale((float) 1.2, (float) 1.2);
-                        topleft = new Position(topleft.getX() - 10, topleft.getY() - 10);
+                        other.placeOutside(parentPanel, chosen);
                         break;
                     case SUPER:
-                        scale = new Scale((float) 0.8, (float) 0.8);
-                        topleft = new Position(topleft.getX() + 10, topleft.getY() + 10);
+                        other.placeInside(parentPanel, chosen);
                         break;
                 }
-                Curve other = match.copyCurve();
-                other.placeCurve(parentPanel, topleft);
-                other.setSize(scale.transform(chosen.getSize()));
                 SubsumptionPattern.this.maybeFinish();
             }
         }
@@ -196,10 +187,7 @@ class SubsumptionPattern extends Pattern {
         super.onLoad();
 
         for (DragSnapEndpoint endpoint : endpoints) {
-            getParentPanel().add(endpoint.getCurve());
-            getParentPanel().add(endpoint.getGhost());
-            visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
-            endpoint.onLoad();
+            endpoint.onLoad(getParentPanel());
         }
         visualEffects.applyAttributes();
         this.add(buttonBar, getSize().getWidth() + 5, 0);
@@ -262,7 +250,7 @@ class SubsumptionPattern extends Pattern {
         // to raise the z index on that one?)
         @Getter(AccessLevel.NONE)
         @Setter(AccessLevel.NONE)
-        private Set<Endpoint> activeCurves = new HashSet();
+        private Set<Endpoint> activeCurves = new HashSet<Endpoint>();
 
         public void clear() {
             activeCurves.clear();

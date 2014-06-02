@@ -51,8 +51,8 @@ class CurvePattern extends Pattern {
                   topLeft);
         }
 
-        public void onLoad() {
-            super.onLoad();
+        public void onLoad(@NonNull AbsolutePanel container) {
+            super.onLoad(container);
             curve.getElement().setId(getCurveId());
             curve.addStyleName("dragsnap-curve");
             ghost.addStyleName("dragsnap-ghost");
@@ -156,10 +156,7 @@ class CurvePattern extends Pattern {
                 Pattern.DEFAULT_TEMPLATE_HEIGHT);
         super.onLoad();
         for (Endpoint endpoint : endpoints) {
-            getParentPanel().add(endpoint.getCurve());
-            getParentPanel().add(endpoint.getGhost());
-            visualEffects.addDefaultEffect(visualEffects.ghostPattern(endpoint.getGhost()));
-            endpoint.onLoad();
+            endpoint.onLoad(getParentPanel());
         }
         visualEffects.applyAttributes();
         this.add(buttonBar, getSize().getWidth() + 5, 0);
