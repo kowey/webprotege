@@ -33,7 +33,7 @@ public
 // https://code.google.com/p/projectlombok/issues/detail?id=414
 // because the GWT compiler does not support '$' in variable names
 @ToString
-class PropertyPattern extends Pattern implements Cloneable {
+class AllValuesFromPattern extends Pattern implements Cloneable {
 
     // pertaining to either the src or to the subset endpoint
     enum Role { SOURCE, TARGET };
@@ -69,10 +69,10 @@ class PropertyPattern extends Pattern implements Cloneable {
 
 
 
-    public PropertyPattern(@NonNull final String id,
-                           @NonNull final CurveRegistry registry,
-                           @NonNull final SearchManager searchManager,
-                           @NonNull final AbsolutePanel parentPanel) {
+    public AllValuesFromPattern(@NonNull final String id,
+                                @NonNull final CurveRegistry registry,
+                                @NonNull final SearchManager searchManager,
+                                @NonNull final AbsolutePanel parentPanel) {
         super(id, registry, searchManager, parentPanel);
         this.setSize(new Size(60, 40));
 
@@ -128,22 +128,22 @@ class PropertyPattern extends Pattern implements Cloneable {
                                 @NonNull TextBox searchBox,
                                 @NonNull String searchColor,
                                 @NonNull Position topLeft) {
-            super(PropertyPattern.this.searchManager,
-                  PropertyPattern.this.visualEffects,
-                  PropertyPattern.this.getId() + idSuffix,
+            super(AllValuesFromPattern.this.searchManager,
+                  AllValuesFromPattern.this.visualEffects,
+                  AllValuesFromPattern.this.getId() + idSuffix,
                   curve, ghost, color, searchBox, searchColor,
                   topLeft);
             this.role = role;
         }
 
         protected Collection<Curve> getAlreadyChosen() {
-            return PropertyPattern.this.alreadyChosen.asSet();
+            return AllValuesFromPattern.this.alreadyChosen.asSet();
         }
 
         protected void resetSnapChoices() {
-            PropertyPattern.this.alreadyChosen = Optional.absent();
-            PropertyPattern.this.firstSnapped = Optional.absent();
-            PropertyPattern.this.buttonBar.getWProperty().setText("");
+            AllValuesFromPattern.this.alreadyChosen = Optional.absent();
+            AllValuesFromPattern.this.firstSnapped = Optional.absent();
+            AllValuesFromPattern.this.buttonBar.getWProperty().setText("");
             removeConnectionHint();
         }
 
@@ -164,14 +164,14 @@ class PropertyPattern extends Pattern implements Cloneable {
         @Override
         public void onMouseDown(MouseDownEvent event) {
             super.onMouseDown(event);
-            if (!PropertyPattern.this.connectionHint.isPresent()) {
-                PropertyPattern.this.resetConnectionHint();
+            if (!AllValuesFromPattern.this.connectionHint.isPresent()) {
+                AllValuesFromPattern.this.resetConnectionHint();
             }
         }
 
         // helper for snapIfUniqueMatch
         protected void snapToMatch(@NonNull final Curve match) {
-            final PropertyPattern prop = PropertyPattern.this;
+            final AllValuesFromPattern prop = AllValuesFromPattern.this;
             getCurve().setVisible(false);
             getSearchBox().setText(match.getLabel().or("<UNNAMED>"));
             getSearchBox().setEnabled(false);
@@ -298,7 +298,7 @@ class PropertyPattern extends Pattern implements Cloneable {
             wReset.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {
-                    for (SearchHandler handler : PropertyPattern.this.endpoints) {
+                    for (SearchHandler handler : AllValuesFromPattern.this.endpoints) {
                         handler.reset();
                     }
                 }
@@ -325,7 +325,7 @@ class PropertyPattern extends Pattern implements Cloneable {
             add(wButtons, SOUTH);
             setCellHorizontalAlignment(wButtons, ALIGN_RIGHT);
             setCellVerticalAlignment(wButtons, ALIGN_BOTTOM);
-            reposition(PropertyPattern.this.getSize());
+            reposition(AllValuesFromPattern.this.getSize());
             activate();
         }
     }
@@ -374,7 +374,7 @@ class PropertyPattern extends Pattern implements Cloneable {
             // curve snap back into the right place. So for now, we make do
             // with removing the curve altogether and putting it back as soon
             // the user starts to move the endpoints again :-(
-            PropertyPattern.this.removeConnectionHint();
+            AllValuesFromPattern.this.removeConnectionHint();
         }
     }
 
