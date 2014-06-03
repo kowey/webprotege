@@ -33,4 +33,7 @@ public interface CurveRegistry {
                           final IRI oldParent,
                           final IRI newParent);
 
+    public void addCondition(final IRI objectIri,
+                             boolean isNS,
+                             final String conditionText);
 }

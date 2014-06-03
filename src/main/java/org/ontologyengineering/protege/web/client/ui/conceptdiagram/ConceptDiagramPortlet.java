@@ -19,6 +19,7 @@ import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityResult;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
+import edu.stanford.bmir.protege.web.client.rpc.data.ConditionItem;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.SubclassEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
@@ -610,6 +611,20 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         core.forceName(iri, newName);
     }
 
+
+    /*
+     * ************ Remote procedure calls *****************
+     */
+
+    public void addCondition(@NonNull final IRI objectIri,
+                             boolean isNS,
+                             @NonNull final String conditionText) {
+        // FIXME: how do we indicate that this is a subclasses thing? isNS?
+        OntologyServiceManager.getInstance().addCondition(getProjectId(), objectIri.toString(), 0,
+                conditionText, isNS, null,
+                new AddConditionAsyncHandler());
+    }
+
     /*
      * ************ Remote procedure calls *****************
      */
@@ -730,6 +745,18 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 curve.setIri(Optional.of(newIri));
             }
             core.renameIri(oldIri, newIri);
+        }
+    }
+
+    class AddConditionAsyncHandler extends AbstractAsyncHandler<List<ConditionItem>> {
+
+        @Override
+        public void handleFailure(Throwable caught) {
+            MessageBox.showErrorMessage("Edit failed", caught);
+        }
+
+        @Override
+        public void handleSuccess(List<ConditionItem> conditions) {
         }
     }
 

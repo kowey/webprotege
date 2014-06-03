@@ -215,6 +215,16 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 final Element hintTextBox = DOM.getElementById(getConnectionHintId());
                 final String hintText = hintTextBox.getAttribute("value");
                 connectPair(source.getCurveId(), targetAnon.getCurveId(), makeConnectionId(), hintText);
+
+                // now the back end elements
+                if (source.getIri().isPresent() && target.getLabel().isPresent()) {
+                    final String propertyName = "foo"; // FIXME
+                    final String targetName = target.getLabel().get();
+                    final String condition = propertyName + " only " + targetName;
+                    curveRegistry.addCondition(source.getIri().get(), false, condition);
+                }
+
+                // reset this pattern
                 prop.maybeFinish();
             }
         }
