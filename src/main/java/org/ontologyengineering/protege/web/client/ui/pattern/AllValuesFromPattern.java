@@ -4,6 +4,8 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
@@ -22,6 +24,7 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManage
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
+import org.semanticweb.owlapi.model.IRI;
 
 import java.util.*;
 
@@ -214,7 +217,22 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 // we always expect there to be some element, so non-null
                 final Element hintTextBox = DOM.getElementById(getConnectionHintId());
                 final String hintText = hintTextBox.getAttribute("value");
-                connectPair(source.getCurveId(), targetAnon.getCurveId(), makeConnectionId(), hintText);
+
+                final String connectionId = makeConnectionId();
+                final TextBox propertyLabelBox = createArrowLabel(connectionId, hintText);
+                connectPair(source.getCurveId(), targetAnon.getCurveId(), connectionId);
+                // FIXME update (replace) condition whenever this value changes
+                propertyLabelBox.addValueChangeHandler(new ValueChangeHandler<String>() {
+                    @Override
+                    public void onValueChange(ValueChangeEvent<String> event) {
+                        createCondition(event.getValue(), source, target);
+                    }
+                });
+
+                // now the back end elements
+                createCondition(hintText, source, target);
+
+                // reset this pattern
                 prop.maybeFinish();
             }
         }
@@ -359,7 +377,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         this.add(buttonBar, 1, sz.getHeight() + 40);
         buttonBar.reposition(sz);
         visualEffects.applyAttributes();
-        connectPair(srcPoint.getGhostId(), tgtPoint.getAnonGhostId(), null, null);
+        connectPair(srcPoint.getGhostId(), tgtPoint.getAnonGhostId(), null);
     }
 
     public String getConnectionHintId() {
@@ -426,6 +444,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
 
     private void removeConnectionHint() {
         if (this.connectionHint.isPresent()) {
+            DOM.getElementById(getConnectionHintId()).removeFromParent();
             disconnect(this.connectionHint.get());
             this.connectionHint = Optional.absent();
         }
@@ -442,8 +461,10 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         removeConnectionHint();
         final String src = source.or(this.srcPoint.getCurveId());
         final String tgt = target.or(this.tgtPoint.getAnonId());
-        this.connectionHint = Optional.of(connectPair(src, tgt, getConnectionHintId(),
-                buttonBar.getWProperty().getText()));
+        final String labelId = getConnectionHintId();
+        createArrowLabel(labelId, "");
+
+        this.connectionHint = Optional.of(connectPair(src, tgt, labelId));
     }
 
     private void resetConnectionHint() {
@@ -470,11 +491,46 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         }
     }
 
+    protected void createCondition(@NonNull final String propertyName,
+                                   @NonNull final Curve source,
+                                   @NonNull final Curve target) {
 
+        // now the back end elements
+        if (source.getIri().isPresent() && target.getLabel().isPresent() && !propertyName.isEmpty()) {
+            createConditionHelper(propertyName, source.getIri().get(), target.getLabel().get());
+        }
+    }
+
+    private void createConditionHelper(@NonNull final String propertyName,
+                                       @NonNull final IRI sourceIri,
+                                       @NonNull final String targetLabel) {
+        curveRegistry.createProperty(propertyName);
+        final String restrictionAndTarget  = " only " + targetLabel;
+        curveRegistry.addCondition(sourceIri, false, propertyName, restrictionAndTarget);
+    }
+
+    /**
+     * Generate an arrow label textbox and add it to the canvas.
+     * You will later need to pass the id of this box to connectPair
+     *
+     * @param id
+     * @param text
+     * @return
+     */
+    private TextBox createArrowLabel(@NonNull final String id,
+                                     @NonNull final String text) {
+        final TextBox box = new TextBox();
+        box.getElement().setId(id);
+        box.setText(text);
+        box.getElement().setAttribute("placeholder", "PROPERTY");
+        box.getElement().addClassName("connection-label");
+        getParentPanel().add(box);
+        return box;
+    }
 
     private native JavaScriptObject connectPair(String source, String target,
-                                                String labelId, String labelText) /*-{
-        return $wnd.connect_pair(source,target, labelId, labelText);
+                                                String labelId) /*-{
+        return $wnd.connect_pair(source, target, labelId);
         }-*/;
 
     private native void disconnect(JavaScriptObject connection) /*-{
