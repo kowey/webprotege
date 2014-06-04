@@ -22,6 +22,7 @@ import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManage
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.SearchManager.SearchHandler;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableRect;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
+import org.semanticweb.owlapi.model.IRI;
 
 import java.util.*;
 
@@ -217,12 +218,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 connectPair(source.getCurveId(), targetAnon.getCurveId(), makeConnectionId(), hintText);
 
                 // now the back end elements
-                if (source.getIri().isPresent() && target.getLabel().isPresent()) {
-                    final String propertyName = "foo"; // FIXME
-                    final String targetName = target.getLabel().get();
-                    final String condition = propertyName + " only " + targetName;
-                    curveRegistry.addCondition(source.getIri().get(), false, condition);
-                }
+                createCondition(source, target);
 
                 // reset this pattern
                 prop.maybeFinish();
@@ -480,7 +476,22 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         }
     }
 
+    protected void createCondition(@NonNull final Curve source,
+                                   @NonNull final Curve target) {
 
+
+        // now the back end elements
+        if (source.getIri().isPresent() && target.getLabel().isPresent()) {
+            createConditionHelper("foo", source.getIri().get(), target.getLabel().get());
+        }
+    }
+
+    private void createConditionHelper(@NonNull final String propertyName,
+                                       @NonNull final IRI sourceIri,
+                                       @NonNull final String targetLabel) {
+        final String condition = propertyName + " only " + targetLabel;
+        curveRegistry.addCondition(sourceIri, false, condition);
+    }
 
     private native JavaScriptObject connectPair(String source, String target,
                                                 String labelId, String labelText) /*-{
