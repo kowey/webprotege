@@ -215,7 +215,13 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 // we always expect there to be some element, so non-null
                 final Element hintTextBox = DOM.getElementById(getConnectionHintId());
                 final String hintText = hintTextBox.getAttribute("value");
-                connectPair(source.getCurveId(), targetAnon.getCurveId(), makeConnectionId(), hintText);
+
+                final String connectionId = makeConnectionId();
+                final TextBox propertyLabelBox = new TextBox();
+                propertyLabelBox.getElement().setId(connectionId);
+                propertyLabelBox.setText(hintText);
+                parentPanel.add(propertyLabelBox);
+                connectPair(source.getCurveId(), targetAnon.getCurveId(), connectionId);
 
                 // now the back end elements
                 createCondition(source, target);
@@ -365,7 +371,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         this.add(buttonBar, 1, sz.getHeight() + 40);
         buttonBar.reposition(sz);
         visualEffects.applyAttributes();
-        connectPair(srcPoint.getGhostId(), tgtPoint.getAnonGhostId(), null, null);
+        connectPair(srcPoint.getGhostId(), tgtPoint.getAnonGhostId(), null);
     }
 
     public String getConnectionHintId() {
@@ -434,6 +440,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         if (this.connectionHint.isPresent()) {
             disconnect(this.connectionHint.get());
             this.connectionHint = Optional.absent();
+            DOM.getElementById(getConnectionHintId()).removeFromParent();
         }
     }
 
@@ -448,8 +455,11 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         removeConnectionHint();
         final String src = source.or(this.srcPoint.getCurveId());
         final String tgt = target.or(this.tgtPoint.getAnonId());
-        this.connectionHint = Optional.of(connectPair(src, tgt, getConnectionHintId(),
-                buttonBar.getWProperty().getText()));
+        final TextBox labelBox = new TextBox();
+        final String labelId = getConnectionHintId();
+        labelBox.getElement().setId(labelId);
+        getParentPanel().add(labelBox);
+        this.connectionHint = Optional.of(connectPair(src, tgt, labelId));
     }
 
     private void resetConnectionHint() {
@@ -494,8 +504,8 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
     }
 
     private native JavaScriptObject connectPair(String source, String target,
-                                                String labelId, String labelText) /*-{
-        return $wnd.connect_pair(source,target, labelId, labelText);
+                                                String labelId) /*-{
+        return $wnd.connect_pair(source, target, labelId);
         }-*/;
 
     private native void disconnect(JavaScriptObject connection) /*-{

@@ -17,16 +17,15 @@ function conceptdiagram_init(containerId) {
 
 
 // if labelId or labelText are null we do not provide a label
-function connect_pair(source, target, labelId, labelText) {
+// instead, we assume there is some existing DOM element that
+// is named by labelProperty and refer to that
+function connect_pair(source, target, labelId) {
     var fillColor = "gray";
     var arrowCommon = { foldback:0.3, fillStyle:fillColor, width:8 };
     // use three-arg spec to create two different arrows with the common values:
     var overlays = [[ "Arrow", { location:1 }, arrowCommon ]];
-    if (labelId != null && labelText != null) {
-        overlays.push( ["Custom", { create:function(component) {
-                                        return $("<input type='text' class='gwt-TextBox' id='" +
-                                                  labelId + "' style='width: 6em;' value='" +
-                                                  labelText + "' placeholder='PROPERTY'></input>"); },
+    if (labelId != null) {
+        overlays.push( ["Custom", { create:function(component) { return $("#" + labelId); },
                                     location:0.5,
                                     id:"customOverlay" }] );
     }
