@@ -509,7 +509,6 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
     private void createConditionHelper(@NonNull final String propertyName,
                                        @NonNull final IRI sourceIri,
                                        @NonNull final String targetLabel) {
-        curveRegistry.createProperty(propertyName);
         final String restrictionAndTarget  = " only " + targetLabel;
         curveRegistry.addCondition(sourceIri, false, propertyName, restrictionAndTarget);
     }
