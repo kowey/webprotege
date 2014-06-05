@@ -4,6 +4,8 @@ import com.google.common.base.Optional;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.*;
@@ -222,9 +224,16 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 propertyLabelBox.setText(hintText);
                 parentPanel.add(propertyLabelBox);
                 connectPair(source.getCurveId(), targetAnon.getCurveId(), connectionId);
+                // FIXME update (replace) condition whenever this value changes
+                propertyLabelBox.addValueChangeHandler(new ValueChangeHandler<String>() {
+                    @Override
+                    public void onValueChange(ValueChangeEvent<String> event) {
+                        createCondition(event.getValue(), source, target);
+                    }
+                });
 
                 // now the back end elements
-                createCondition(source, target);
+                createCondition(hintText, source, target);
 
                 // reset this pattern
                 prop.maybeFinish();
@@ -438,9 +447,9 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
 
     private void removeConnectionHint() {
         if (this.connectionHint.isPresent()) {
+            DOM.getElementById(getConnectionHintId()).removeFromParent();
             disconnect(this.connectionHint.get());
             this.connectionHint = Optional.absent();
-            DOM.getElementById(getConnectionHintId()).removeFromParent();
         }
     }
 
@@ -458,6 +467,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         final TextBox labelBox = new TextBox();
         final String labelId = getConnectionHintId();
         labelBox.getElement().setId(labelId);
+        labelBox.getElement().setAttribute("placeholder", "PROPERTY");
         getParentPanel().add(labelBox);
         this.connectionHint = Optional.of(connectPair(src, tgt, labelId));
     }
@@ -486,21 +496,22 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         }
     }
 
-    protected void createCondition(@NonNull final Curve source,
+    protected void createCondition(@NonNull final String propertyName,
+                                   @NonNull final Curve source,
                                    @NonNull final Curve target) {
 
-
         // now the back end elements
-        if (source.getIri().isPresent() && target.getLabel().isPresent()) {
-            createConditionHelper("foo", source.getIri().get(), target.getLabel().get());
+        if (source.getIri().isPresent() && target.getLabel().isPresent() && !propertyName.isEmpty()) {
+            createConditionHelper(propertyName, source.getIri().get(), target.getLabel().get());
         }
     }
 
     private void createConditionHelper(@NonNull final String propertyName,
                                        @NonNull final IRI sourceIri,
                                        @NonNull final String targetLabel) {
-        final String condition = propertyName + " only " + targetLabel;
-        curveRegistry.addCondition(sourceIri, false, condition);
+        curveRegistry.createProperty(propertyName);
+        final String restrictionAndTarget  = " only " + targetLabel;
+        curveRegistry.addCondition(sourceIri, false, propertyName, restrictionAndTarget);
     }
 
     private native JavaScriptObject connectPair(String source, String target,

@@ -12,10 +12,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import edu.stanford.bmir.protege.web.client.Application;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassAction;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.CreateClassResult;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityAction;
-import edu.stanford.bmir.protege.web.client.dispatch.actions.DeleteEntityResult;
+import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
@@ -613,16 +610,22 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
 
     /*
-     * ************ Remote procedure calls *****************
+     * ************ Properties and restrictions *****************
      */
+
 
     public void addCondition(@NonNull final IRI objectIri,
                              boolean isNS,
-                             @NonNull final String conditionText) {
-        // FIXME: how do we indicate that this is a subclasses thing? isNS?
-        OntologyServiceManager.getInstance().addCondition(getProjectId(), objectIri.toString(), 0,
-                conditionText, isNS, null,
-                new AddConditionAsyncHandler());
+                             @NonNull final String propertyName,
+                             @NonNull final String restrictionAndTarget) {
+        final Set<String> names = Collections.singleton(propertyName);
+        final String conditionText = propertyName + " " + restrictionAndTarget;
+        CreateObjectPropertiesAction action =
+                new CreateObjectPropertiesAction(getProjectId(),
+                        names,
+                        Optional.<OWLObjectProperty>absent());
+        DispatchServiceManager.get().execute(action,
+                new CreatePropertyForConditionHandler(objectIri, isNS, conditionText));
     }
 
     /*
@@ -745,6 +748,36 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
                 curve.setIri(Optional.of(newIri));
             }
             core.renameIri(oldIri, newIri);
+        }
+    }
+
+    class CreatePropertyHandler extends AbstractAsyncHandler<CreateObjectPropertiesResult> {
+
+        @Override
+        public void handleFailure(Throwable caught) {
+            GWT.log("[CM] Error at creating class", caught);
+        }
+
+        @Override
+        public void handleSuccess(CreateObjectPropertiesResult result) {
+            GWT.log("[CM] Success creating property?");
+        }
+    }
+
+    @RequiredArgsConstructor
+    class CreatePropertyForConditionHandler extends CreatePropertyHandler {
+        @NonNull private final IRI objectIri;
+        @NonNull private boolean isNS;
+        @NonNull private String conditionText;
+
+        @Override
+        public void handleSuccess(CreateObjectPropertiesResult result) {
+            super.handleSuccess(result);
+            // FIXME: how do we indicate that this is a subclasses thing? isNS?
+            OntologyServiceManager.getInstance().addCondition(getProjectId(), objectIri.toString(), 0,
+                    conditionText, isNS, null,
+                    new AddConditionAsyncHandler());
+
         }
     }
 

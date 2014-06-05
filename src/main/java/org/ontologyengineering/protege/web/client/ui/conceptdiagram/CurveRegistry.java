@@ -33,7 +33,21 @@ public interface CurveRegistry {
                           final IRI oldParent,
                           final IRI newParent);
 
+
+    /**
+     * Adds a class restriction axiom, something of the form
+     *
+     * <pre> objectIri REL restriction(prop, target)</pre>
+     *
+     * REL here is eq if isNS is true and subsumption if false.
+     *
+     * @param objectIri
+     * @param isNS is necessary and sufficient (false for just necessary)
+     * @param propertyName
+     * @param restrictionAndTarget
+     */
     public void addCondition(final IRI objectIri,
                              boolean isNS,
-                             final String conditionText);
+                             final String propertyName,
+                             final String restrictionAndTarget);
 }
