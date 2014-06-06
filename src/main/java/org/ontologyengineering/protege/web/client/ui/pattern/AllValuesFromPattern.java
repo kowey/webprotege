@@ -219,10 +219,7 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                 final String hintText = hintTextBox.getAttribute("value");
 
                 final String connectionId = makeConnectionId();
-                final TextBox propertyLabelBox = new TextBox();
-                propertyLabelBox.getElement().setId(connectionId);
-                propertyLabelBox.setText(hintText);
-                parentPanel.add(propertyLabelBox);
+                final TextBox propertyLabelBox = createArrowLabel(connectionId, hintText);
                 connectPair(source.getCurveId(), targetAnon.getCurveId(), connectionId);
                 // FIXME update (replace) condition whenever this value changes
                 propertyLabelBox.addValueChangeHandler(new ValueChangeHandler<String>() {
@@ -464,11 +461,9 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
         removeConnectionHint();
         final String src = source.or(this.srcPoint.getCurveId());
         final String tgt = target.or(this.tgtPoint.getAnonId());
-        final TextBox labelBox = new TextBox();
         final String labelId = getConnectionHintId();
-        labelBox.getElement().setId(labelId);
-        labelBox.getElement().setAttribute("placeholder", "PROPERTY");
-        getParentPanel().add(labelBox);
+        createArrowLabel(labelId, "");
+
         this.connectionHint = Optional.of(connectPair(src, tgt, labelId));
     }
 
@@ -511,6 +506,25 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                                        @NonNull final String targetLabel) {
         final String restrictionAndTarget  = " only " + targetLabel;
         curveRegistry.addCondition(sourceIri, false, propertyName, restrictionAndTarget);
+    }
+
+    /**
+     * Generate an arrow label textbox and add it to the canvas.
+     * You will later need to pass the id of this box to connectPair
+     *
+     * @param id
+     * @param text
+     * @return
+     */
+    private TextBox createArrowLabel(@NonNull final String id,
+                                     @NonNull final String text) {
+        final TextBox box = new TextBox();
+        box.getElement().setId(id);
+        box.setText(text);
+        box.getElement().setAttribute("placeholder", "PROPERTY");
+        box.getElement().addClassName("connection-label");
+        getParentPanel().add(box);
+        return box;
     }
 
     private native JavaScriptObject connectPair(String source, String target,
