@@ -16,7 +16,6 @@ import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
 import edu.stanford.bmir.protege.web.client.rpc.OntologyServiceManager;
-import edu.stanford.bmir.protege.web.client.rpc.data.ConditionItem;
 import edu.stanford.bmir.protege.web.client.rpc.data.EntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.SubclassEntityData;
 import edu.stanford.bmir.protege.web.client.rpc.data.ValueType;
@@ -772,14 +771,18 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void handleSuccess(CreateObjectPropertiesResult result) {
             super.handleSuccess(result);
+            // FIXME conditions now fail to build
+            /*
             // FIXME: how do we indicate that this is a subclasses thing? isNS?
             OntologyServiceManager.getInstance().addCondition(getProjectId(), objectIri.toString(), 0,
                     conditionText, isNS, null,
                     new AddConditionAsyncHandler());
+                    */
 
         }
     }
 
+    /*
     class AddConditionAsyncHandler extends AbstractAsyncHandler<List<ConditionItem>> {
 
         @Override
@@ -790,7 +793,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
         @Override
         public void handleSuccess(List<ConditionItem> conditions) {
         }
-    }
+    }*/
 
 //    @RequiredArgsConstructor
 //    class GetTriplesHandler extends AbstractAsyncHandler<List<Triple>> {
