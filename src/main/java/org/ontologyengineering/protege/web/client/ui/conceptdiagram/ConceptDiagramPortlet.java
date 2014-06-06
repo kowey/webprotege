@@ -457,8 +457,9 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
 
         // complicated way of saying [("rdfs:label", name)]
         OWLLiteral nameLiteral = new OWLLiteralImplNoCompression(name, "", DataFactory.getXSDString());
+        // FIXME: not sure what PropertyValueState is for really
         PropertyAnnotationValue labelAnnoPair =
-                new PropertyAnnotationValue(DataFactory.get().getRDFSLabel(), nameLiteral);
+                new PropertyAnnotationValue(DataFactory.get().getRDFSLabel(), nameLiteral, PropertyValueState.ASSERTED);
         PropertyValueList pvList =
                 new PropertyValueList(Collections.singleton(labelAnnoPair));
 
