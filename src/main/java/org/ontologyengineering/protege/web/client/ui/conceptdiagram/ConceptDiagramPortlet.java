@@ -34,9 +34,7 @@ import edu.stanford.bmir.protege.web.shared.event.BrowserTextChangedHandler;
 import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
 import org.ontologyengineering.protege.web.client.ui.curve.Curve;
 import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
@@ -233,7 +231,7 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      * ************ Searching and snapping *****************
      */
 
-    @Data
+    @RequiredArgsConstructor @Getter @Setter
     public class SearchHandlerImpl implements KeyUpHandler, SearchHandler {
         @NonNull private final TextBox textbox;
         @NonNull private final String color;
