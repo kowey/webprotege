@@ -17,6 +17,12 @@
         <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <gwt.test.mode>htmlunit</gwt.test.mode>
+        <!-- We need to refer to the Lombok jar later on, particularly in the GWT compiler -->
+        <lombokVersion>1.12.6</lombokVersion>
+        <!-- Is there a better way to do this? I would just use the maven-dependency-plugin
+             and grab ${org.projectlombok:lombok:jar}, but it doesn't seem to be accessible
+             where it counts from the gwt:run goal (unless I do mvn validate gwt:run) -->
+        <lombokJar>${settings.localRepository}/org/projectlombok/lombok/${lombokVersion}/lombok-${lombokVersion}.jar</lombokJar>
         <!-- Properties common to all build profiles -->
         <application.name>WebProtege</application.name>
         <openid.enabled>true</openid.enabled>
@@ -277,6 +283,18 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>com.hydro4ge</groupId>
+            <artifactId>raphaelgwt</artifactId>
+            <version>r42</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombokVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -302,7 +320,7 @@
                 <configuration>
                     <runTarget>WebProtege.html</runTarget>
                     <hostedWebapp>${webappDirectory}</hostedWebapp>
-                    <extraJvmArgs>-Xms1000M -Xmx2000M -XX:MaxPermSize=500M -XX:PermSize=128M</extraJvmArgs>
+                    <extraJvmArgs>-Xms1000M -Xmx2000M -XX:MaxPermSize=500M -XX:PermSize=128M -javaagent:${lombokJar}=ECJ</extraJvmArgs>
                     <logLevel>INFO</logLevel>
                     <localWorkers>1</localWorkers>
                 </configuration>

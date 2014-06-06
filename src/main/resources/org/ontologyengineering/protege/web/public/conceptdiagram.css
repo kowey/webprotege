@@ -1,0 +1,81 @@
+.debug {
+    border: 3px dotted red;
+}
+
+.template {
+    border: 2px dotted grey;
+    position: absolute;
+    z-index:2;
+}
+
+/* ----------------------------------------------------------------- *
+ * curves                                                            *
+ * ----------------------------------------------------------------- */
+
+.concept {
+    border: 2px transparent /*solid orange*/;
+    position: absolute;
+    z-index:3;
+    background-color: rgba(255,255,255,0);
+}
+
+.concept-over {
+    border: 2px dashed blue;
+    position: absolute;
+    z-index:2;
+    background-color: rgba(255,255,255,.25);
+}
+
+.concept .gwt-TextBox-readonly {
+    border: none;
+    box-shadow: none;
+    background-color: rgba(255,255,255,.5);
+}
+
+.concept .concept-button {
+    visibility: hidden;
+}
+
+.concept-over .concept-button {
+    visibility: visible;
+}
+
+/* concept that is being resized; must be higher to grab the mouse events */
+.resizing {
+    z-index: 10000;
+}
+
+/* ----------------------------------------------------------------- *
+ * arrows                                                            *
+ * ----------------------------------------------------------------- */
+
+input._jsPlumb_overlay {
+    border: none;
+    box-shadow: none;
+    background-color: rgba(255,255,255,.5);
+    width: 6em;
+}
+
+input._jsPlumb_overlay:hover {
+    border: 2px inset;
+}
+
+/* ----------------------------------------------------------------- *
+ * drag snap mechanism                                               *
+ * ----------------------------------------------------------------- */
+
+.dragsnap-ghost {
+    z-index: 0; /* we don't want to select this! */
+}
+
+.dragsnap-curve {
+    z-index: 10000; /* must be higher than concepts */
+}
+
+.dragsnap-outer-curve {
+    z-index: 10000; /* must be higher than concepts */
+}
+
+.dragsnap-inner-curve {
+    z-index: 10001; /* must be higher than concepts and outer curve */
+}
