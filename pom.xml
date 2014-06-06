@@ -44,7 +44,7 @@
         <repository>
             <id>edu.protege.stanford</id>
             <name>Protege Project Maven Repo</name>
-            <url>https://github.com/protegeproject/mvn-repo/raw/master/releases</url>
+            <url>https://github.com/kowey/mvn-repo/raw/master/releases</url>
             <snapshots>
                 <updatePolicy>daily</updatePolicy>
             </snapshots>
