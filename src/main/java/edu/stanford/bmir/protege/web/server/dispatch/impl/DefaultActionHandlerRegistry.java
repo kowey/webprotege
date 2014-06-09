@@ -53,6 +53,10 @@ import edu.stanford.bmir.protege.web.shared.renderer.GetEntityRenderingAction;
 import edu.stanford.bmir.protege.web.shared.usage.GetUsageAction;
 import edu.stanford.bmir.protege.web.shared.watches.AddWatchAction;
 import edu.stanford.bmir.protege.web.shared.watches.RemoveWatchesAction;
+import org.ontologyengineering.protege.web.server.persistence.LoadDiagramActionHandler;
+import org.ontologyengineering.protege.web.server.persistence.SaveDiagramActionHandler;
+import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramAction;
+import org.ontologyengineering.protege.web.shared.persistence.SaveDiagramAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -158,6 +162,9 @@ public class DefaultActionHandlerRegistry implements ActionHandlerRegistry {
         register(new SetManchesterSyntaxFrameActionHandler(), SetManchesterSyntaxFrameAction.class);
         register(new CheckManchesterSyntaxFrameActionHandler(), CheckManchesterSyntaxFrameAction.class);
         register(new GetManchesterSyntaxFrameCompletionsActionHandler(), GetManchesterSyntaxFrameCompletionsAction.class);
+
+        register(new LoadDiagramActionHandler(), LoadDiagramAction.class);
+        register(new SaveDiagramActionHandler(), SaveDiagramAction.class);
     }
 
 

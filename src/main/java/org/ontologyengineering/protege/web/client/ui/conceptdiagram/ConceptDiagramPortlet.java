@@ -11,7 +11,9 @@ import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import edu.stanford.bmir.protege.web.client.Application;
+import edu.stanford.bmir.protege.web.client.dispatch.DispatchService;
 import edu.stanford.bmir.protege.web.client.dispatch.DispatchServiceManager;
+import edu.stanford.bmir.protege.web.client.dispatch.VoidResult;
 import edu.stanford.bmir.protege.web.client.dispatch.actions.*;
 import edu.stanford.bmir.protege.web.client.project.Project;
 import edu.stanford.bmir.protege.web.client.rpc.AbstractAsyncHandler;
@@ -34,12 +36,14 @@ import edu.stanford.bmir.protege.web.shared.frame.*;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedEvent;
 import edu.stanford.bmir.protege.web.shared.hierarchy.ClassHierarchyParentRemovedHandler;
 import lombok.*;
-import org.ontologyengineering.protege.web.client.rpc.ConceptDiagramServiceManager;
 import org.ontologyengineering.protege.web.client.ui.curve.Curve;
 import org.ontologyengineering.protege.web.client.ui.curve.CurveCore;
 import org.ontologyengineering.protege.web.client.ui.pattern.*;
 import org.ontologyengineering.protege.web.client.ui.shape.DraggableShape;
 import org.ontologyengineering.protege.web.client.util.Rectangle;
+import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramAction;
+import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramResult;
+import org.ontologyengineering.protege.web.shared.persistence.SaveDiagramAction;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
@@ -133,31 +137,32 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
     }
 
     private void saveDiagram() {
-        ConceptDiagramServiceManager.getInstance().saveDiagram(getProjectId(),
-                new DiagramNub(this.core),
-                new AsyncCallback<Void>() {
+        final SaveDiagramAction action = new SaveDiagramAction(getProjectId(),
+                new DiagramNub(this.core));
+        DispatchServiceManager.get().execute(action, new AbstractAsyncHandler<VoidResult>() {
             @Override
-            public void onFailure(Throwable caught) {
+            public void handleFailure(Throwable caught) {
                 GWT.log("[Concept diagram] saveDiagram failed!");
             }
 
             @Override
-            public void onSuccess(Void result) {
+            public void handleSuccess(VoidResult result) {
                 GWT.log("[Concept diagram] saveDiagram should have succeeded!");
             }
         });
     }
 
     private void loadDiagram(@NonNull final AbsolutePanel panel) {
-        ConceptDiagramServiceManager.getInstance().loadDiagram(getProjectId(), new AsyncCallback<DiagramNub>() {
+        final LoadDiagramAction action = new LoadDiagramAction(getProjectId());
+        DispatchServiceManager.get().execute(action, new AbstractAsyncHandler<LoadDiagramResult>() {
             @Override
-            public void onFailure(Throwable caught) {
+            public void handleFailure(Throwable caught) {
                 GWT.log("[Concept diagram] loadDiagram failed!" + caught);
             }
 
             @Override
-            public void onSuccess(DiagramNub result) {
-                ConceptDiagramPortlet.this.core.replaceWith(new Diagram(result));
+            public void handleSuccess(LoadDiagramResult result) {
+                ConceptDiagramPortlet.this.core.replaceWith(new Diagram(result.getDiagram()));
                 for (CurveCore curveCore : core.getCurves()) {
                     final Curve curve = new Curve(curveCore,
                             ConceptDiagramPortlet.this,
@@ -168,7 +173,6 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
             }
         });
     }
-
 
     // draw the pattern templates
     private void initTemplates(AbsolutePanel vPanel) {
