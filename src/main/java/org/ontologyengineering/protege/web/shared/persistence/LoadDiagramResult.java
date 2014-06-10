@@ -3,7 +3,6 @@ package org.ontologyengineering.protege.web.shared.persistence;
 import edu.stanford.bmir.protege.web.shared.dispatch.Result;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.ontologyengineering.protege.web.client.ui.conceptdiagram.DiagramNub;
 
 @Getter
