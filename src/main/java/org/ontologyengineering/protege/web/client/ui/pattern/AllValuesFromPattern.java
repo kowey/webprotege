@@ -496,16 +496,16 @@ class AllValuesFromPattern extends Pattern implements Cloneable {
                                    @NonNull final Curve target) {
 
         // now the back end elements
-        if (source.getIri().isPresent() && target.getLabel().isPresent() && !propertyName.isEmpty()) {
-            createConditionHelper(propertyName, source.getIri().get(), target.getLabel().get());
+        if (source.getIri().isPresent() && target.getIri().isPresent() && !propertyName.isEmpty()) {
+            createConditionHelper(propertyName, source.getIri().get(), target.getIri().get());
         }
     }
 
     private void createConditionHelper(@NonNull final String propertyName,
-                                       @NonNull final IRI sourceIri,
-                                       @NonNull final String targetLabel) {
-        final String restrictionAndTarget  = " only " + targetLabel;
-        curveRegistry.addCondition(sourceIri, false, propertyName, restrictionAndTarget);
+                                       @NonNull final IRI sourceIRI,
+                                       @NonNull final IRI targetIRI) {
+
+        curveRegistry.addCondition(sourceIRI, propertyName, targetIRI);
     }
 
     /**

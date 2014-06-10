@@ -44,6 +44,7 @@ import org.ontologyengineering.protege.web.client.util.Rectangle;
 import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramAction;
 import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramResult;
 import org.ontologyengineering.protege.web.shared.persistence.SaveDiagramAction;
+import org.ontologyengineering.protege.web.shared.restriction.AllValuesFromAction;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression;
 
@@ -616,18 +617,22 @@ public class ConceptDiagramPortlet extends AbstractOWLEntityPortlet implements C
      */
 
 
-    public void addCondition(@NonNull final IRI objectIri,
-                             boolean isNS,
-                             @NonNull final String propertyName,
-                             @NonNull final String restrictionAndTarget) {
-        final Set<String> names = Collections.singleton(propertyName);
-        final String conditionText = propertyName + " " + restrictionAndTarget;
-        CreateObjectPropertiesAction action =
-                new CreateObjectPropertiesAction(getProjectId(),
-                        names,
-                        Optional.<OWLObjectProperty>absent());
+    public void addCondition(@NonNull final IRI sourceIRI,
+                             @NonNull final String property,
+                             @NonNull final IRI objectIRI) {
+        AllValuesFromAction action = new AllValuesFromAction(getProjectId(), sourceIRI, property, objectIRI);
         DispatchServiceManager.get().execute(action,
-                new CreatePropertyForConditionHandler(objectIri, isNS, conditionText));
+                new AbstractAsyncHandler<VoidResult>() {
+                    @Override
+                    public void handleFailure(Throwable caught) {
+                        GWT.log("[Concept diagram] AVF creation failed");
+                    }
+
+                    @Override
+                    public void handleSuccess(VoidResult result) {
+                        GWT.log("[Concept diagram] AVF created by rights");
+                    }
+                });
     }
 
     /*
