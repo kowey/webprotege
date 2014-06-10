@@ -110,7 +110,8 @@ public class MailManager {
             Transport.send(msg);
         } catch (MessagingException e) {
             exceptionHandler.handleMessagingException(e);
-            LOGGER.severe(e);
+            System.err.println("MAIL ERROR: " + e);
+            //LOGGER.severe(e);
         } catch (UnsupportedEncodingException e) {
             LOGGER.severe(e);
         }
