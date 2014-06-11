@@ -41,13 +41,9 @@ public interface CurveRegistry {
      *
      * REL here is eq if isNS is true and subsumption if false.
      *
-     * @param objectIri
-     * @param isNS is necessary and sufficient (false for just necessary)
-     * @param propertyName
-     * @param restrictionAndTarget
+     * FIXME: update documentation and function name
      */
-    public void addCondition(final IRI objectIri,
-                             boolean isNS,
+    public void addCondition(final IRI sourceIRI,
                              final String propertyName,
-                             final String restrictionAndTarget);
+                             final IRI objectIRI);
 }

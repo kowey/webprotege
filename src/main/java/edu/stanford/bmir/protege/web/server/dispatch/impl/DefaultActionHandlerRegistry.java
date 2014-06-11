@@ -55,8 +55,10 @@ import edu.stanford.bmir.protege.web.shared.watches.AddWatchAction;
 import edu.stanford.bmir.protege.web.shared.watches.RemoveWatchesAction;
 import org.ontologyengineering.protege.web.server.persistence.LoadDiagramActionHandler;
 import org.ontologyengineering.protege.web.server.persistence.SaveDiagramActionHandler;
+import org.ontologyengineering.protege.web.server.restriction.AllValuesFromActionHandler;
 import org.ontologyengineering.protege.web.shared.persistence.LoadDiagramAction;
 import org.ontologyengineering.protege.web.shared.persistence.SaveDiagramAction;
+import org.ontologyengineering.protege.web.shared.restriction.AllValuesFromAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -165,6 +167,7 @@ public class DefaultActionHandlerRegistry implements ActionHandlerRegistry {
 
         register(new LoadDiagramActionHandler(), LoadDiagramAction.class);
         register(new SaveDiagramActionHandler(), SaveDiagramAction.class);
+        register(new AllValuesFromActionHandler(), AllValuesFromAction.class);
     }
 
 
